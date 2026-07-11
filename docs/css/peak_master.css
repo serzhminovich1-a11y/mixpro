@@ -166,7 +166,13 @@ body{background:#0a0b12;color:#eef0fb;font-family:'Manrope',sans-serif;-webkit-f
 }
 
 /* Прямое угадывание на графике: тронул/провёл/отпустил */
-.pm-graph-touch{position:absolute;inset:0;cursor:crosshair;touch-action:none}
+.pm-graph-touch{position:absolute;inset:0;cursor:grab;touch-action:none}
+.pm-graph-touch:active{cursor:grabbing}
+.pm-guess-gate{position:absolute;top:4px;bottom:4px;width:30px;transform:translateX(-50%);pointer-events:none;opacity:.45;transition:opacity .15s}
+.pm-guess-gate.active{opacity:1}
+.pm-gate-arm{position:absolute;top:0;bottom:0;width:9px;border:3px solid #fb923c;border-radius:5px;box-shadow:0 0 10px rgba(251,146,60,.65)}
+.pm-gate-arm.left{left:0;border-right:none;border-top-right-radius:0;border-bottom-right-radius:0}
+.pm-gate-arm.right{right:0;border-left:none;border-top-left-radius:0;border-bottom-left-radius:0}
 .pm-guess-tag{
   position:absolute;top:0;display:flex;align-items:center;gap:4px;
   transition:opacity .2s;pointer-events:none;transform:translateX(-50%);
@@ -185,6 +191,30 @@ body{background:#0a0b12;color:#eef0fb;font-family:'Manrope',sans-serif;-webkit-f
   border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.03);color:rgba(255,255,255,.7);cursor:pointer;transition:.15s;
 }
 .pm-reveal-btn:hover{border-color:rgba(255,255,255,.3);color:#fff}
+
+/* ── TRAIN SETUP (были без стилей вообще) ── */
+.train-card{
+  background:var(--s1);border:1px solid var(--border);border-radius:20px;
+  padding:32px;display:flex;flex-direction:column;gap:22px;width:100%;max-width:520px;
+}
+.train-card h2{font-family:'Unbounded',sans-serif;font-size:17px;font-weight:700;color:#fff}
+.train-row{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.train-label{font-family:'Unbounded',sans-serif;font-size:13px;font-weight:600;color:#fff}
+.train-sub{font-size:11px;color:var(--muted);margin-top:3px}
+.train-chips{display:flex;gap:6px;flex-wrap:wrap}
+.train-chip{
+  font-family:'Unbounded',sans-serif;font-size:12px;font-weight:600;padding:9px 15px;border-radius:8px;
+  border:1px solid var(--border);background:rgba(255,255,255,.03);color:var(--muted2);cursor:pointer;transition:.15s;
+}
+.train-chip:hover{border-color:rgba(34,211,238,.4);color:#fff}
+.train-chip.on{border-color:var(--cyan);background:rgba(34,211,238,.1);color:var(--cyan)}
+.train-slider{
+  -webkit-appearance:none;appearance:none;width:150px;height:5px;border-radius:3px;
+  background:linear-gradient(90deg,var(--purple),var(--cyan));cursor:pointer;outline:none;
+}
+.train-slider::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 0 10px rgba(34,211,238,.7);cursor:pointer;border:none}
+.train-slider::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 0 10px rgba(34,211,238,.7);cursor:pointer;border:none}
+.train-val{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--cyan);min-width:56px;text-align:right}
 
 /* Start screen toggles */
 .start-toggles{width:100%;max-width:440px;display:flex;flex-direction:column;gap:10px}

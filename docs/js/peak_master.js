@@ -392,10 +392,12 @@ function newRound(){
   // Graph — пустая кривая
   updateGraph(false);
 
-  // Сброс гипотезы — курсор на графике скрыт, пока не тронут
+  // Сброс гипотезы — воротики видны полупрозрачно по центру, ждут перетаскивания
   guessFrac=0.5;dragging=false;
   document.getElementById('guessLine').style.opacity='0';
   document.getElementById('guessTag').style.opacity='0';
+  document.getElementById('guessGate').classList.remove('active');
+  updateGuessGate(0.5);
   const gt=document.getElementById('graphTouch');if(gt)gt.style.pointerEvents='auto';
 }
 
@@ -427,15 +429,23 @@ function updateGuessTag(v){
   label.textContent=fmtF(Math.round(sliderToFreq(v)))+' Hz';
 }
 
+function updateGuessGate(v){
+  const gate=document.getElementById('guessGate');
+  if(!gate)return;
+  gate.style.left=(v*100)+'%';
+}
+
 function setGuessFraction(v){
   guessFrac=v;
   updateGuessLine(v);
   updateGuessTag(v);
+  updateGuessGate(v);
 }
 
 function graphPointerDown(e){
   if(answered)return;
   dragging=true;
+  document.getElementById('guessGate').classList.add('active');
   setGuessFraction(graphFracFromEvent(e));
   e.preventDefault();
 }
@@ -526,7 +536,7 @@ function checkAnswer(){
         },500);
       }
     }
-  } else { streak=0; }
+  } else { streak=0; playWrongSound(); }
 
   sessionResults.push(ok);
 
@@ -821,6 +831,30 @@ function playPerfectSound() {
       osc.start(t); osc.stop(t + 0.75);
     });
     if(isNew) setTimeout(() => { try{ctx.close();}catch(e){} }, 1400);
+  } catch(e) {}
+}
+
+// ── ЗВУК НЕВЕРНОГО ОТВЕТА ──
+function playWrongSound() {
+  try {
+    const ctx = (actx && actx.state !== 'closed') ? actx : new (window.AudioContext || window.webkitAudioContext)();
+    const isNew = ctx !== actx;
+    if(ctx.state === 'suspended') ctx.resume();
+    const master = ctx.createGain();
+    master.gain.value = 0.22;
+    master.connect(ctx.destination);
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    osc.type = 'sawtooth';
+    const t = ctx.currentTime;
+    osc.frequency.setValueAtTime(220, t);
+    osc.frequency.exponentialRampToValueAtTime(110, t + 0.25);
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(0.5, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+    osc.connect(g); g.connect(master);
+    osc.start(t); osc.stop(t + 0.32);
+    if(isNew) setTimeout(() => { try{ctx.close();}catch(e){} }, 500);
   } catch(e) {}
 }
 

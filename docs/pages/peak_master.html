@@ -174,6 +174,11 @@
         <div class="pm-guess-tag" id="guessTag" style="left:50%;opacity:0">
           <span id="guessFreqTag">?</span>
         </div>
+        <!-- Воротики — держатель для перетаскивания гипотезы -->
+        <div class="pm-guess-gate" id="guessGate" style="left:50%">
+          <span class="pm-gate-arm left"></span>
+          <span class="pm-gate-arm right"></span>
+        </div>
         <!-- Прозрачный слой для клика/перетаскивания прямо по графику -->
         <div class="pm-graph-touch" id="graphTouch"></div>
       </div>
@@ -239,68 +244,67 @@
 
   </div>
 
-</div>
-
-
-<!-- TRAIN SCREEN -->
-<div id="scrTrain" class="screen" style="align-items:center">
-  <div class="train-card">
-    <div style="display:flex;align-items:center;justify-content:space-between">
-      <h2>⚙ Тренировочный режим</h2>
-      <button class="pm-back" onclick="closeTrain()">✕ Закрыть</button>
-    </div>
-    <p style="font-size:13px;color:var(--muted2);line-height:1.6">Настрой параметры под себя. Результаты не сохраняются в рейтинг — это пространство для отработки конкретных навыков.</p>
-
-    <div class="train-row">
-      <div><div class="train-label">Количество полос</div><div class="train-sub">Сколько частот будет поднято</div></div>
-      <div class="train-chips" id="bandsChips">
-        <button class="train-chip on" onclick="setTrain('bands',1,this)">1</button>
-        <button class="train-chip" onclick="setTrain('bands',2,this)">2</button>
-        <button class="train-chip" onclick="setTrain('bands',3,this)">3</button>
+  <!-- TRAIN SCREEN -->
+  <div id="scrTrain" class="screen" style="align-items:center">
+    <div class="train-card">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <h2>⚙ Тренировочный режим</h2>
+        <button class="pm-back" onclick="closeTrain()">✕ Закрыть</button>
       </div>
-    </div>
+      <p style="font-size:13px;color:var(--muted2);line-height:1.6">Настрой параметры под себя. Результаты не сохраняются в рейтинг — это пространство для отработки конкретных навыков.</p>
 
-    <div class="train-row">
-      <div><div class="train-label">Уровень буста / среза</div><div class="train-sub">В децибелах</div></div>
-      <div style="display:flex;align-items:center;gap:10px">
-        <input class="train-slider" type="range" min="3" max="18" value="9" id="gainSlider"
-          oninput="setTrainSlider('gain',this)">
-        <span class="train-val" id="gainVal">+9 dB</span>
+      <div class="train-row">
+        <div><div class="train-label">Количество полос</div><div class="train-sub">Сколько частот будет поднято</div></div>
+        <div class="train-chips" id="bandsChips">
+          <button class="train-chip on" onclick="setTrain('bands',1,this)">1</button>
+          <button class="train-chip" onclick="setTrain('bands',2,this)">2</button>
+          <button class="train-chip" onclick="setTrain('bands',3,this)">3</button>
+        </div>
       </div>
-    </div>
 
-    <div class="train-row">
-      <div><div class="train-label">Ширина Q</div><div class="train-sub">Узко — сложнее, широко — легче</div></div>
-      <div style="display:flex;align-items:center;gap:10px">
-        <input class="train-slider" type="range" min="1" max="10" value="5" id="qSlider"
-          oninput="setTrainSlider('q',this)">
-        <span class="train-val" id="qVal">Q 1.2</span>
+      <div class="train-row">
+        <div><div class="train-label">Уровень буста / среза</div><div class="train-sub">В децибелах</div></div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <input class="train-slider" type="range" min="3" max="18" value="9" id="gainSlider"
+            oninput="setTrainSlider('gain',this)">
+          <span class="train-val" id="gainVal">+9 dB</span>
+        </div>
       </div>
-    </div>
 
-    <div class="train-row">
-      <div><div class="train-label">Режим</div><div class="train-sub">Буст, срез или оба</div></div>
-      <div class="train-chips" id="modeChips">
-        <button class="train-chip on" onclick="setTrain('mode','boost',this)">Буст ↑</button>
-        <button class="train-chip" onclick="setTrain('mode','cut',this)">Срез ↓</button>
-        <button class="train-chip" onclick="setTrain('mode','both',this)">Оба</button>
+      <div class="train-row">
+        <div><div class="train-label">Ширина Q</div><div class="train-sub">Узко — сложнее, широко — легче</div></div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <input class="train-slider" type="range" min="1" max="10" value="5" id="qSlider"
+            oninput="setTrainSlider('q',this)">
+          <span class="train-val" id="qVal">Q 1.2</span>
+        </div>
       </div>
-    </div>
 
-    <div class="train-row">
-      <div><div class="train-label">Диапазон частот</div><div class="train-sub">Ограничить зону тренировки</div></div>
-      <div class="train-chips" id="rangeChips">
-        <button class="train-chip on" onclick="setTrain('range','all',this)">Все</button>
-        <button class="train-chip" onclick="setTrain('range','low',this)">Бас</button>
-        <button class="train-chip" onclick="setTrain('range','mid',this)">Мид</button>
-        <button class="train-chip" onclick="setTrain('range','high',this)">Верх</button>
+      <div class="train-row">
+        <div><div class="train-label">Режим</div><div class="train-sub">Буст, срез или оба</div></div>
+        <div class="train-chips" id="modeChips">
+          <button class="train-chip on" onclick="setTrain('mode','boost',this)">Буст ↑</button>
+          <button class="train-chip" onclick="setTrain('mode','cut',this)">Срез ↓</button>
+          <button class="train-chip" onclick="setTrain('mode','both',this)">Оба</button>
+        </div>
       </div>
-    </div>
 
-    <button class="start-btn" onclick="startTrainGame()" style="font-size:14px;padding:14px 32px">
-      Начать тренировку
-    </button>
+      <div class="train-row">
+        <div><div class="train-label">Диапазон частот</div><div class="train-sub">Ограничить зону тренировки</div></div>
+        <div class="train-chips" id="rangeChips">
+          <button class="train-chip on" onclick="setTrain('range','all',this)">Все</button>
+          <button class="train-chip" onclick="setTrain('range','low',this)">Бас</button>
+          <button class="train-chip" onclick="setTrain('range','mid',this)">Мид</button>
+          <button class="train-chip" onclick="setTrain('range','high',this)">Верх</button>
+        </div>
+      </div>
+
+      <button class="start-btn" onclick="startTrainGame()" style="font-size:14px;padding:14px 32px">
+        Начать тренировку
+      </button>
+    </div>
   </div>
+
 </div>
 
 <!-- Streak popup -->

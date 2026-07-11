@@ -29,6 +29,7 @@ let raf=null, vol=.2, muted=false;
 let challengeMode=false;
 let sbUser=null, sbProfile=null;
 let phoneMode=false, revealShown=true, sessionRound=0, sessionScore=0, sessionResults=[];
+let guessFrac=0.5, dragging=false;
 let guessSource='noise';
 let trackManifest=[], trackCache={};
 
@@ -391,20 +392,22 @@ function newRound(){
   // Graph — пустая кривая
   updateGraph(false);
 
-  // Сброс слайдера-гипотезы
-  const fs=document.getElementById('freqSlider');
-  fs.disabled=false;fs.value=0.5;
-  document.getElementById('submitBtn').disabled=false;
-  onGuessInput();
+  // Сброс гипотезы — курсор на графике скрыт, пока не тронут
+  guessFrac=0.5;dragging=false;
+  document.getElementById('guessLine').style.opacity='0';
+  document.getElementById('guessTag').style.opacity='0';
+  const gt=document.getElementById('graphTouch');if(gt)gt.style.pointerEvents='auto';
 }
 
 function sliderToFreq(v){return Math.pow(10,LO+v*(HI-LO))}
 function freqToSlider(f){return(Math.log10(f)-LO)/(HI-LO)}
 
-function onGuessInput(){
-  const v=parseFloat(document.getElementById('freqSlider').value);
-  document.getElementById('guessValue').textContent=fmtF(Math.round(sliderToFreq(v)))+' Hz';
-  updateGuessLine(v);
+// ── Угадывание прямо на графике: тронул → провёл → отпустил ──
+function graphFracFromEvent(e){
+  const svg=document.getElementById('eqSvg');
+  const rect=svg.getBoundingClientRect();
+  const clientX=(e.touches&&e.touches[0])?e.touches[0].clientX:e.clientX;
+  return Math.max(0,Math.min(1,(clientX-rect.left)/rect.width));
 }
 
 function updateGuessLine(v){
@@ -415,10 +418,42 @@ function updateGuessLine(v){
   gl.style.opacity=answered?'0':'.9';
 }
 
+function updateGuessTag(v){
+  const tag=document.getElementById('guessTag');
+  const label=document.getElementById('guessFreqTag');
+  if(!tag)return;
+  tag.style.left=(v*100)+'%';
+  tag.style.opacity=answered?'0':'1';
+  label.textContent=fmtF(Math.round(sliderToFreq(v)))+' Hz';
+}
+
+function setGuessFraction(v){
+  guessFrac=v;
+  updateGuessLine(v);
+  updateGuessTag(v);
+}
+
+function graphPointerDown(e){
+  if(answered)return;
+  dragging=true;
+  setGuessFraction(graphFracFromEvent(e));
+  e.preventDefault();
+}
+function graphPointerMove(e){
+  if(!dragging||answered)return;
+  setGuessFraction(graphFracFromEvent(e));
+  e.preventDefault();
+}
+function graphPointerUp(e){
+  if(!dragging)return;
+  dragging=false;
+  if(answered)return;
+  submitGuess();
+}
+
 function submitGuess(){
   if(answered)return;
-  const v=parseFloat(document.getElementById('freqSlider').value);
-  picked=sliderToFreq(v);
+  picked=sliderToFreq(guessFrac);
   checkAnswer();
 }
 
@@ -436,9 +471,9 @@ function checkAnswer(){
   let earned=0;
   totalAns++;
 
-  document.getElementById('freqSlider').disabled=true;
-  document.getElementById('submitBtn').disabled=true;
-  updateGuessLine(0);
+  const gt=document.getElementById('graphTouch');if(gt)gt.style.pointerEvents='none';
+  updateGuessLine(guessFrac);
+  updateGuessTag(guessFrac);
 
   // EQ кривая
   clearHintZone();
@@ -1033,3 +1068,12 @@ initStreak();
 sbInit();
 initHints();
 loadTrackManifest();
+
+// Угадывание прямо на графике: мышь и тач
+const graphTouchEl=document.getElementById('graphTouch');
+graphTouchEl.addEventListener('mousedown',graphPointerDown);
+graphTouchEl.addEventListener('touchstart',graphPointerDown,{passive:false});
+window.addEventListener('mousemove',graphPointerMove);
+window.addEventListener('touchmove',graphPointerMove,{passive:false});
+window.addEventListener('mouseup',graphPointerUp);
+window.addEventListener('touchend',graphPointerUp);

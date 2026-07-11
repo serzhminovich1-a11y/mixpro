@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MIXPRO — Рейтинг</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0b16;--s1:rgba(255,255,255,.03);--s2:rgba(255,255,255,.07);--border:rgba(255,255,255,.1);--blue:#a78bfa;--cyan:#22d3ee;--green:#4ade80;--red:#f87171;--gold:#facc15;--text:#eef0fb;--muted:rgba(255,255,255,.35);--muted2:rgba(255,255,255,.55);--ox:'Unbounded', sans-serif;--mono:'JetBrains Mono',monospace;--sans:'Manrope', sans-serif;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:radial-gradient(1100px 560px at 82% -10%,rgba(167,139,250,.16),transparent),radial-gradient(900px 480px at 4% 100%,rgba(34,211,238,.10),transparent),var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh}
+nav{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid var(--border);background:var(--s1)}
+.logo{font-family:var(--ox);font-size:17px;font-weight:800;color:var(--cyan);text-decoration:none}
+.logo span{color:var(--text)}
+.nav-links{display:flex;gap:8px}
+.nav-btn{font-family:var(--mono);font-size:12px;padding:7px 14px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--muted2);cursor:pointer;text-decoration:none;transition:.15s}
+.nav-btn:hover{color:var(--text);border-color:var(--muted2)}
+.wrap{max-width:860px;margin:0 auto;padding:40px 20px}
+.page-title{font-family:var(--ox);font-size:28px;font-weight:800;letter-spacing:-.02em;margin-bottom:6px}
+.page-sub{font-size:14px;color:var(--muted2);margin-bottom:28px}
+.filter-row{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+.f-btn{font-family:var(--mono);font-size:11px;letter-spacing:.08em;padding:7px 16px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted2);cursor:pointer;transition:.15s}
+.f-btn:hover{border-color:var(--muted2);color:var(--text)}
+.f-btn.on{border-color:var(--cyan);color:var(--cyan);background:rgba(0,200,255,.08)}
+.table-wrap{background:var(--s1);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+table{width:100%;border-collapse:collapse}
+th{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);padding:12px 20px;text-align:left;border-bottom:1px solid var(--border)}
+td{font-family:var(--mono);font-size:13px;color:var(--text);padding:13px 20px;border-bottom:1px solid rgba(26,37,64,.5)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--s2)}
+.rank{font-weight:700;color:var(--muted2);min-width:32px}
+.rank.gold{color:#FFD700;font-size:15px}
+.rank.silver{color:#C0C0C0;font-size:15px}
+.rank.bronze{color:#CD7F32;font-size:15px}
+.username{font-weight:700;color:var(--text);display:flex;align-items:center;gap:10px}
+.av-mini{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0}
+.score-val{color:var(--gold);font-weight:700;font-size:15px}
+.you-row td{background:rgba(10,132,255,.07);border-left:3px solid var(--blue)}
+.diff-badge{font-size:10px;padding:2px 8px;border-radius:4px}
+.diff-easy{background:rgba(0,230,118,.1);color:var(--green);border:1px solid rgba(0,230,118,.25)}
+.diff-medium{background:rgba(10,132,255,.1);color:var(--cyan);border:1px solid rgba(10,132,255,.25)}
+.diff-hard{background:rgba(255,59,85,.1);color:var(--red);border:1px solid rgba(255,59,85,.25)}
+.loading{text-align:center;padding:60px;color:var(--muted2);font-family:var(--mono)}
+.empty{text-align:center;padding:48px;color:var(--muted);font-size:14px}
+.your-rank{background:var(--s1);border:1px solid var(--blue);border-radius:10px;padding:16px 20px;margin-bottom:20px;display:none;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.your-rank.show{display:flex}
+.your-rank-label{font-family:var(--mono);font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:.1em}
+.your-rank-val{font-family:var(--ox);font-size:20px;font-weight:800;color:var(--cyan)}
+</style>
+</head>
+<body>
+<nav>
+  <a href="mixpro.html" class="logo">MIX<span>PRO</span></a>
+  <div class="nav-links">
+    <a href="profile.html" class="nav-btn" id="profileLink">Профиль</a>
+    <a href="mixpro.html#trainers" class="nav-btn">Тренажёры</a>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div class="page-title">Глобальный рейтинг</div>
+  <div class="page-sub">Лучшие результаты за все время среди всех игроков</div>
+
+  <div class="filter-row">
+    <button class="f-btn on" onclick="setGame('all',this)">Все игры</button>
+    <button class="f-btn" onclick="setGame('peak_master',this)">Peak Master</button>
+    <button class="f-btn" onclick="setGame('pan_trainer',this)">Pan Trainer</button>
+    <button class="f-btn" onclick="setGame('db_king',this)">dB King</button>
+    <button class="f-btn" onclick="setGame('reverb_wizard',this)">Reverb Wizard</button>
+    <button class="f-btn" onclick="setGame('dr_compressor',this)">Dr. Compressor</button>
+  </div>
+
+  <div class="filter-row">
+    <button class="f-btn on" id="diffAll" onclick="setDiff('all',this)">Все режимы</button>
+    <button class="f-btn" onclick="setDiff('easy',this)">Легко</button>
+    <button class="f-btn" onclick="setDiff('medium',this)">Средне</button>
+    <button class="f-btn" onclick="setDiff('hard',this)">Сложно</button>
+  </div>
+
+  <div class="your-rank" id="yourRank">
+    <div>
+      <div class="your-rank-label">Твоё место</div>
+      <div class="your-rank-val" id="yourRankVal">—</div>
+    </div>
+    <div>
+      <div class="your-rank-label">Твой лучший результат</div>
+      <div class="your-rank-val" id="yourScore">0</div>
+    </div>
+    <div>
+      <div class="your-rank-label">Никнейм</div>
+      <div class="your-rank-val" id="yourName">—</div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>#</th><th>Игрок</th><th>Результат</th><th>Точность</th><th>Раундов</th><th>Режим</th></tr></thead>
+      <tbody id="lbBody"><tr><td colspan="6" class="loading">Загружаем рейтинг...</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SB = supabase.createClient(
+  'https://mwzskffecoedpvyflswg.supabase.co',
+  'sb_publishable_m1ImqMRye4s4yrpuBTvWvA_yMez-ZhD'
+);
+
+const DIFF_MAP = { easy:'Легко', medium:'Средне', hard:'Сложно', all:'Все' };
+const GAME_MAP = { peak_master:'Peak Master', pan_trainer:'Pan Trainer', db_king:'dB King', reverb_wizard:'Reverb Wizard', dr_compressor:'Dr. Compressor' };
+const MEDAL = { 1:'🥇', 2:'🥈', 3:'🥉' };
+let currentDiff = 'all';
+let currentGame = 'all';
+let myUserId = null;
+let myUsername = null;
+
+async function init() {
+  const { data: { session } } = await SB.auth.getSession();
+  if (session) {
+    myUserId = session.user.id;
+    const { data: p } = await SB.from('profiles').select('username').eq('id', myUserId).single();
+    if (p) {
+      myUsername = p.username;
+      document.getElementById('profileLink').style.display = 'block';
+    }
+  }
+  load();
+}
+
+async function load() {
+  const tbody = document.getElementById('lbBody');
+  tbody.innerHTML = '<tr><td colspan="6" class="loading">Загружаем...</td></tr>';
+
+  let q = SB.from('scores').select('user_id, username, score, accuracy, rounds, difficulty, game');
+  if (currentGame !== 'all') q = q.eq('game', currentGame);
+  if (currentDiff !== 'all') q = q.eq('difficulty', currentDiff);
+  q = q.order('score', { ascending: false }).limit(2000);
+  const { data: rows, error } = await q;
+
+  if (error) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty">Ошибка загрузки рейтинга</td></tr>';
+    return;
+  }
+
+  if (!rows || rows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="empty">Пока никто не играл. Стань первым!</td></tr>';
+    document.getElementById('yourRank').classList.remove('show');
+    return;
+  }
+
+  // Лучший результат каждого игрока (по user_id)
+  const seen = new Map();
+  rows.forEach(r => {
+    const prev = seen.get(r.user_id);
+    if (!prev || r.score > prev.score) seen.set(r.user_id, r);
+  });
+  const top = [...seen.values()].sort((a,b) => b.score - a.score).slice(0, 50);
+
+  // Моё место
+  if (myUserId) {
+    const myIdx = top.findIndex(r => r.user_id === myUserId);
+    const myRow = top[myIdx];
+    if (myRow) {
+      document.getElementById('yourRank').classList.add('show');
+      document.getElementById('yourRankVal').textContent = '#' + (myIdx + 1);
+      document.getElementById('yourScore').textContent = myRow.score.toLocaleString('ru');
+      document.getElementById('yourName').textContent = myUsername || myRow.username;
+    } else {
+      document.getElementById('yourRank').classList.remove('show');
+    }
+  }
+
+  tbody.innerHTML = '';
+  top.forEach((r, i) => {
+    const rank = i + 1;
+    const isMe = r.user_id === myUserId;
+    const tr = document.createElement('tr');
+    if (isMe) tr.className = 'you-row';
+    const medal = MEDAL[rank] || '';
+    const rankClass = rank === 1 ? 'rank gold' : rank === 2 ? 'rank silver' : rank === 3 ? 'rank bronze' : 'rank';
+    const color = stringToColor(r.username);
+    const initials = r.username.slice(0,2).toUpperCase();
+    const gameLabel = GAME_MAP[r.game] || r.game;
+    tr.innerHTML = `
+      <td class="${rankClass}">${medal || rank}</td>
+      <td><div class="username">
+        <div class="av-mini" style="background:${color}">${initials}</div>
+        ${r.username}${isMe ? ' <span style="color:var(--cyan);font-size:10px">(ты)</span>' : ''}
+      </div></td>
+      <td class="score-val">${r.score.toLocaleString('ru')}</td>
+      <td>${r.accuracy}%</td>
+      <td>${r.rounds || '—'}</td>
+      <td><span class="diff-badge diff-${r.difficulty}">${DIFF_MAP[r.difficulty]||r.difficulty}</span> · ${gameLabel}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function setGame(g, btn) {
+  currentGame = g;
+  document.querySelectorAll('.filter-row:first-of-type .f-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  load();
+}
+
+function setDiff(d, btn) {
+  currentDiff = d;
+  document.querySelectorAll('.filter-row:nth-of-type(2) .f-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  load();
+}
+
+function stringToColor(str) {
+  const colors = ['#22d3ee','#a78bfa','#4ade80','#facc15','#f87171','#fb923c','#f472b6','#38bdf8'];
+  let hash = 0;
+  for (let c of str) hash = ((hash << 5) - hash) + c.charCodeAt(0);
+  return colors[Math.abs(hash) % colors.length];
+}
+
+init();
+</script>
+</body>
+</html>

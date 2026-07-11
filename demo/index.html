@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>MIXPRO</title>
+    <!-- Подключаем стили из файла style.css -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MIXPRO — платформа для звукарей</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="#">MIX<span>PRO</span></a>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="tab('home',this)">Главная</button>
+    <button class="nav-tab" onclick="tab('lessons',this)">Уроки</button>
+    <button class="nav-tab" onclick="tab('trainers',this)">Тренажёры</button>
+    <button class="nav-tab" onclick="tab('tools',this)">Инструменты</button>
+  </div>
+  <div class="nav-right">
+    <a href="glossary.html" class="nav-link-btn">Словарь</a>
+    <a href="leaderboard.html" class="nav-link-btn">Рейтинг</a>
+    <a href="profile.html" class="nav-link-btn">Профиль</a>
+    <button class="nav-vip-btn" id="navVipBtn" onclick="openVip()">VIP</button>
+  </div>
+</nav>
+
+<!-- ══ HOME ══ -->
+<div id="home" class="section active">
+  <div class="hero">
+    <div class="eyebrow">ПЛАТФОРМА ДЛЯ ЗВУКОРЕЖИССЁРОВ</div>
+    <h1>Учись делать<br>звук, который<br><em>ценят.</em></h1>
+    <p class="hero-sub">Научись микшировать любую музыку на профессиональном уровне. Никакой нудной теории — только мощная практика с интерактивными инструментами прямо в браузере. Создай свой фирменный звук с нуля.</p>
+    <div class="hero-actions">
+      <button class="btn btn-primary" onclick="tab('lessons',document.querySelectorAll('.nav-tab')[1])">Начать бесплатно</button>
+    </div>
+    <div class="vu" id="vuEl"></div>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-n">10</div><div class="stat-l">уроков в курсе</div></div>
+      <div class="stat"><div class="stat-n">3</div><div class="stat-l">бесплатно</div></div>
+      <div class="stat"><div class="stat-n">6</div><div class="stat-l">инструментов</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ LESSONS ══ -->
+<div id="lessons" class="section">
+  <div class="lessons-wrap">
+    <div class="sec-header">
+      <h2 class="sec-title">Курс микширования</h2>
+      <div class="tags">
+        <span class="tag tag-free" id="freeTag">3 бесплатно</span>
+        <span class="tag tag-vip" id="vipTag">7 VIP</span>
+      </div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-label" id="progressLabel">Прогресс: 0 / 10 уроков</div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    </div>
+    <div class="lessons-list" id="lessonsList"></div>
+    <div class="vip-cta-row" id="vipCtaRow">
+      <div>
+        <h3>Открой все 10 уроков</h3>
+        <p>Полный доступ навсегда — один платёж. Введи код после оплаты.</p>
+      </div>
+      <button class="btn btn-primary" onclick="openVip()">Получить VIP — 990 ₽</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TRAINERS ══ -->
+<div id="trainers" class="section">
+  <div class="trainers-wrap">
+    <div class="sec-header"><h2 class="sec-title">Тренажёры</h2></div>
+    <p style="font-size:14px;color:var(--muted);margin-bottom:0">Прокачивай слух каждый день. Каждый тренажёр — отдельный навык.</p>
+    <div class="trainer-cards">
+
+      <a href="peak_master.html" class="trainer-card">
+        <div class="trainer-glow"></div>
+        <div class="trainer-name">Peak Master</div>
+        <div class="trainer-desc">Слышишь EQ буст — угадай частоту. Три режима, спектр в реальном времени, советы по жанрам.</div>
+        <div class="trainer-meta">
+          <span class="trainer-badge badge-active">Доступен</span>
+          <span class="trainer-play">Играть →</span>
+        </div>
+      </a>
+
+      <a href="pan_trainer.html" class="trainer-card">
+        <div class="trainer-glow" style="background:var(--amber)"></div>
+        <div class="trainer-name">Pan Trainer</div>
+        <div class="trainer-desc">Определи где сидит звук в стерео. VU-метр, 13 позиций на сложном уровне, советы по панорамированию.</div>
+        <div class="trainer-meta">
+          <span class="trainer-badge badge-active">Доступен</span>
+          <span class="trainer-play">Играть →</span>
+        </div>
+      </a>
+
+      <a href="db_king.html" class="trainer-card">
+        <div class="trainer-glow" style="background:var(--amber-dim)"></div>
+        <div class="trainer-name">dB King</div>
+        <div class="trainer-desc">Угадай на сколько децибел один звук громче другого. Развивает точность gain staging.</div>
+        <div class="trainer-meta">
+          <span class="trainer-badge badge-active">Доступен</span>
+          <span class="trainer-play">Играть →</span>
+        </div>
+      </a>
+
+      <a href="reverb_wizard.html" class="trainer-card">
+        <div class="trainer-glow" style="background:var(--amber-dim)"></div>
+        <div class="trainer-name">Reverb Wizard</div>
+        <div class="trainer-desc">Комната, зал, пластина или пружина? Определи тип реверберации на слух.</div>
+        <div class="trainer-meta">
+          <span class="trainer-badge badge-active">Доступен</span>
+          <span class="trainer-play">Играть →</span>
+        </div>
+      </a>
+
+      <a href="dr_compressor.html" class="trainer-card">
+        <div class="trainer-glow" style="background:var(--amber)"></div>
+        <div class="trainer-name">Dr. Compressor</div>
+        <div class="trainer-desc">Два звука — один скомпрессирован сильнее. Угадай какой. Тренируй слух на динамику.</div>
+        <div class="trainer-meta">
+          <span class="trainer-badge badge-active">Доступен</span>
+          <span class="trainer-play">Играть →</span>
+        </div>
+      </a>
+
+      <div class="trainer-card coming">
+        <div class="trainer-name">Delay Control</div>
+        <div class="trainer-desc">Услышь дилей — угадай время задержки в ms. Критично для ритмической обработки.</div>
+        <div class="trainer-meta"><span class="trainer-badge badge-soon">Скоро</span></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══ TOOLS ══ -->
+<div id="tools" class="section">
+  <div class="tools-wrap">
+    <div class="sec-header"><h2 class="sec-title">Инструменты</h2></div>
+    <div class="tools-grid">
+
+      <!-- BPM -->
+      <div class="tool-card">
+        <div class="tool-name">BPM / Tap Tempo</div>
+        <div class="fg"><label class="flabel">BPM вручную</label>
+          <input type="number" id="bpmIn" min="40" max="300" value="120" oninput="syncBpm(this.value)"></div>
+        <button class="tap-btn" onclick="tapTempo()">Tap в ритм</button>
+        <div style="font-family:var(--mono);font-size:34px;font-weight:700;color:var(--amber);text-align:center;margin-top:14px" id="bpmDisp">120 BPM</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--muted);text-align:center;margin-top:4px">Стучи в такт — BPM определится автоматически</div>
+      </div>
+
+      <!-- DELAY -->
+      <div class="tool-card">
+        <div class="tool-name">Delay Calculator</div>
+        <div class="fg"><label class="flabel">BPM</label>
+          <input type="number" id="delBpm" min="40" max="300" value="120" oninput="syncBpm(this.value);calcDelay()"></div>
+        <div class="rg" id="delRes"></div>
+      </div>
+
+      <!-- REVERB -->
+      <div class="tool-card">
+        <div class="tool-name">Reverb / Pre-delay</div>
+        <div class="frow">
+          <div><label class="flabel">BPM</label>
+            <input type="number" id="revBpm" min="40" max="300" value="120" oninput="syncBpm(this.value);calcReverb()"></div>
+          <div><label class="flabel">Нота</label>
+            <select id="revNote" onchange="calcReverb()">
+              <option value="1">Целая</option><option value="2">Половинная</option>
+              <option value="4" selected>Четверть</option><option value="8">Восьмая</option>
+              <option value="16">Шестнадцатая</option>
+            </select></div>
+        </div>
+        <div class="rg" id="revRes"></div>
+      </div>
+
+      <!-- COMPRESSOR -->
+      <div class="tool-card">
+        <div class="tool-name">Compressor Settings</div>
+        <div class="fg"><label class="flabel">Тип материала</label>
+          <div class="comp-types" id="compTypes"></div></div>
+        <div class="frow">
+          <div><label class="flabel">BPM</label>
+            <input type="number" id="cmpBpm" min="40" max="300" value="120" oninput="syncBpm(this.value);calcComp()"></div>
+          <div><label class="flabel">Ratio</label>
+            <select id="cmpRatio" onchange="calcComp()">
+              <option value="2">2:1 мягко</option><option value="4" selected>4:1 стандарт</option>
+              <option value="6">6:1 плотно</option><option value="8">8:1 агрессив</option>
+              <option value="20">20:1 лимитер</option>
+            </select></div>
+        </div>
+        <div class="rg" id="cmpRes"></div>
+      </div>
+
+      <!-- FREQ MAP -->
+      <div class="tool-card">
+        <div class="tool-name">Частотная карта</div>
+        <div class="rg">
+          <div class="rr"><span class="rl">Sub bass</span><span class="rv">20 – 60 Hz</span></div>
+          <div class="rr"><span class="rl">Bass</span><span class="rv">60 – 250 Hz</span></div>
+          <div class="rr"><span class="rl">Low-mid</span><span class="rv">250 – 500 Hz</span></div>
+          <div class="rr"><span class="rl">Mid</span><span class="rv">500 Hz – 2 kHz</span></div>
+          <div class="rr"><span class="rl">Upper-mid</span><span class="rv">2 – 6 kHz</span></div>
+          <div class="rr"><span class="rl">Presence</span><span class="rv hi">3 – 5 kHz</span></div>
+          <div class="rr"><span class="rl">Sibilance</span><span class="rv hi">6 – 10 kHz</span></div>
+          <div class="rr"><span class="rl">Air / HF</span><span class="rv">10 – 20 kHz</span></div>
+        </div>
+        <div style="margin-top:12px;padding:10px 13px;background:var(--amber-glow);border-radius:7px;font-family:var(--mono);font-size:11px;color:var(--amber)">
+          Всегда слушай референс при работе с EQ — уши адаптируются через 10–15 мин
+        </div>
+      </div>
+
+      <!-- NOTE TO HZ -->
+      <div class="tool-card">
+        <div class="tool-name">Конвертер нот в Hz</div>
+        <div class="fg"><label class="flabel">Нота</label>
+          <select id="noteSelect" onchange="calcNoteHz()">
+            <option value="24">C1</option><option value="26">D1</option><option value="28">E1</option>
+            <option value="29">F1</option><option value="31">G1</option><option value="33">A1</option><option value="35">B1</option>
+            <option value="36">C2</option><option value="38">D2</option><option value="40">E2</option>
+            <option value="41">F2</option><option value="43">G2</option><option value="45">A2</option><option value="47">B2</option>
+            <option value="48" selected>C3</option><option value="50">D3</option><option value="52">E3</option>
+            <option value="53">F3</option><option value="55">G3</option><option value="57">A3</option><option value="59">B3</option>
+            <option value="60">C4 (средняя До)</option><option value="62">D4</option><option value="64">E4</option>
+            <option value="65">F4</option><option value="67">G4</option><option value="69">A4 (камертон)</option><option value="71">B4</option>
+            <option value="72">C5</option>
+          </select></div>
+        <div style="font-family:var(--mono);font-size:34px;font-weight:700;color:var(--amber);text-align:center;margin-top:14px" id="noteHzDisp">130.81 Hz</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--muted);text-align:center;margin-top:4px">Настрой 808 или синтезатор точно под ноту трека</div>
+      </div>
+
+      <!-- LOUDNESS / LUFS -->
+      <div class="tool-card">
+        <div class="tool-name">Loudness / LUFS</div>
+        <div class="fg"><label class="flabel">Куда публикуешь</label>
+          <select id="lufsPlatform" onchange="calcLufs()">
+            <option value="-14">Spotify (−14 LUFS)</option>
+            <option value="-16">Apple Music (−16 LUFS)</option>
+            <option value="-14b">YouTube (−14 LUFS)</option>
+            <option value="-9">SoundCloud / клубный (−9 LUFS)</option>
+            <option value="-23">Вещание TV (−23 LUFS)</option>
+          </select></div>
+        <div class="rg" id="lufsRes"></div>
+      </div>
+
+      <!-- ROOM ACOUSTICS -->
+      <div class="tool-card">
+        <div class="tool-name">Акустика комнаты</div>
+        <div class="frow">
+          <div><label class="flabel">Длина (м)</label>
+            <input type="number" id="roomL" min="1" max="20" step="0.1" value="4" oninput="calcRoom()"></div>
+          <div><label class="flabel">Ширина (м)</label>
+            <input type="number" id="roomW" min="1" max="20" step="0.1" value="3" oninput="calcRoom()"></div>
+        </div>
+        <div class="fg" style="margin-top:10px"><label class="flabel">Высота (м)</label>
+          <input type="number" id="roomH" min="1" max="10" step="0.1" value="2.5" oninput="calcRoom()"></div>
+        <div class="rg" id="roomRes" style="margin-top:12px"></div>
+      </div>
+
+      <!-- ATTACK/RELEASE VISUALIZER -->
+      <div class="tool-card wide">
+        <div class="tool-name">Attack / Release визуализатор</div>
+        <div class="frow">
+          <div><label class="flabel">Attack (мс)</label>
+            <input type="range" id="atkSlider" min="0" max="100" value="10" oninput="drawEnvelope()" style="width:100%">
+            <div style="font-family:var(--mono);font-size:12px;color:var(--amber);text-align:center;margin-top:4px" id="atkVal">10 мс</div>
+          </div>
+          <div><label class="flabel">Release (мс)</label>
+            <input type="range" id="relSlider" min="10" max="1000" value="150" oninput="drawEnvelope()" style="width:100%">
+            <div style="font-family:var(--mono);font-size:12px;color:var(--amber);text-align:center;margin-top:4px" id="relVal">150 мс</div>
+          </div>
+        </div>
+        <canvas id="envCanvas" style="width:100%;height:140px;margin-top:14px;border-radius:8px;background:rgba(255,255,255,.02)"></canvas>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--muted);text-align:center;margin-top:8px" id="envHint">Быстрая attack — компрессор «съедает» транзиент удара</div>
+      </div>
+
+
+
+    </div>
+  </div>
+</div>
+
+<!-- ══ VIP MODAL ══ -->
+<div class="overlay" id="vipOverlay">
+  <div class="modal">
+    <h2 id="vipTitle">VIP Доступ</h2>
+    <p id="vipDesc">Полный курс из 10 уроков + приоритетные обновления. Один платёж — навсегда.</p>
+    <div class="price-tag" id="vipPrice">990 ₽ <span>/ навсегда</span></div>
+    <ul class="feat-list">
+      <li>Все 10 уроков с детальным разбором</li>
+      <li>Приоритетные обновления курса</li>
+      <li>Закрытый чат со звукарями</li>
+      <li>Разборы реальных миксов каждый месяц</li>
+    </ul>
+    <div id="vipPayBlock">
+      <button class="btn btn-primary" style="width:100%;margin-bottom:14px" onclick="showCodeInput()">Оплатить 990 ₽ → ЮKassa</button>
+      <div style="text-align:center;font-family:var(--mono);font-size:12px;color:var(--muted);margin-bottom:12px">— или введи код если уже оплатил —</div>
+    </div>
+    <div class="code-input-wrap">
+      <input class="code-input" id="vipCodeIn" type="text" placeholder="MIXPRO-XXXX" maxlength="12" oninput="this.value=this.value.toUpperCase()">
+      <div class="code-error" id="codeErr"></div>
+    </div>
+    <button class="btn btn-primary" style="width:100%" onclick="activateCode()">Активировать код</button>
+    <button class="modal-close" onclick="closeVip()">Закрыть</button>
+  </div>
+</div>
+
+<footer>MIXPRO © 2026 &nbsp;·&nbsp; Telegram: @yourtelegram &nbsp;·&nbsp; По вопросам: mixpro@mail.ru</footer>
+
+<script>
+
+</script>
+</body>
+</html>
+    <!-- СЮДА ТЫ БУДЕШЬ КОПИРОВАТЬ ТЕКСТ САЙТА (ВЕСЬ HTML) -->
+
+    <!-- Подключаем логику из файла script.js -->
+    <script src="script.js"></script>
+</body>
+</html>

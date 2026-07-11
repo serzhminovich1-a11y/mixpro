@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MIXPRO — Профиль</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/profile.css">
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">MIX<span>PRO</span></a>
+  <div class="nav-links">
+    <a href="leaderboard.html" class="nav-btn">Рейтинг</a>
+    <a href="../index.html#trainers" class="nav-btn">Тренажёры</a>
+    <button class="nav-btn danger" onclick="logout()">Выйти</button>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div id="loading" class="loading">Загружаем профиль...</div>
+
+  <div id="content" style="display:none">
+    <!-- Hero -->
+    <div class="hero">
+      <div class="avatar" id="avatar"></div>
+      <div class="hero-info">
+        <h1 id="username">—</h1>
+        <div class="since" id="since"></div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div>
+      <div class="sec-h">Статистика</div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="val" id="sBestScore">0</div><div class="lbl">Лучший результат</div></div>
+        <div class="stat-card"><div class="val" id="sGames">0</div><div class="lbl">Сыграно раундов</div></div>
+        <div class="stat-card"><div class="val" id="sAccuracy">—</div><div class="lbl">Средняя точность</div></div>
+        <div class="stat-card"><div class="val" id="sBestStreak">0</div><div class="lbl">Лучший стрик</div></div>
+      </div>
+    </div>
+
+    <!-- Games -->
+    <div>
+      <div class="sec-h">Тренажёры</div>
+      <a href="peak_master.html" class="game-card">
+        <div>
+          <div class="game-name">Peak Master</div>
+          <div class="game-desc">Угадай поднятую частоту EQ</div>
+        </div>
+        <div>
+          <div class="game-score" id="pmScore">0</div>
+          <div class="game-sub">очков</div>
+        </div>
+      </a>
+      <a href="pan_trainer.html" class="game-card">
+        <div>
+          <div class="game-name">Pan Trainer</div>
+          <div class="game-desc">Определи позицию звука в стерео</div>
+        </div>
+        <div>
+          <div class="game-score" id="ptScore">0</div>
+          <div class="game-sub">очков</div>
+        </div>
+      </a>
+      <div class="game-card coming">
+        <div>
+          <div class="game-name">dB King</div>
+          <div class="game-desc">Угадай разницу в громкости</div>
+        </div>
+        <div>
+          <div class="game-score" id="dbScore">0</div>
+          <div class="game-sub">скоро</div>
+        </div>
+      </div>
+      <div class="game-card coming">
+        <div>
+          <div class="game-name">Reverb Wizard</div>
+          <div class="game-desc">Определи тип реверберации</div>
+        </div>
+        <div>
+          <div class="game-score" id="rvScore">0</div>
+          <div class="game-sub">скоро</div>
+        </div>
+      </div>
+      <div class="game-card coming">
+        <div>
+          <div class="game-name">Dr. Compressor</div>
+          <div class="game-desc">Найди сильнее сжатый звук</div>
+        </div>
+        <div>
+          <div class="game-score" id="dcScore">0</div>
+          <div class="game-sub">скоро</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- History -->
+    <div>
+      <div class="sec-h">История игр</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Тренажёр</th><th>Очки</th><th>Точность</th><th>Стрик</th><th>Режим</th><th>Дата</th></tr></thead>
+          <tbody id="historyBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="../js/profile.js"></script>
+</body>
+</html>

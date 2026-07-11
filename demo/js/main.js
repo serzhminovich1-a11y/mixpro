@@ -437,7 +437,7 @@ function save(){localStorage.setItem('mp_pts',pts);localStorage.setItem('mp_righ
 function tab(id,btn){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById(id).classList.add('active');btn.classList.add('active');stopFreq();  if(id==='tools')setTimeout(drawEnvelope,50);
+  document.getElementById(id).classList.add('active');btn.classList.add('active');if(id==='tools')setTimeout(drawEnvelope,50);
 }
 
 function openVip(){if(vip)return;document.getElementById('vipOverlay').classList.add('open');}
@@ -502,7 +502,12 @@ function calcReverb(){
 function buildCompTypes(){
   document.getElementById('compTypes').innerHTML=Object.keys(COMP).map(k=>'<button class="comp-type-btn'+(k===compType?' active':'')+'" onclick="setComp(\''+k+'\')">'+k+'</button>').join('');
 }
-function setComp(t){compType=t;
+function setComp(t){
+  compType=t;
+  buildCompTypes();
+  calcComp();
+}
+
 // ── NOTE TO HZ ──
 function calcNoteHz(){
   const midi=parseInt(document.getElementById('noteSelect').value);
@@ -593,10 +598,6 @@ function drawEnvelope(){
   else hint.textContent='Медленная attack — транзиент полностью сохраняется, сжимается только «тело» звука';
 }
 
-
-buildCompTypes();
-calcNoteHz();calcLufs();calcRoom();
-setTimeout(drawEnvelope,50);calcComp();}
 function calcComp(){
   const p=COMP[compType],ratio=parseInt(document.getElementById('cmpRatio').value),rs=Math.round(60000/bpm*.5);
   document.getElementById('cmpRes').innerHTML=
@@ -644,6 +645,7 @@ function buildVU(){
 }
 
 buildVU();renderLessons();buildCompTypes();
-buildTrackBtns();buildBands();
 calcDelay();calcReverb();calcComp();
+calcNoteHz();calcLufs();calcRoom();
+setTimeout(drawEnvelope,50);
 if(vip) applyVip();

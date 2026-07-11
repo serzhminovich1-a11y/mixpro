@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MIXPRO — Рейтинг</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/leaderboard.css">
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">MIX<span>PRO</span></a>
+  <div class="nav-links">
+    <a href="profile.html" class="nav-btn" id="profileLink">Профиль</a>
+    <a href="../index.html#trainers" class="nav-btn">Тренажёры</a>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div class="page-title">Глобальный рейтинг</div>
+  <div class="page-sub">Лучшие результаты за все время среди всех игроков</div>
+
+  <div class="filter-row">
+    <button class="f-btn on" onclick="setGame('all',this)">Все игры</button>
+    <button class="f-btn" onclick="setGame('peak_master',this)">Peak Master</button>
+    <button class="f-btn" onclick="setGame('pan_trainer',this)">Pan Trainer</button>
+    <button class="f-btn" onclick="setGame('db_king',this)">dB King</button>
+    <button class="f-btn" onclick="setGame('reverb_wizard',this)">Reverb Wizard</button>
+    <button class="f-btn" onclick="setGame('dr_compressor',this)">Dr. Compressor</button>
+  </div>
+
+  <div class="filter-row">
+    <button class="f-btn on" id="diffAll" onclick="setDiff('all',this)">Все режимы</button>
+    <button class="f-btn" onclick="setDiff('easy',this)">Легко</button>
+    <button class="f-btn" onclick="setDiff('medium',this)">Средне</button>
+    <button class="f-btn" onclick="setDiff('hard',this)">Сложно</button>
+  </div>
+
+  <div class="your-rank" id="yourRank">
+    <div>
+      <div class="your-rank-label">Твоё место</div>
+      <div class="your-rank-val" id="yourRankVal">—</div>
+    </div>
+    <div>
+      <div class="your-rank-label">Твой лучший результат</div>
+      <div class="your-rank-val" id="yourScore">0</div>
+    </div>
+    <div>
+      <div class="your-rank-label">Никнейм</div>
+      <div class="your-rank-val" id="yourName">—</div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>#</th><th>Игрок</th><th>Результат</th><th>Точность</th><th>Раундов</th><th>Режим</th></tr></thead>
+      <tbody id="lbBody"><tr><td colspan="6" class="loading">Загружаем рейтинг...</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="../js/leaderboard.js"></script>
+</body>
+</html>

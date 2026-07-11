@@ -19,6 +19,7 @@ nav{position:sticky;top:0;z-index:100;background:rgba(10,11,22,.85);backdrop-fil
 .nav-right{display:flex;align-items:center;gap:8px}
 .nav-link-btn{font-family:var(--mono);font-size:12px;padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);text-decoration:none;transition:.15s}
 .nav-link-btn:hover{color:var(--text);border-color:var(--muted)}
+.nav-link-btn.soon{opacity:.4;cursor:default;pointer-events:none}
 .nav-vip-btn{font-family:var(--display);font-size:12px;font-weight:700;padding:7px 16px;border-radius:6px;border:1px solid var(--amber);background:transparent;color:var(--amber);cursor:pointer;transition:.15s;letter-spacing:.03em}
 .nav-vip-btn:hover{background:var(--amber-glow)}
 .nav-vip-btn.unlocked{border-color:var(--green);color:var(--green);background:rgba(61,220,132,.08)}

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pan Trainer — Стерео тренажёр</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/pan_trainer.css">
+</head>
+<body>
+<div class="pm-page">
+
+  <!-- NAV -->
+  <nav class="pm-nav">
+  <div class="pm-nav-links">
+    <a href="../index.html" class="pm-nav-link">← MIXPRO</a>
+    <a href="leaderboard.html" class="pm-nav-link">Таблица лидеров</a>
+    <a href="profile.html" class="pm-nav-link" id="navProfile">Профиль</a>
+  </div>
+    <a href="../index.html" class="pm-logo"><span class="pm-logo-a">PAN</span><span class="pm-logo-b">TRAINER</span></a>
+    <div class="pm-vol">
+      <span class="pm-vol-icon" onclick="toggleMute()">🔊</span>
+      <div class="pm-vol-wrap">
+        <div class="pm-vol-fill" id="volFill" style="width:20%"></div>
+        <div class="pm-vol-dot" id="volDot" style="left:20%"></div>
+        <input type="range" min="0" max="100" value="20" oninput="setVolume(this.value)" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;margin:0">
+      </div>
+      <span class="vol-pct" id="volPct">20%</span>
+    </div>
+    <div class="pm-stats">
+      <div class="pm-stat"><div class="pm-num" id="sv">0</div><div class="pm-label">Очки</div></div>
+      <div class="pm-div"></div>
+      <div class="pm-stat"><div class="pm-num" id="stv">0</div><div class="pm-label">Стрик</div></div>
+      <div class="pm-div"></div>
+      <div class="pm-stat">
+        <div class="pm-num purple" id="lv">Lv.1</div>
+        <div class="pm-lvl-track"><div class="pm-lvl-fill" id="lf" style="width:0%"></div></div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- START -->
+  <div id="scrStart" class="screen active">
+    <div class="start-card">
+      <div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.15em;color:rgba(167,139,250,.8);text-transform:uppercase;margin-bottom:10px">Тренажёр панорамы</div>
+        <h1>Определите где <em>находится<br>звук</em></h1>
+      </div>
+      <p>Звук воспроизводится на определённой позиции в стерео. <br> Твоя задача — определить где именно: левее, правее или по центру.</p>
+      <div class="rules">
+        <div class="rule-row"><span class="rule-n">01</span><span>Нажми PLAY — услышишь звук на определённой позиции</span></div>
+        <div class="rule-row"><span class="rule-n">02</span><span>Используй наушники — разница слышна только в стерео</span></div>
+        <div class="rule-row"><span class="rule-n">03</span><span>Выбери позицию звука — ответ засчитается мгновенно</span></div>
+        <div class="rule-row"><span class="rule-n">04</span><span>VU-метр показывает реальный баланс L/R каналов</span></div>
+      </div>
+      <div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;text-align:center">Сложность</div>
+        <div class="diff-grid">
+          <button class="diff-btn" onclick="setDiff('easy',this)">
+            <span class="diff-name">Легко</span>
+            <span class="diff-meta">5 позиций</span>
+          </button>
+          <button class="diff-btn on" onclick="setDiff('medium',this)">
+            <span class="diff-name">Средне</span>
+            <span class="diff-meta">9 позиций</span>
+          </button>
+          <button class="diff-btn" onclick="setDiff('hard',this)">
+            <span class="diff-name">Сложно</span>
+            <span class="diff-meta">13 позиций</span>
+          </button>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--orange);background:rgba(251,146,60,.08);border:1px solid rgba(251,146,60,.2);border-radius:8px;padding:10px 16px;max-width:400px;text-align:center">
+        ⚠️ Надевайте наушники — на моно-системах разница не слышна
+      </div>
+      <button class="start-btn" onclick="startGame()">Начать игру</button>
+    </div>
+  </div>
+
+  <!-- GAME -->
+  <div id="scrGame" class="screen">
+
+    <div class="pm-question">
+      <span class="pm-q-text">Где <em>находится</em> звук в стерео?</span>
+      <span class="pm-round">Раунд <span id="rn">1</span> · <span id="diffLabel">Средне</span></span>
+    </div>
+
+    <!-- Stereo field -->
+    <div class="stereo-card">
+      <div class="stereo-labels">
+        <span class="stereo-side L">◄ L</span>
+        <span class="stereo-center-label">ЦЕНТР</span>
+        <span class="stereo-side R">R ►</span>
+      </div>
+
+      <!-- VU meter -->
+      <div class="vu-wrap">
+        <div class="vu-left"><div class="vu-bar-l" id="vuL" style="width:50%"></div></div>
+        <div class="vu-center"></div>
+        <div class="vu-right"><div class="vu-bar-r" id="vuR" style="width:50%"></div></div>
+      </div>
+
+      <!-- Pan indicator -->
+      <div class="pan-field" id="panField">
+        <div class="pan-track">
+          <div class="pan-track-fill" id="panFill"></div>
+        </div>
+        <div class="pan-center-mark"></div>
+        <!-- Точка ответа пользователя (показывается после ответа) -->
+        <div class="pan-dot-answer" id="panDotUser" style="background:var(--red);box-shadow:0 0 12px rgba(248,113,113,.6)"></div>
+        <!-- Точка правильного ответа (показывается после ответа) -->
+        <div class="pan-dot" id="panDotCorrect" style="background:var(--purple);box-shadow:0 0 16px rgba(167,139,250,.7)"></div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;padding:0 2px">
+        <span style="font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace">L100</span>
+        <span style="font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace">L50</span>
+        <span style="font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace">C</span>
+        <span style="font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace">R50</span>
+        <span style="font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace">R100</span>
+      </div>
+    </div>
+
+    <!-- Transport -->
+    <div class="pm-transport">
+      <button class="pm-play-circle" id="playBtn" onclick="togglePlay()">
+        <div class="pm-play-triangle" id="playIcon"></div>
+      </button>
+    </div>
+    <div class="pm-hint" id="hint">Нажми ▶ чтобы начать слушать</div>
+
+    <!-- Pan buttons -->
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.3);text-align:center">Выбери позицию звука</div>
+    <div class="pan-buttons" id="panButtons"></div>
+
+    <!-- Feedback -->
+    <div class="pm-feedback">
+      <div class="pm-fb-main" id="fbMain"></div>
+      <div class="pm-fb-sub" id="fbSub"></div>
+    </div>
+
+    <div id="tipBox"></div>
+    <button class="pm-next" id="nextBtn" onclick="nextRound()">Далее →</button>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="../js/pan_trainer.js"></script>
+</body>
+</html>

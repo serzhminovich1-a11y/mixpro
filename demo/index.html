@@ -1,21 +1,12 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <title>MIXPRO</title>
-    <!-- Подключаем стили из файла style.css -->
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-<!DOCTYPE html>
-<html lang="ru">
-<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MIXPRO — платформа для звукарей</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-</style>
+<link rel="stylesheet" href="css/index.css">
 </head>
 <body>
 
@@ -28,9 +19,9 @@
     <button class="nav-tab" onclick="tab('tools',this)">Инструменты</button>
   </div>
   <div class="nav-right">
-    <a href="glossary.html" class="nav-link-btn">Словарь</a>
-    <a href="leaderboard.html" class="nav-link-btn">Рейтинг</a>
-    <a href="profile.html" class="nav-link-btn">Профиль</a>
+    <span class="nav-link-btn soon" title="Скоро">Словарь</span>
+    <a href="pages/leaderboard.html" class="nav-link-btn">Рейтинг</a>
+    <a href="pages/profile.html" class="nav-link-btn">Профиль</a>
     <button class="nav-vip-btn" id="navVipBtn" onclick="openVip()">VIP</button>
   </div>
 </nav>
@@ -85,7 +76,7 @@
     <p style="font-size:14px;color:var(--muted);margin-bottom:0">Прокачивай слух каждый день. Каждый тренажёр — отдельный навык.</p>
     <div class="trainer-cards">
 
-      <a href="peak_master.html" class="trainer-card">
+      <a href="pages/peak_master.html" class="trainer-card">
         <div class="trainer-glow"></div>
         <div class="trainer-name">Peak Master</div>
         <div class="trainer-desc">Слышишь EQ буст — угадай частоту. Три режима, спектр в реальном времени, советы по жанрам.</div>
@@ -95,7 +86,7 @@
         </div>
       </a>
 
-      <a href="pan_trainer.html" class="trainer-card">
+      <a href="pages/pan_trainer.html" class="trainer-card">
         <div class="trainer-glow" style="background:var(--amber)"></div>
         <div class="trainer-name">Pan Trainer</div>
         <div class="trainer-desc">Определи где сидит звук в стерео. VU-метр, 13 позиций на сложном уровне, советы по панорамированию.</div>
@@ -105,35 +96,26 @@
         </div>
       </a>
 
-      <a href="db_king.html" class="trainer-card">
+      <div class="trainer-card coming">
         <div class="trainer-glow" style="background:var(--amber-dim)"></div>
         <div class="trainer-name">dB King</div>
         <div class="trainer-desc">Угадай на сколько децибел один звук громче другого. Развивает точность gain staging.</div>
-        <div class="trainer-meta">
-          <span class="trainer-badge badge-active">Доступен</span>
-          <span class="trainer-play">Играть →</span>
-        </div>
-      </a>
+        <div class="trainer-meta"><span class="trainer-badge badge-soon">Скоро</span></div>
+      </div>
 
-      <a href="reverb_wizard.html" class="trainer-card">
+      <div class="trainer-card coming">
         <div class="trainer-glow" style="background:var(--amber-dim)"></div>
         <div class="trainer-name">Reverb Wizard</div>
         <div class="trainer-desc">Комната, зал, пластина или пружина? Определи тип реверберации на слух.</div>
-        <div class="trainer-meta">
-          <span class="trainer-badge badge-active">Доступен</span>
-          <span class="trainer-play">Играть →</span>
-        </div>
-      </a>
+        <div class="trainer-meta"><span class="trainer-badge badge-soon">Скоро</span></div>
+      </div>
 
-      <a href="dr_compressor.html" class="trainer-card">
+      <div class="trainer-card coming">
         <div class="trainer-glow" style="background:var(--amber)"></div>
         <div class="trainer-name">Dr. Compressor</div>
         <div class="trainer-desc">Два звука — один скомпрессирован сильнее. Угадай какой. Тренируй слух на динамику.</div>
-        <div class="trainer-meta">
-          <span class="trainer-badge badge-active">Доступен</span>
-          <span class="trainer-play">Играть →</span>
-        </div>
-      </a>
+        <div class="trainer-meta"><span class="trainer-badge badge-soon">Скоро</span></div>
+      </div>
 
       <div class="trainer-card coming">
         <div class="trainer-name">Delay Control</div>
@@ -318,14 +300,6 @@
 
 <footer>MIXPRO © 2026 &nbsp;·&nbsp; Telegram: @yourtelegram &nbsp;·&nbsp; По вопросам: mixpro@mail.ru</footer>
 
-<script>
-
-</script>
-</body>
-</html>
-    <!-- СЮДА ТЫ БУДЕШЬ КОПИРОВАТЬ ТЕКСТ САЙТА (ВЕСЬ HTML) -->
-
-    <!-- Подключаем логику из файла script.js -->
-    <script src="script.js"></script>
+<script src="js/main.js"></script>
 </body>
 </html>

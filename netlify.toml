@@ -1,0 +1,28 @@
+[build]
+  base = "demo"
+  publish = "demo"
+
+[[redirects]]
+  from = "/peak_master"
+  to = "/pages/peak_master.html"
+  status = 200
+
+[[redirects]]
+  from = "/pan_trainer"
+  to = "/pages/pan_trainer.html"
+  status = 200
+
+[[redirects]]
+  from = "/profile"
+  to = "/pages/profile.html"
+  status = 200
+
+[[redirects]]
+  from = "/leaderboard"
+  to = "/pages/leaderboard.html"
+  status = 200
+
+[[redirects]]
+  from = "/auth"
+  to = "/pages/auth.html"
+  status = 200

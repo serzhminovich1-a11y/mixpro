@@ -166,7 +166,7 @@ body{background:#0a0b12;color:#eef0fb;font-family:'Manrope',sans-serif;-webkit-f
 }
 
 /* Guess slider panel */
-.pm-guess-panel{display:flex;flex-direction:column;align-items:center;gap:10px}
+.pm-guess-panel{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:16px;padding-top:16px;border-top:1px dashed var(--border)}
 .pm-guess-label{text-align:center;font-size:11px;letter-spacing:1.5px;font-weight:700;color:rgba(255,255,255,.3);text-transform:uppercase}
 .pm-guess-readout{font-family:'Unbounded',sans-serif;font-size:28px;font-weight:700;color:var(--cyan)}
 .pm-guess-slider{

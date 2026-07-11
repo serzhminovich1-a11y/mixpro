@@ -194,6 +194,14 @@
         <span class="pm-fg-seg" style="flex:1.65">Воздух · блеск</span>
       </div>
       <div class="pm-mode-badge" id="modeBadge">С БУСТОМ</div>
+
+      <!-- Guess slider — прямо на графике, курсор совпадает с #guessLine -->
+      <div class="pm-guess-panel">
+        <div class="pm-guess-label" id="freqLabel">Выбери частоту буста</div>
+        <div class="pm-guess-readout" id="guessValue">1.0 kHz</div>
+        <input type="range" class="pm-guess-slider" id="freqSlider" min="0" max="1" step="0.001" value="0.5" oninput="onGuessInput()">
+        <button class="pm-submit-btn" id="submitBtn" onclick="submitGuess()">Ответить</button>
+      </div>
     </div>
 
     <!-- Transport -->
@@ -214,14 +222,6 @@
       </button>
     </div>
     <div class="pm-hint" id="hint">Нажми ▶ чтобы начать слушать</div>
-
-    <!-- Guess slider -->
-    <div class="pm-guess-panel">
-      <div class="pm-guess-label" id="freqLabel">Выбери частоту буста</div>
-      <div class="pm-guess-readout" id="guessValue">1.0 kHz</div>
-      <input type="range" class="pm-guess-slider" id="freqSlider" min="0" max="1" step="0.001" value="0.5" oninput="onGuessInput()">
-      <button class="pm-submit-btn" id="submitBtn" onclick="submitGuess()">Ответить</button>
-    </div>
 
     <!-- Feedback -->
     <div class="pm-feedback">

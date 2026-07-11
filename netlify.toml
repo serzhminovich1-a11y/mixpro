@@ -1,6 +1,6 @@
 [build]
-  base = "demo"
-  publish = "demo"
+  base = "docs"
+  publish = "docs"
 
 [[redirects]]
   from = "/peak_master"

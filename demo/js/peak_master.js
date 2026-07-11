@@ -296,9 +296,19 @@ function setDiff(d,btn){
   btn.classList.add('on');
 }
 
+function backToModeSelect(){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('scrModeSelect').classList.add('active');
+}
+
+function openSetupPlay(){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('scrSetupPlay').classList.add('active');
+}
+
 function startGame(){
   sessionRound=0;sessionScore=0;sessionResults=[];
-  document.getElementById('scrStart').classList.remove('active');
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('scrGame').classList.add('active');
   updateScoreUI();newRound();
 }
@@ -336,7 +346,7 @@ function continueSession(){
 
 function backToMenuFromSummary(){
   document.getElementById('summaryOverlay').classList.remove('open');
-  document.getElementById('scrStart').classList.add('active');
+  document.getElementById('scrModeSelect').classList.add('active');
 }
 
 function newRound(){
@@ -918,14 +928,13 @@ const FREQ_RANGES = {
 };
 
 function openTrain() {
-  document.getElementById('scrStart').classList.remove('active');
-  document.getElementById('scrGame').classList.remove('active');
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('scrTrain').classList.add('active');
 }
 
 function closeTrain() {
   document.getElementById('scrTrain').classList.remove('active');
-  document.getElementById('scrStart').classList.add('active');
+  document.getElementById('scrModeSelect').classList.add('active');
 }
 
 function setTrain(key, val, btn) {

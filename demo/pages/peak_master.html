@@ -14,7 +14,6 @@
   <!-- NAV -->
   <nav class="pm-nav">
     <a href="../index.html" class="pm-back">← MIXPRO</a>
-  <button class="train-btn" onclick="openTrain()">⚙ Тренировка</button>
     <a href="../index.html" class="pm-logo"><span class="pm-logo-peak">PEAK</span><span class="pm-logo-master">MASTER</span></a>
     <div class="pm-vol">
       <span class="pm-vol-icon" onclick="toggleMute()">🔊</span>
@@ -57,14 +56,37 @@
     </div>
   </div>
 
-  <!-- START SCREEN -->
-  <div id="scrStart" class="screen active">
+  <!-- MODE SELECT -->
+  <div id="scrModeSelect" class="screen active">
     <div class="start-card">
       <div>
         <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.15em;color:rgba(34,211,238,.7);text-transform:uppercase;margin-bottom:10px">EQ тренажёр · слух</div>
         <h1>Услышь <em>любую<br>частоту</em></h1>
       </div>
       <p>Слышишь звук с поднятой частотой. Твоя задача — указать её ползунком как можно точнее. Зажми COMPARE чтобы услышать оригинал.</p>
+      <div class="mode-grid">
+        <button class="mode-btn primary" onclick="openSetupPlay()">
+          <span class="mode-btn-icon">🎯</span>
+          <span class="mode-btn-name">Играть</span>
+          <span class="mode-btn-sub">Очки идут в общий рейтинг</span>
+        </button>
+        <button class="mode-btn" onclick="openTrain()">
+          <span class="mode-btn-icon">⚙</span>
+          <span class="mode-btn-name">Тренировка</span>
+          <span class="mode-btn-sub">Свободная настройка, без рейтинга</span>
+        </button>
+      </div>
+      <div class="pm-hint">Зажми COMPARE во время игры, чтобы услышать оригинал без буста</div>
+    </div>
+  </div>
+
+  <!-- SETUP: ИГРАТЬ -->
+  <div id="scrSetupPlay" class="screen">
+    <div class="start-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;width:100%;max-width:440px">
+        <h1 style="font-size:20px">Настройка игры</h1>
+        <button class="pm-back" onclick="backToModeSelect()">← Назад</button>
+      </div>
       <div class="start-rules">
         <div class="rule-row"><span class="rule-n">01</span><span>Нажми PLAY — услышишь звук с EQ бустом</span></div>
         <div class="rule-row"><span class="rule-n">02</span><span>Зажми COMPARE — услышишь оригинал без буста</span></div>

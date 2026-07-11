@@ -64,30 +64,43 @@
         <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.15em;color:rgba(34,211,238,.7);text-transform:uppercase;margin-bottom:10px">EQ тренажёр · слух</div>
         <h1>Услышь <em>любую<br>частоту</em></h1>
       </div>
-      <p>Слышишь звук с поднятой частотой. Твоя задача — определить какая именно. Зажми COMPARE чтобы услышать оригинал.</p>
+      <p>Слышишь звук с поднятой частотой. Твоя задача — указать её ползунком как можно точнее. Зажми COMPARE чтобы услышать оригинал.</p>
       <div class="start-rules">
         <div class="rule-row"><span class="rule-n">01</span><span>Нажми PLAY — услышишь звук с EQ бустом</span></div>
         <div class="rule-row"><span class="rule-n">02</span><span>Зажми COMPARE — услышишь оригинал без буста</span></div>
-        <div class="rule-row"><span class="rule-n">03</span><span>Нажми на частоту — ответ засчитается мгновенно</span></div>
-        <div class="rule-row"><span class="rule-n">04</span><span>Чем быстрее и точнее — тем больше очков</span></div>
+        <div class="rule-row"><span class="rule-n">03</span><span>Двигай ползунок и жми «Ответить» — чем точнее, тем больше очков</span></div>
+        <div class="rule-row"><span class="rule-n">04</span><span>Почти идеальное попадание даёт бонус очков</span></div>
       </div>
       <div>
         <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;text-align:center">Сложность</div>
         <div class="diff-grid" id="diffGrid">
           <button class="diff-btn" onclick="setDiff('easy',this)">
             <span class="diff-name">Легко</span>
-            <span class="diff-meta">+12 dB · 9 частот</span>
+            <span class="diff-meta">+12 dB · допуск ±½ окт.</span>
           </button>
           <button class="diff-btn on" onclick="setDiff('medium',this)">
             <span class="diff-name">Средне</span>
-            <span class="diff-meta">+9 dB · 17 частот</span>
+            <span class="diff-meta">+9 dB · допуск ±¼ окт.</span>
           </button>
           <button class="diff-btn" onclick="setDiff('hard',this)">
             <span class="diff-name">Сложно</span>
-            <span class="diff-meta">+6 dB · 18 частот</span>
+            <span class="diff-meta">+6 dB · допуск ±⅛ окт.</span>
           </button>
         </div>
-        <div class="diff-note" style="margin-top:10px">В лёгком режиме буст громче и вариантов меньше. В сложном — тихий буст, узкая кривая. Советы после ответа отличаются по жанровому контексту.</div>
+        <div class="diff-note" style="margin-top:10px">В лёгком режиме буст громче и допуск шире. В сложном — тихий буст, узкая кривая, промах прощает меньше. Советы после ответа отличаются по жанровому контексту.</div>
+      </div>
+      <div class="start-toggles">
+        <label class="start-toggle">
+          <input type="checkbox" id="phoneModeCheck" onchange="setPhoneMode(this.checked)">
+          <span>📱 Телефонный динамик</span>
+          <span class="start-toggle-sub">сужает диапазон целей до 300 Гц – 8 кГц</span>
+        </label>
+        <div class="start-toggle" id="sourceToggleRow" style="display:none">
+          <div class="train-chips" id="sourceChips">
+            <button class="train-chip on" onclick="setSource('noise',this)">🔊 Розовый шум</button>
+            <button class="train-chip" onclick="setSource('tracks',this)">🎵 Мои треки</button>
+          </div>
+        </div>
       </div>
       <button class="start-btn" onclick="startGame()">Начать игру</button>
     </div>
@@ -119,6 +132,8 @@
           <path id="eqPath" d="M0,100 L1240,100" fill="none" stroke="#34e0c4" stroke-width="3.5" style="filter:drop-shadow(0 0 7px rgba(52,224,196,.7));transition:d .3s ease"/>
           <!-- Peak vertical line -->
           <line id="peakLine" x1="620" x2="620" y1="0" y2="200" stroke="rgba(167,139,250,.5)" stroke-width="1.5" stroke-dasharray="3 5" opacity="0"/>
+          <!-- Guess cursor line, follows the slider -->
+          <line id="guessLine" x1="620" x2="620" y1="0" y2="200" stroke="rgba(251,146,60,.8)" stroke-width="2" stroke-dasharray="5 4"/>
         </svg>
         <!-- dB labels -->
         <span class="pm-db-label" style="top:0%">+24</span>
@@ -147,6 +162,15 @@
         <span class="pm-xl" style="left:96.8%;transform:translateX(-100%)">16k</span>
         <span class="pm-xl" style="left:100.0%;transform:translateX(-100%)">20k</span>
       </div>
+      <div class="pm-freq-guide">
+        <span class="pm-fg-seg" style="flex:1.15">Суб-бас · гул</span>
+        <span class="pm-fg-seg" style="flex:1.55">Бас · тело</span>
+        <span class="pm-fg-seg" style="flex:1.15">Мид · ящик</span>
+        <span class="pm-fg-seg" style="flex:1.7">Средние · разборчивость</span>
+        <span class="pm-fg-seg" style="flex:1.5">Верх-мид · присутствие</span>
+        <span class="pm-fg-seg" style="flex:1.3">Резкость · шипящие</span>
+        <span class="pm-fg-seg" style="flex:1.65">Воздух · блеск</span>
+      </div>
       <div class="pm-mode-badge" id="modeBadge">С БУСТОМ</div>
     </div>
 
@@ -169,9 +193,13 @@
     </div>
     <div class="pm-hint" id="hint">Нажми ▶ чтобы начать слушать</div>
 
-    <!-- Chips -->
-    <div class="pm-chips-label">Выбери частоту буста</div>
-    <div class="pm-chip-grid" id="chipGrid"></div>
+    <!-- Guess slider -->
+    <div class="pm-guess-panel">
+      <div class="pm-guess-label" id="freqLabel">Выбери частоту буста</div>
+      <div class="pm-guess-readout" id="guessValue">1.0 kHz</div>
+      <input type="range" class="pm-guess-slider" id="freqSlider" min="0" max="1" step="0.001" value="0.5" oninput="onGuessInput()">
+      <button class="pm-submit-btn" id="submitBtn" onclick="submitGuess()">Ответить</button>
+    </div>
 
     <!-- Feedback -->
     <div class="pm-feedback">
@@ -182,8 +210,11 @@
     <!-- Tip -->
     <div id="tipBox"></div>
 
-    <!-- Next -->
-    <button class="pm-next" id="nextBtn" onclick="nextRound()">Далее →</button>
+    <div class="pm-post-actions">
+      <button class="pm-reveal-btn" id="revealBtn" onclick="toggleReveal()" style="display:none">Скрыть буст</button>
+      <!-- Next -->
+      <button class="pm-next" id="nextBtn" onclick="nextRound()">Далее →</button>
+    </div>
 
   </div>
 
@@ -259,6 +290,20 @@
     <div class="streak-t" id="streakT">Стрик!</div>
     <div class="streak-s" id="streakS"></div>
     <button class="start-btn" onclick="closeStreak()" style="padding:12px 32px;font-size:13px;margin-top:6px">Продолжить</button>
+  </div>
+</div>
+
+<!-- Session summary (every 10 rounds) -->
+<div class="streak-overlay" id="summaryOverlay">
+  <div class="streak-card summary-card">
+    <div class="summary-title" id="summaryTitle">Итоги сессии</div>
+    <div class="summary-score" id="summaryScore">0</div>
+    <div class="pm-dots" id="summaryDots" style="justify-content:center;margin:4px 0 8px"></div>
+    <div class="streak-s" id="summaryMsg"></div>
+    <div class="summary-actions">
+      <button class="start-btn" onclick="continueSession()" style="padding:12px 28px;font-size:13px">Играть ещё 10</button>
+      <button class="pm-back" onclick="backToMenuFromSummary()" style="padding:12px 20px">В меню</button>
+    </div>
   </div>
 </div>
 

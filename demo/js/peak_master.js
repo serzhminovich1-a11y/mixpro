@@ -12,6 +12,11 @@ const BASE={easy:60,medium:100,hard:160};
 const LEVELS=[{n:'Lv.1',m:0},{n:'Lv.2',m:200},{n:'Lv.3',m:500},{n:'Lv.4',m:1000},{n:'Lv.5',m:1800},{n:'Lv.6',m:3000},{n:'MASTER',m:5000}];
 const TODAY=new Date().toISOString().slice(0,10);
 
+// Допуск в октавах (log2-расстояние гипотезы от цели, при котором ответ ещё засчитывается)
+const TOLERANCE={easy:.5,medium:.26,hard:.13};
+const PERFECT_FRAC=.15; // доля допуска, при которой считаем попадание идеальным
+const PHONE_MIN=300,PHONE_MAX=8000; // диапазон целей в режиме "Телефонный динамик"
+
 // ══════════════════════════════════════
 //  STATE
 // ══════════════════════════════════════
@@ -23,6 +28,9 @@ let actx=null, srcNode=null, filtNode=null, gainNode=null, anlNode=null, noiseBu
 let raf=null, vol=.2, muted=false;
 let challengeMode=false;
 let sbUser=null, sbProfile=null;
+let phoneMode=false, revealShown=true, sessionRound=0, sessionScore=0, sessionResults=[];
+let guessSource='noise';
+let trackManifest=[], trackCache={};
 
 // Streak data
 function loadSD(){return JSON.parse(localStorage.getItem('mp_sd')||JSON.stringify({streak:0,best:0,last:'',chDone:0,chDate:''}))}
@@ -138,14 +146,56 @@ function makePink(ctx,dur){
   return buf;
 }
 
+// ── РЕЖИМ "МОИ ТРЕКИ" ──
+async function loadTrackManifest(){
+  try{
+    const res=await fetch('../audio/tracks.json');
+    if(!res.ok)return;
+    const list=await res.json();
+    if(Array.isArray(list)&&list.length){
+      trackManifest=list;
+      document.getElementById('sourceToggleRow').style.display='block';
+    }
+  }catch(e){ /* нет файла — режим треков просто не показываем */ }
+}
+
+async function getTrackBuffer(){
+  const name=trackManifest[Math.floor(Math.random()*trackManifest.length)];
+  if(trackCache[name]) return trackCache[name];
+  try{
+    const res=await fetch('../audio/tracks/'+name);
+    const arr=await res.arrayBuffer();
+    const buf=await actx.decodeAudioData(arr);
+    trackCache[name]=buf;
+    return buf;
+  }catch(e){
+    console.warn('Не удалось загрузить трек:',name,e);
+    return null;
+  }
+}
+
+function setSource(s,btn){
+  guessSource=s;
+  document.querySelectorAll('#sourceChips .train-chip').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+}
+
 async function startAudio(){
   stopAudio();
   if(!actx||actx.state==='closed') actx=new(window.AudioContext||window.webkitAudioContext)();
   if(actx.state==='suspended') await actx.resume();
-  if(!noiseBuf||noiseBuf.sampleRate!==actx.sampleRate) noiseBuf=makePink(actx,20);
+
+  let srcBuf;
+  if(guessSource==='tracks' && trackManifest.length){
+    srcBuf=await getTrackBuffer();
+  }
+  if(!srcBuf){
+    if(!noiseBuf||noiseBuf.sampleRate!==actx.sampleRate) noiseBuf=makePink(actx,20);
+    srcBuf=noiseBuf;
+  }
 
   srcNode=actx.createBufferSource();
-  srcNode.buffer=noiseBuf;srcNode.loop=true;
+  srcNode.buffer=srcBuf;srcNode.loop=true;
   buildAudioChain(actx);
   if(comparing){
     filtNode.gain.value=0;
@@ -247,17 +297,55 @@ function setDiff(d,btn){
 }
 
 function startGame(){
+  sessionRound=0;sessionScore=0;sessionResults=[];
   document.getElementById('scrStart').classList.remove('active');
   document.getElementById('scrGame').classList.add('active');
   updateScoreUI();newRound();
 }
 
+function showSessionSummary(){
+  stopAudio();
+  document.getElementById('scrGame').classList.remove('active');
+  document.getElementById('summaryScore').textContent='+'+sessionScore.toLocaleString('ru');
+  const right=sessionResults.filter(Boolean).length;
+  const pct=Math.round(right/sessionResults.length*100);
+  const dots=document.getElementById('summaryDots');dots.innerHTML='';
+  sessionResults.forEach(ok=>{
+    const d=document.createElement('div');
+    d.className='pm-dot '+(ok?'done':'');
+    if(!ok) d.style.cssText='background:rgba(248,113,113,.5)';
+    dots.appendChild(d);
+  });
+  const msgs=[
+    [90,'Невероятная сессия! Слух как у мастеринг-инженера. 🏆'],
+    [70,'Отличный результат — точность на высоте!'],
+    [50,'Неплохо! Ещё немного практики — и будет стабильно.'],
+    [30,'Есть над чем поработать, но прогресс уже виден.'],
+    [0,'Каждая сессия тренирует слух. Продолжай!'],
+  ];
+  document.getElementById('summaryMsg').textContent=(msgs.find(m=>pct>=m[0])||msgs[msgs.length-1])[1]+' Точность: '+pct+'%';
+  document.getElementById('summaryOverlay').classList.add('open');
+}
+
+function continueSession(){
+  document.getElementById('summaryOverlay').classList.remove('open');
+  sessionRound=0;sessionScore=0;sessionResults=[];
+  document.getElementById('scrGame').classList.add('active');
+  newRound();
+}
+
+function backToMenuFromSummary(){
+  document.getElementById('summaryOverlay').classList.remove('open');
+  document.getElementById('scrStart').classList.add('active');
+}
+
 function newRound(){
   stopAudio();
   answered=false;picked=null;qStart=0;comparing=false;
-  
+  if(!trainMode&&!challengeMode) sessionRound++;
+
   const set=SETS[diff];
-  target=set[Math.floor(Math.random()*set.length)];
+  target=pickTarget(set);
   document.getElementById('rn').textContent=round;
   document.getElementById('diffLabel').textContent={easy:'Легко',medium:'Средне',hard:'Сложно'}[diff];
   document.getElementById('fbMain').textContent='';
@@ -289,31 +377,38 @@ function newRound(){
   const tb=document.getElementById('tipBox');tb.style.display='none';tb.textContent='';
   const fl=document.getElementById('freqLabel');if(fl)fl.textContent=isCutMode?'Найди срез частоты':'Выбери частоту буста';
   const nb=document.getElementById('nextBtn');nb.style.display='none';
+  const rb=document.getElementById('revealBtn');rb.style.display='none';
   // Graph — пустая кривая
   updateGraph(false);
-  buildChips();
+
+  // Сброс слайдера-гипотезы
+  const fs=document.getElementById('freqSlider');
+  fs.disabled=false;fs.value=0.5;
+  document.getElementById('submitBtn').disabled=false;
+  onGuessInput();
 }
 
-function buildChips(){
-  const set=SETS[diff];
-  const g=document.getElementById('chipGrid');g.innerHTML='';
-  // Адаптируем количество колонок
-  const cols = set.length <= 5 ? 5 : set.length <= 9 ? 5 : set.length <= 12 ? 6 : 6;
-  g.style.gridTemplateColumns='repeat('+cols+',1fr)';
-  set.forEach(f=>{
-    const b=document.createElement('button');
-    b.className='pm-chip';b.dataset.f=f;
-    b.innerHTML=`<span class="pm-chip-val">${fmtF(f)}</span><span class="pm-chip-unit">Hz</span>`;
-    b.onclick=()=>pickFreq(f,b);
-    g.appendChild(b);
-  });
+function sliderToFreq(v){return Math.pow(10,LO+v*(HI-LO))}
+function freqToSlider(f){return(Math.log10(f)-LO)/(HI-LO)}
+
+function onGuessInput(){
+  const v=parseFloat(document.getElementById('freqSlider').value);
+  document.getElementById('guessValue').textContent=fmtF(Math.round(sliderToFreq(v)))+' Hz';
+  updateGuessLine(v);
 }
 
-function pickFreq(f,btn){
+function updateGuessLine(v){
+  const gl=document.getElementById('guessLine');
+  if(!gl)return;
+  const x=v*1240;
+  gl.setAttribute('x1',x);gl.setAttribute('x2',x);
+  gl.style.opacity=answered?'0':'.9';
+}
+
+function submitGuess(){
   if(answered)return;
-  document.querySelectorAll('.pm-chip').forEach(b=>b.classList.remove('picked'));
-  btn.classList.add('picked');
-  picked=f;
+  const v=parseFloat(document.getElementById('freqSlider').value);
+  picked=sliderToFreq(v);
   checkAnswer();
 }
 
@@ -324,17 +419,16 @@ function checkAnswer(){
 
   const elapsed=(Date.now()-qStart)/1000;
   const dist=Math.abs(Math.log2(picked/target));
-  const ok=dist<0.26;
+  const tol=TOLERANCE[diff]||TOLERANCE.medium;
+  const ok=dist<=tol;
+  const accuracy=ok?Math.pow(Math.max(0,1-dist/tol),2):0;
+  const isPerfect=ok&&dist<=tol*PERFECT_FRAC;
   let earned=0;
   totalAns++;
 
-  // Подсветка кнопок
-  document.querySelectorAll('.pm-chip').forEach(b=>{
-    b.disabled=true;
-    const f=parseInt(b.dataset.f);
-    if(f===target) b.className='pm-chip '+(ok?'correct':'reveal');
-    else if(f===picked&&!ok) b.className='pm-chip wrong';
-  });
+  document.getElementById('freqSlider').disabled=true;
+  document.getElementById('submitBtn').disabled=true;
+  updateGuessLine(0);
 
   // EQ кривая
   clearHintZone();
@@ -352,16 +446,23 @@ function checkAnswer(){
   document.getElementById('peakBoostLabel').style.background=ok?'var(--green)':'var(--red)';
   document.getElementById('peakBoostLabel').style.color=ok?'#0a0b16':'#fff';
 
+  let perfectBonus=0;
   if(ok){
     totalRight++;streak++;
     const spd=Math.max(0,Math.round(50*Math.max(0,1-elapsed/8)));
     const mult=streak>=5?2:streak>=3?1.5:1;
     let base=trainMode?80:BASE[diff];
     if(window._hintUsed) base=Math.round(base*0.5); // штраф за подсказку
-    earned=Math.round((base+spd)*mult);
+    earned=Math.round((base*(0.4+0.6*accuracy)+spd)*mult);
+    if(isPerfect){
+      perfectBonus=Math.round(base*0.5);
+      earned+=perfectBonus;
+    }
     if(!trainMode){score+=earned;localStorage.setItem('pm_s',score);}
+    sessionScore+=earned;
     showTip(target);
-    playSuccessSound();
+    if(isPerfect){playPerfectSound();ptsPopup('🎯 В ЯБЛОЧКО! +'+earned,true);}
+    else{playSuccessSound();ptsPopup('+'+earned);}
     if(!trainMode){setTimeout(saveScore,300);updateDailyStreak();}
     if(!trainMode&&challengeMode) updateChallenge();
     // Считаем hard раунды
@@ -382,14 +483,15 @@ function checkAnswer(){
     }
   } else { streak=0; }
 
+  sessionResults.push(ok);
+
   // Фидбек
   const fm=document.getElementById('fbMain');
   const fs=document.getElementById('fbSub');
   fm.className='pm-fb-main '+(ok?'ok':'no');
   if(ok){
-    fm.textContent='✓ Верно!';
+    fm.textContent=isPerfect?'🎯 В яблочко!':'✓ Верно!';
     fs.textContent=fmtF(target)+' Hz · +'+earned+' pts'+(streak>=3?' · 🔥×'+streak:'');
-    ptsPopup('+'+earned);
   } else {
     fm.textContent='✗ Неверно';
     fs.textContent='Это был '+fmtF(target)+' Hz — слушай ещё раз';
@@ -397,14 +499,46 @@ function checkAnswer(){
 
   updateScoreUI();
 
+  // Тумблер показать/скрыть буст
+  revealShown=true;
+  const rb=document.getElementById('revealBtn');
+  rb.style.display='block';
+  rb.textContent='Скрыть буст';
+
   // Кнопка Далее
   const nb=document.getElementById('nextBtn');
   nb.style.display='block';
   nb.textContent='Далее →';
 }
 
+function toggleReveal(){
+  if(!answered)return;
+  revealShown=!revealShown;
+  const rb=document.getElementById('revealBtn');
+  if(revealShown){
+    const ok=roundWasOk();
+    const revColor=ok?'rgba(74,222,128,.9)':'rgba(248,113,113,.7)';
+    updateGraph(true,revColor,ok?'✓ ВЕРНО':'✗ НЕВЕРНО');
+    rb.textContent='Скрыть буст';
+  } else {
+    updateGraph(false);
+    rb.textContent='Показать буст';
+  }
+}
+function roundWasOk(){
+  if(!picked||!target)return false;
+  const dist=Math.abs(Math.log2(picked/target));
+  return dist<=(TOLERANCE[diff]||TOLERANCE.medium);
+}
 
-function nextRound(){round++;newRound();}
+function nextRound(){
+  round++;
+  if(!trainMode&&!challengeMode&&sessionRound>=10){
+    showSessionSummary();
+    return;
+  }
+  newRound();
+}
 
 // ══════════════════════════════════════
 //  DAILY STREAK
@@ -619,6 +753,32 @@ function playSuccessSound() {
   } catch(e) {}
 }
 
+// ── ЗВУК ИДЕАЛЬНОГО ПОПАДАНИЯ ──
+function playPerfectSound() {
+  try {
+    const ctx = (actx && actx.state !== 'closed') ? actx : new (window.AudioContext || window.webkitAudioContext)();
+    const isNew = ctx !== actx;
+    if(ctx.state === 'suspended') ctx.resume();
+    const master = ctx.createGain();
+    master.gain.value = 0.28;
+    master.connect(ctx.destination);
+    const notes = [784, 988, 1175, 1568]; // G5, B5, D6, G6 — яркий восходящий аккорд
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.value = freq;
+      const t = ctx.currentTime + i * 0.06;
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.5, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.7);
+      osc.connect(g); g.connect(master);
+      osc.start(t); osc.stop(t + 0.75);
+    });
+    if(isNew) setTimeout(() => { try{ctx.close();}catch(e){} }, 1400);
+  } catch(e) {}
+}
+
 
 // ══════════════════════════════════════
 //  HINT SYSTEM
@@ -695,10 +855,13 @@ function getHardPhase() {
   return 4; // иногда CUT вместо boost
 }
 
-function pickTarget(set) {
-  const phase = (diff === 'hard') ? getHardPhase() : 1;
+function pickTarget(rawSet) {
+  const phase = (diff === 'hard' && !trainMode) ? getHardPhase() : 1;
   isCutMode = false;
   targets2 = [];
+
+  const phoneSet = rawSet.filter(f => f >= PHONE_MIN && f <= PHONE_MAX);
+  const set = (phoneMode && phoneSet.length) ? phoneSet : rawSet;
 
   // Phase 4: 30% вероятность среза
   if (phase >= 4 && Math.random() < 0.3) {
@@ -716,6 +879,8 @@ function pickTarget(set) {
 
   return set[Math.floor(Math.random() * set.length)];
 }
+
+function setPhoneMode(v){ phoneMode=v; }
 
 function getBoostForPhase() {
   if (diff !== 'hard') return BOOST[diff];
@@ -836,9 +1001,9 @@ function updateScoreUI(){
   document.getElementById('lf').style.width=nxt?Math.round(((score-lvl.m)/(nxt.m-lvl.m))*100)+'%':'100%';
 }
 
-function ptsPopup(txt){
+function ptsPopup(txt,perfect){
   const el=document.createElement('div');
-  el.className='pts-pop';el.textContent=txt;
+  el.className='pts-pop'+(perfect?' perfect':'');el.textContent=txt;
   // Центрируем по горизонтали, фиксированная позиция по вертикали
   el.style.position='fixed';
   el.style.left='50%';
@@ -858,3 +1023,4 @@ updateScoreUI();
 initStreak();
 sbInit();
 initHints();
+loadTrackManifest();

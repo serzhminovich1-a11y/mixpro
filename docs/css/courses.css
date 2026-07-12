@@ -47,6 +47,11 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:14px 2
 .submit-btn:hover{filter:brightness(1.08)}
 .submit-btn:disabled{opacity:.5;cursor:default}
 .form-status{font-family:var(--mono);font-size:12px;color:var(--muted2)}
+.upload-progress{display:none;flex-direction:column;gap:6px}
+.upload-progress.active{display:flex}
+.upload-progress-bar{height:7px;border-radius:4px;background:rgba(255,255,255,.08);overflow:hidden}
+.upload-progress-fill{height:100%;width:0%;border-radius:4px;background:linear-gradient(90deg,var(--cyan),var(--blue));transition:width .2s}
+.upload-progress-label{font-family:var(--mono);font-size:11px;color:var(--muted2);display:flex;justify-content:space-between}
 .form-status.error{color:var(--red)}
 .form-status.ok{color:var(--green)}
 

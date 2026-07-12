@@ -1,9 +1,44 @@
+const SUPABASE_PROJECT_REF = 'mwzskffecoedpvyflswg';
 const SB = supabase.createClient(
-  'https://mwzskffecoedpvyflswg.supabase.co',
+  `https://${SUPABASE_PROJECT_REF}.supabase.co`,
   'sb_publishable_m1ImqMRye4s4yrpuBTvWvA_yMez-ZhD'
 );
+const TUS_ENDPOINT = `https://${SUPABASE_PROJECT_REF}.storage.supabase.co/storage/v1/upload/resumable`;
 
 let currentUid = null;
+let currentSession = null;
+
+// Докачиваемая загрузка (TUS): если связь оборвётся и пользователь выберет
+// тот же файл ещё раз, tus-js-client узнает его по отпечатку и продолжит
+// с того места, где остановилось, а не с нуля.
+function tusUploadFile({ file, bucket, path, onProgress }){
+  return new Promise((resolve, reject) => {
+    const upload = new tus.Upload(file, {
+      endpoint: TUS_ENDPOINT,
+      retryDelays: [0, 3000, 5000, 10000, 20000],
+      headers: {
+        authorization: `Bearer ${currentSession.access_token}`,
+        'x-upsert': 'false',
+      },
+      uploadDataDuringCreation: true,
+      removeFingerprintOnSuccess: true,
+      metadata: {
+        bucketName: bucket,
+        objectName: path,
+        contentType: file.type || 'application/octet-stream',
+        cacheControl: '3600',
+      },
+      chunkSize: 6 * 1024 * 1024, // Supabase требует ровно 6MB
+      onError: reject,
+      onProgress: (bytesUploaded, bytesTotal) => onProgress && onProgress(bytesUploaded, bytesTotal),
+      onSuccess: () => resolve(),
+    });
+    upload.findPreviousUploads().then((previousUploads) => {
+      if (previousUploads.length) upload.resumeFromPreviousUpload(previousUploads[0]);
+      upload.start();
+    });
+  });
+}
 
 async function handleCreateCourse(e){
   e.preventDefault();
@@ -40,17 +75,22 @@ function lessonAdminRow(l){
   return row;
 }
 
+function formatMb(bytes){ return (bytes / 1048576).toFixed(1); }
+
 async function handleAddLesson(courseId, form){
   const titleInput = form.querySelector('.lTitle');
   const fileInput = form.querySelector('.lFile');
   const statusEl = form.querySelector('.lStatus');
   const btn = form.querySelector('.lBtn');
+  const progressWrap = form.querySelector('.upload-progress');
+  const progressFill = form.querySelector('.upload-progress-fill');
+  const progressLabel = form.querySelector('.upload-progress-label');
   const title = titleInput.value.trim();
   const file = fileInput.files[0];
   if (!title) return;
 
   btn.disabled = true;
-  statusEl.textContent = file ? 'Загружаем видео...' : 'Сохраняем...';
+  statusEl.textContent = file ? '' : 'Сохраняем...';
   statusEl.className = 'form-status';
 
   const { count } = await SB.from('lessons').select('id', { count: 'exact', head: true }).eq('course_id', courseId);
@@ -60,14 +100,27 @@ async function handleAddLesson(courseId, form){
   if (file) {
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
     const path = `${courseId}/${Date.now()}_${safeName}`;
-    const { error: upErr } = await SB.storage.from('lessons').upload(path, file);
-    if (upErr) {
-      statusEl.textContent = 'Не удалось загрузить видео: ' + upErr.message;
+    progressWrap.classList.add('active');
+    progressFill.style.width = '0%';
+    progressLabel.textContent = 'Начинаем загрузку...';
+    try {
+      await tusUploadFile({
+        file, bucket: 'lessons', path,
+        onProgress: (uploaded, total) => {
+          const pct = Math.round((uploaded / total) * 100);
+          progressFill.style.width = pct + '%';
+          progressLabel.textContent = `${pct}% · ${formatMb(uploaded)} / ${formatMb(total)} МБ`;
+        },
+      });
+      contentUrl = path;
+    } catch (err) {
+      statusEl.textContent = 'Загрузка прервалась: ' + (err && err.message ? err.message : 'проблема с сетью') + '. Выбери тот же файл и нажми кнопку ещё раз — докачается с места обрыва.';
       statusEl.className = 'form-status error';
       btn.disabled = false;
+      progressWrap.classList.remove('active');
       return;
     }
-    contentUrl = path;
+    progressWrap.classList.remove('active');
   }
 
   const { error: insErr } = await SB.from('lessons').insert({
@@ -85,7 +138,8 @@ async function handleAddLesson(courseId, form){
   }
   statusEl.textContent = 'Урок добавлен!';
   statusEl.className = 'form-status ok';
-  form.reset();
+  titleInput.value = '';
+  fileInput.value = '';
   renderCoursesAdmin();
 }
 
@@ -107,6 +161,10 @@ function courseAdminBlock(course, lessons){
       <div class="field"><input type="text" class="lTitle" placeholder="Название урока"></div>
     </div>
     <div class="field"><input type="file" class="lFile" accept="video/*"></div>
+    <div class="upload-progress">
+      <div class="upload-progress-bar"><div class="upload-progress-fill"></div></div>
+      <div class="upload-progress-label"></div>
+    </div>
     <button type="button" class="submit-btn lBtn">Добавить урок</button>
     <div class="form-status lStatus"></div>`;
   formWrap.querySelector('.lBtn').addEventListener('click', () => handleAddLesson(course.id, formWrap));
@@ -139,6 +197,7 @@ async function init() {
   const { data: { session } } = await SB.auth.getSession();
   if (!session) { location.href = 'auth.html'; return; }
   currentUid = session.user.id;
+  currentSession = session;
 
   const { data: profile } = await SB.from('profiles').select('role').eq('id', currentUid).single();
   document.getElementById('loading').style.display = 'none';

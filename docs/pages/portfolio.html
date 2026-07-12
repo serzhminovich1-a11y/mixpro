@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MIXPRO — Портфолио</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/portfolio.css">
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">MIX<span>PRO</span></a>
+  <div class="nav-links">
+    <a href="profile.html" class="nav-btn">Профиль</a>
+    <a href="leaderboard.html" class="nav-btn">Рейтинг</a>
+    <button class="nav-btn danger" onclick="logout()">Выйти</button>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div id="loading" class="loading">Загружаем портфолио...</div>
+
+  <div id="content" style="display:none">
+    <div>
+      <div class="sec-h">Портфолио</div>
+      <div class="page-sub">Загружай свои миксы — они появятся здесь и в профиле</div>
+    </div>
+
+    <form class="upload-card" id="uploadForm">
+      <div class="field">
+        <label for="fTitle">Название трека</label>
+        <input type="text" id="fTitle" placeholder="Например: Мой первый микс" required maxlength="120">
+      </div>
+      <div class="field">
+        <label for="fFile">Аудиофайл (MP3, WAV)</label>
+        <input type="file" id="fFile" accept="audio/*" required>
+      </div>
+      <button type="submit" class="upload-btn" id="uploadBtn">Загрузить</button>
+      <div class="upload-status" id="uploadStatus"></div>
+    </form>
+
+    <div>
+      <div class="sec-h">Мои проекты</div>
+      <div class="proj-grid" id="projGrid"></div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="../js/portfolio.js"></script>
+</body>
+</html>

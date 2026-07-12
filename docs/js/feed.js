@@ -11,6 +11,21 @@ let currentRole = null;
 let followingSet = new Set();
 let pendingFile = null;
 
+// Пауза остальных плееров на странице, когда запускается новый — иначе
+// вложения постов и голосовые комментарии могут играть внахлёст.
+document.addEventListener('play', (e) => {
+  if (e.target.tagName !== 'AUDIO' && e.target.tagName !== 'VIDEO') return;
+  document.querySelectorAll('audio, video').forEach(el => { if (el !== e.target) el.pause(); });
+}, true);
+
+// Один общий обработчик на все пикеры реакций (а не по одному на пост —
+// иначе клик по кнопке другого поста "проваливался" мимо старых
+// слушателей из-за stopPropagation, и открытые пикеры не закрывались).
+function closeAllEmojiPickers(){
+  document.querySelectorAll('.emoji-picker.open').forEach(p => p.classList.remove('open'));
+}
+document.addEventListener('click', closeAllEmojiPickers);
+
 function escapeHtml(s){ return String(s == null ? '' : s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
 function initialsOf(name){ return (name || '??').slice(0, 2).toUpperCase(); }
 function timeAgo(iso){
@@ -436,11 +451,15 @@ function postCard(p, commentCounts){
 
   const emojiBtn = card.querySelector('.emoji-add-btn');
   const picker = card.querySelector('.emoji-picker');
-  emojiBtn.addEventListener('click', (e) => { e.stopPropagation(); picker.classList.toggle('open'); });
+  emojiBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const willOpen = !picker.classList.contains('open');
+    closeAllEmojiPickers();
+    if (willOpen) picker.classList.add('open');
+  });
   picker.querySelectorAll('button').forEach(b => {
     b.addEventListener('click', () => { toggleReaction(p.id, b.dataset.e, pillWrap); picker.classList.remove('open'); });
   });
-  document.addEventListener('click', (e) => { if (!card.contains(e.target)) picker.classList.remove('open'); });
 
   const commentsBox = card.querySelector('.comments');
   const commentToggle = card.querySelector('.comment-toggle');

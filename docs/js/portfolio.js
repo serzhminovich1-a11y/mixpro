@@ -18,6 +18,14 @@ function projectCard(p){
     <audio controls src="${p.file_url}"></audio>
     <button class="proj-del" data-id="${p.id}">Удалить</button>`;
   card.querySelector('.proj-del').addEventListener('click', () => deleteProject(p));
+
+  // Пауза остальных треков, когда запускается этот — иначе несколько
+  // плееров могут играть одновременно внахлёст.
+  const audio = card.querySelector('audio');
+  audio.addEventListener('play', () => {
+    document.querySelectorAll('#projGrid audio').forEach(a => { if (a !== audio) a.pause(); });
+  });
+
   return card;
 }
 

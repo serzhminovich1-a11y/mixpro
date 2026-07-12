@@ -21,12 +21,24 @@ async function logout() {
 /* ══════════════════════════════════════
    НАВИГАЦИЯ МЕЖДУ РАЗДЕЛАМИ
    ══════════════════════════════════════ */
-function switchSection(name){
+function activateSection(name){
   document.querySelectorAll('.admin-panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + name));
   document.querySelectorAll('.admin-nav-item').forEach(b => b.classList.toggle('active', b.dataset.section === name));
-  location.hash = name;
   loadSection(name);
 }
+
+// Клик по пункту меню только меняет адрес — саму панель переключает
+// обработчик hashchange ниже. Так кнопка "назад" в браузере тоже
+// корректно возвращает на предыдущий раздел, а не оставляет старую
+// панель на экране с уже другим адресом в строке.
+function switchSection(name){
+  if (location.hash.slice(1) === name) { activateSection(name); return; }
+  location.hash = name;
+}
+
+window.addEventListener('hashchange', () => {
+  activateSection(location.hash.slice(1) || 'overview');
+});
 
 async function loadSection(name){
   if (loadedSections.has(name)) return;
@@ -718,7 +730,7 @@ async function init() {
   const validSections = Array.from(document.querySelectorAll('.admin-nav-item[data-section]'))
     .filter(b => b.style.display !== 'none')
     .map(b => b.dataset.section);
-  switchSection(validSections.includes(initialSection) ? initialSection : 'overview');
+  activateSection(validSections.includes(initialSection) ? initialSection : 'overview');
 }
 
 init();

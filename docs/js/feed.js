@@ -24,6 +24,41 @@ function timeAgo(iso){
 }
 
 /* ══════════════════════════════════════
+   ЗАПИСЬ ГОЛОСА (MediaRecorder) — общий помощник
+   ══════════════════════════════════════ */
+function pickMimeType(){
+  const candidates = ['audio/webm', 'audio/mp4', 'audio/ogg'];
+  return candidates.find(t => window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) || '';
+}
+
+function formatDuration(s){ const m = Math.floor(s / 60); const sec = s % 60; return `${m}:${String(sec).padStart(2, '0')}`; }
+
+function createRecorder(onStop){
+  let mediaRecorder, chunks = [], stream;
+  return {
+    async start(){
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mimeType = pickMimeType();
+      mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+      chunks = [];
+      mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
+      mediaRecorder.onstop = () => {
+        stream.getTracks().forEach(t => t.stop());
+        const blob = new Blob(chunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+        onStop(blob);
+      };
+      mediaRecorder.start();
+    },
+    stop(){ if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop(); },
+  };
+}
+
+function blobToFile(blob, prefix){
+  const ext = blob.type.includes('mp4') ? 'm4a' : blob.type.includes('ogg') ? 'ogg' : 'webm';
+  return new File([blob], `${prefix}-${Date.now()}.${ext}`, { type: blob.type });
+}
+
+/* ══════════════════════════════════════
    КОМПОЗЕР
    ══════════════════════════════════════ */
 function pickAttachmentType(file){
@@ -32,7 +67,40 @@ function pickAttachmentType(file){
   return 'file';
 }
 
+let composerRecorder = null;
+let composerRecTimer = null;
+let composerRecSeconds = 0;
+
+async function handleMicClick(){
+  const micBtn = document.getElementById('micBtn');
+  if (micBtn.classList.contains('recording')) {
+    composerRecorder.stop();
+    return;
+  }
+  try {
+    composerRecorder = createRecorder((blob) => {
+      clearInterval(composerRecTimer);
+      micBtn.classList.remove('recording');
+      micBtn.textContent = '🎙️';
+      pendingFile = blobToFile(blob, 'voice');
+      document.getElementById('attachName').textContent = `🎙️ Голосовое сообщение · ${formatDuration(composerRecSeconds)}`;
+      document.getElementById('attachPreview').classList.add('show');
+    });
+    await composerRecorder.start();
+    micBtn.classList.add('recording');
+    composerRecSeconds = 0;
+    micBtn.textContent = '⏹ 0:00';
+    composerRecTimer = setInterval(() => {
+      composerRecSeconds++;
+      micBtn.textContent = '⏹ ' + formatDuration(composerRecSeconds);
+    }, 1000);
+  } catch (err) {
+    alert('Не удалось получить доступ к микрофону: ' + (err && err.message ? err.message : err));
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('micBtn').addEventListener('click', handleMicClick);
   document.getElementById('attachBtn').addEventListener('click', () => document.getElementById('attachInput').click());
   document.getElementById('attachInput').addEventListener('change', (e) => {
     pendingFile = e.target.files[0] || null;
@@ -176,9 +244,12 @@ function commentRow(c){
   const div = document.createElement('div');
   div.className = 'comment-row';
   const username = (c.profiles && c.profiles.username) || '?';
+  const body = c.audio_url
+    ? `<audio controls src="${c.audio_url}"></audio>`
+    : `<div class="ctext">${escapeHtml(c.content)}</div>`;
   div.innerHTML = `
     <div class="comment-avatar">${initialsOf(username)}</div>
-    <div class="comment-body"><div class="cname">${escapeHtml(username)}</div><div class="ctext">${escapeHtml(c.content)}</div></div>`;
+    <div class="comment-body"><div class="cname">${escapeHtml(username)}</div>${body}</div>`;
   return div;
 }
 
@@ -189,6 +260,11 @@ async function loadComments(postId, container){
   (data || []).forEach(c => container.insertBefore(commentRow(c), form));
 }
 
+async function refreshCommentCount(postId, countEl){
+  const { count } = await SB.from('post_comments').select('id', { count: 'exact', head: true }).eq('post_id', postId);
+  countEl.textContent = '💬 ' + (count || 0);
+}
+
 async function handleAddComment(postId, input, container, countEl){
   const text = input.value.trim();
   if (!text) return;
@@ -196,8 +272,19 @@ async function handleAddComment(postId, input, container, countEl){
   if (error) { alert('Ошибка: ' + error.message); return; }
   input.value = '';
   await loadComments(postId, container);
-  const { count } = await SB.from('post_comments').select('id', { count: 'exact', head: true }).eq('post_id', postId);
-  countEl.textContent = '💬 ' + (count || 0);
+  await refreshCommentCount(postId, countEl);
+}
+
+async function handleAddVoiceComment(postId, blob, container, countEl){
+  const file = blobToFile(blob, 'comment');
+  const path = `${currentUid}/comments/${file.name}`;
+  const { error: upErr } = await SB.storage.from('posts').upload(path, file);
+  if (upErr) { alert('Не удалось загрузить голосовой комментарий: ' + upErr.message); return; }
+  const { data: pub } = SB.storage.from('posts').getPublicUrl(path);
+  const { error } = await SB.from('post_comments').insert({ post_id: postId, user_id: currentUid, audio_url: pub.publicUrl });
+  if (error) { alert('Ошибка: ' + error.message); return; }
+  await loadComments(postId, container);
+  await refreshCommentCount(postId, countEl);
 }
 
 function postCard(p, commentCounts){
@@ -227,7 +314,16 @@ function postCard(p, commentCounts){
       <button type="button" class="comment-toggle">💬 ${commentCount}</button>
     </div>
     <div class="comments">
-      <div class="comment-form"><input type="text" placeholder="Написать комментарий..."><button type="button">→</button></div>
+      <div class="comment-form">
+        <button type="button" class="comment-mic" title="Голосовой комментарий">🎙️</button>
+        <input type="text" placeholder="Написать комментарий...">
+        <button type="button" class="comment-send">→</button>
+      </div>
+      <div class="voice-comment-preview">
+        <audio controls></audio>
+        <button type="button" class="vc-send">Отправить</button>
+        <button type="button" class="vc-cancel">✕</button>
+      </div>
     </div>`;
 
   const followBtn = card.querySelector('.follow-btn');
@@ -258,10 +354,61 @@ function postCard(p, commentCounts){
     }
   });
   const commentInput = commentsBox.querySelector('input');
-  const commentSendBtn = commentsBox.querySelector('.comment-form button');
+  const commentSendBtn = commentsBox.querySelector('.comment-send');
   const send = () => handleAddComment(p.id, commentInput, commentsBox, commentToggle);
   commentSendBtn.addEventListener('click', send);
   commentInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); send(); } });
+
+  // Голосовой комментарий
+  const micBtn = commentsBox.querySelector('.comment-mic');
+  const voicePreview = commentsBox.querySelector('.voice-comment-preview');
+  const voiceAudio = voicePreview.querySelector('audio');
+  const vcSendBtn = voicePreview.querySelector('.vc-send');
+  const vcCancelBtn = voicePreview.querySelector('.vc-cancel');
+  let commentRecorder = null;
+  let commentRecTimer = null;
+  let commentRecSeconds = 0;
+  let recordedBlob = null;
+
+  micBtn.addEventListener('click', async () => {
+    if (micBtn.classList.contains('recording')) {
+      commentRecorder.stop();
+      return;
+    }
+    try {
+      commentRecorder = createRecorder((blob) => {
+        clearInterval(commentRecTimer);
+        micBtn.classList.remove('recording');
+        micBtn.textContent = '🎙️';
+        recordedBlob = blob;
+        voiceAudio.src = URL.createObjectURL(blob);
+        voicePreview.classList.add('show');
+      });
+      await commentRecorder.start();
+      micBtn.classList.add('recording');
+      commentRecSeconds = 0;
+      micBtn.textContent = '⏹ 0:00';
+      commentRecTimer = setInterval(() => {
+        commentRecSeconds++;
+        micBtn.textContent = '⏹ ' + formatDuration(commentRecSeconds);
+      }, 1000);
+    } catch (err) {
+      alert('Не удалось получить доступ к микрофону: ' + (err && err.message ? err.message : err));
+    }
+  });
+
+  vcCancelBtn.addEventListener('click', () => {
+    recordedBlob = null;
+    voicePreview.classList.remove('show');
+  });
+  vcSendBtn.addEventListener('click', async () => {
+    if (!recordedBlob) return;
+    vcSendBtn.disabled = true;
+    await handleAddVoiceComment(p.id, recordedBlob, commentsBox, commentToggle);
+    vcSendBtn.disabled = false;
+    recordedBlob = null;
+    voicePreview.classList.remove('show');
+  });
 
   return card;
 }

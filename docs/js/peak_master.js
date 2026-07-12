@@ -1080,7 +1080,7 @@ const TOUR_STEPS=[
     text:'Нажми прямо на графике, веди до нужной частоты и отпусти — воротики (⊏ ⊐) показывают, где ты сейчас. Отпустил — ответ сразу засчитан.'},
   {sel:'.pm-freq-guide',title:'📖 Что где живёт',
     text:'Эта полоска — шпаргалка по диапазонам: слева бас и гул, посередине тело и разборчивость речи, справа — шипящие и воздух.'},
-  {sel:'.diff-grid',title:'📈 Сложность растёт сама',
+  {sel:'.pm-question',title:'📈 Сложность растёт сама',
     text:'В «Лёгком» уровне буст сначала громкий и допуск широкий. С каждым раундом — чуть тише и точнее, пока не подготовишься к «Среднему». Удачи!'},
 ];
 let tourIdx=0, tourWasPlaying=false;
@@ -1101,22 +1101,18 @@ function startTour(manual){
     sessionRound=0;sessionScore=0;sessionResults=[];
     updateScoreUI();newRound();
   }
+  document.body.classList.add('tour-lock');
   document.getElementById('tourOverlay').classList.add('open');
   showTourStep(0);
 }
 
-function showTourStep(i){
-  tourIdx=i;
-  const step=TOUR_STEPS[i];
+function positionTourUI(){
+  if(!document.getElementById('tourOverlay').classList.contains('open'))return;
+  const step=TOUR_STEPS[tourIdx];
   const spot=document.getElementById('tourSpotlight');
   const card=document.getElementById('tourCard');
-
-  document.getElementById('tourStepN').textContent=(i+1)+' / '+TOUR_STEPS.length;
-  document.getElementById('tourTitle').textContent=step.title;
-  document.getElementById('tourText').textContent=step.text;
-  document.getElementById('tourNextBtn').textContent=(i===TOUR_STEPS.length-1)?'Поехали! →':'Далее →';
-
   const el=step.sel?document.querySelector(step.sel):null;
+
   if(el){
     const r=el.getBoundingClientRect();
     const pad=8;
@@ -1140,6 +1136,25 @@ function showTourStep(i){
   }
 }
 
+function showTourStep(i){
+  tourIdx=i;
+  const step=TOUR_STEPS[i];
+
+  document.getElementById('tourStepN').textContent=(i+1)+' / '+TOUR_STEPS.length;
+  document.getElementById('tourTitle').textContent=step.title;
+  document.getElementById('tourText').textContent=step.text;
+  document.getElementById('tourNextBtn').textContent=(i===TOUR_STEPS.length-1)?'Поехали! →':'Далее →';
+
+  const el=step.sel?document.querySelector(step.sel):null;
+  if(el){
+    el.scrollIntoView({block:'center',behavior:'instant'});
+    // Ждём кадр, чтобы scrollIntoView успел применить позицию перед замером
+    requestAnimationFrame(()=>requestAnimationFrame(positionTourUI));
+  } else {
+    positionTourUI();
+  }
+}
+
 function nextTourStep(){
   if(tourIdx>=TOUR_STEPS.length-1){endTour();return;}
   showTourStep(tourIdx+1);
@@ -1149,6 +1164,7 @@ function skipTour(){endTour();}
 
 function endTour(){
   document.getElementById('tourOverlay').classList.remove('open');
+  document.body.classList.remove('tour-lock');
   localStorage.setItem('pm_tour_seen','1');
   if(tourWasPlaying) startAudio();
 }

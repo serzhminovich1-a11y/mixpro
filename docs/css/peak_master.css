@@ -266,6 +266,7 @@ body{background:#0a0b12;color:#eef0fb;font-family:'Manrope',sans-serif;-webkit-f
 /* ── ОБУЧАЮЩИЙ ТУР ── */
 .tour-overlay{display:none;position:fixed;inset:0;z-index:500}
 .tour-overlay.open{display:block}
+body.tour-lock{overflow:hidden}
 .tour-spotlight{
   position:absolute;border-radius:14px;
   box-shadow:0 0 0 9999px rgba(6,7,14,.82);

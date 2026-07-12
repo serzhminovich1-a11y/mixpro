@@ -444,10 +444,25 @@ function setGuessFraction(v){
 
 function graphPointerDown(e){
   if(answered)return;
+  if(qStart===0){
+    // Ещё не начали слушать — угадывать рано
+    nudgePlayButton();
+    e.preventDefault();
+    return;
+  }
   dragging=true;
   document.getElementById('guessGate').classList.add('active');
   setGuessFraction(graphFracFromEvent(e));
   e.preventDefault();
+}
+
+function nudgePlayButton(){
+  const hint=document.getElementById('hint');
+  const pb=document.getElementById('playBtn');
+  const prev=hint.textContent;
+  hint.textContent='Сначала нажми ▶ — послушай звук';
+  pb.classList.add('nudge');
+  setTimeout(()=>{pb.classList.remove('nudge');if(!playing)hint.textContent=prev;},900);
 }
 function graphPointerMove(e){
   if(!dragging||answered)return;

@@ -140,6 +140,8 @@ body{background:#0a0b12;color:#eef0fb;font-family:'Manrope',sans-serif;-webkit-f
 .pm-play-circle:hover{box-shadow:0 0 36px rgba(34,211,238,.45)}
 .pm-play-circle.playing{background:linear-gradient(135deg,var(--cyan),var(--purple));border-color:var(--cyan);box-shadow:0 0 32px rgba(34,211,238,.6);animation:pulsePlay 1.4s ease-in-out infinite}
 @keyframes pulsePlay{0%,100%{box-shadow:0 0 0 0 rgba(34,211,238,.35)}50%{box-shadow:0 0 0 12px rgba(34,211,238,0)}}
+.pm-play-circle.nudge{animation:nudgeShake .4s ease}
+@keyframes nudgeShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
 .pm-play-triangle{width:0;height:0;border-top:12px solid transparent;border-bottom:12px solid transparent;border-left:20px solid var(--cyan);margin-left:5px}
 .pm-play-triangle.white{border-left-color:#0a0b16}
 .pm-pause{display:flex;gap:6px}

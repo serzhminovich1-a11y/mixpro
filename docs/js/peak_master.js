@@ -104,6 +104,27 @@ function updateGraph(showCurve, color, label){
   }
 }
 
+// Доп. полосы (2я/3я в тренировке, вторая в hard-режиме) — метки на графике после ответа
+function clearExtraBandMarkers(){
+  document.querySelectorAll('.pm-extra-band-line,.pm-extra-band-tag').forEach(el=>el.remove());
+}
+function drawExtraBandMarker(freq,i){
+  const svg=document.getElementById('eqSvg');
+  const x=fToSvgX(freq);
+  const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+  line.setAttribute('class','pm-extra-band-line');
+  line.setAttribute('x1',x);line.setAttribute('x2',x);line.setAttribute('y1',0);line.setAttribute('y2',200);
+  line.setAttribute('stroke','rgba(251,146,60,.55)');line.setAttribute('stroke-width','1.5');line.setAttribute('stroke-dasharray','3 5');
+  svg.appendChild(line);
+
+  const tag=document.createElement('div');
+  tag.className='pm-extra-band-tag';
+  const top=40+i*22; // ступеньками вниз, чтобы не наезжать друг на друга и на бейдж С БУСТОМ
+  tag.style.cssText='position:absolute;top:'+top+'px;left:'+(x/1240*100)+'%;transform:translateX(-50%);font-family:JetBrains Mono,monospace;font-size:10px;font-weight:700;color:#fb923c;background:rgba(10,11,22,.85);padding:2px 6px;border-radius:5px;border:1px solid rgba(251,146,60,.4);white-space:nowrap;pointer-events:none;z-index:5';
+  tag.textContent=fmtF(freq)+' Hz';
+  document.querySelector('.pm-graph-inner').appendChild(tag);
+}
+
 // ══════════════════════════════════════
 //  AUDIO
 // ══════════════════════════════════════
@@ -380,6 +401,7 @@ function newRound(){
   const rb=document.getElementById('revealBtn');rb.style.display='none';
   // Graph — пустая кривая
   updateGraph(false);
+  clearExtraBandMarkers();
 
   // Сброс гипотезы — воротики видны полупрозрачно по центру, ждут перетаскивания
   guessFrac=0.5;dragging=false;
@@ -490,15 +512,14 @@ function checkAnswer(){
   updateGuessTag(guessFrac);
 
   // EQ кривая
-  // Подсвечиваем вторую полосу если была
-  if(targets2.length>0){
-    const x2=fToSvgX(targets2[0]);
-    const svg=document.getElementById('eqSvg');
-    let m=svg.querySelector('#peakLine2');
-    if(!m){m=document.createElementNS('http://www.w3.org/2000/svg','line');m.id='peakLine2';svg.appendChild(m);}
-    m.setAttribute('x1',x2);m.setAttribute('x2',x2);m.setAttribute('y1',0);m.setAttribute('y2',200);
-    m.setAttribute('stroke','rgba(251,146,60,.5)');m.setAttribute('stroke-width','1.5');m.setAttribute('stroke-dasharray','3 5');
-  }
+  // Подсвечиваем вторую/третью полосу если были (hard-режим или тренировка)
+  const ml2=document.getElementById('multiLabel');if(ml2)ml2.style.display='none';
+  clearExtraBandMarkers();
+  const extraBands=[];
+  if(targets2.length>0) extraBands.push(targets2[0]);
+  if(trainBand2Freq) extraBands.push(trainBand2Freq);
+  if(trainBand3Freq) extraBands.push(trainBand3Freq);
+  extraBands.forEach((f,i)=>drawExtraBandMarker(f,i));
   const revColor=ok?'rgba(74,222,128,.9)':'rgba(248,113,113,.7)';
   updateGraph(true,revColor,ok?'✓ ВЕРНО':'✗ НЕВЕРНО');
   document.getElementById('peakBoostLabel').style.background=ok?'var(--green)':'var(--red)';
@@ -1021,6 +1042,7 @@ function startTrainGame() {
 // ══════════════════════════════════════
 let filtNode2 = null;
 let filtNode3 = null;
+let trainBand2Freq = null, trainBand3Freq = null;
 
 function buildAudioChain(ctx) {
   const gain = trainMode ? trainCfg.gain : getBoostForPhase();
@@ -1035,6 +1057,8 @@ function buildAudioChain(ctx) {
 
   filtNode2 = null;
   filtNode3 = null;
+  trainBand2Freq = null;
+  trainBand3Freq = null;
 
   if (targets2.length > 0 || (trainMode && trainCfg.bands >= 2)) {
     const t2 = targets2[0] || SETS.hard[Math.floor(Math.random() * SETS.hard.length)];
@@ -1043,6 +1067,7 @@ function buildAudioChain(ctx) {
     filtNode2.frequency.value = t2;
     filtNode2.Q.value = q;
     filtNode2.gain.value = (cut ? -gain : gain) * 0.85;
+    if (trainMode) trainBand2Freq = t2;
   }
 
   if (trainMode && trainCfg.bands >= 3) {
@@ -1053,6 +1078,7 @@ function buildAudioChain(ctx) {
     filtNode3.frequency.value = t3;
     filtNode3.Q.value = q;
     filtNode3.gain.value = (cut ? -gain : gain) * 0.7;
+    trainBand3Freq = t3;
   }
 }
 

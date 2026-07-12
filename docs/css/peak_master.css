@@ -133,6 +133,7 @@ body{background:#0a0b12;color:#eef0fb;font-family:'Manrope',sans-serif;-webkit-f
 .pm-xl{position:absolute;font-size:10px;color:rgba(255,255,255,.3);font-family:'JetBrains Mono',monospace;white-space:nowrap}
 .pm-mode-badge{position:absolute;top:14px;right:16px;font-size:11px;font-weight:700;letter-spacing:.1em;padding:4px 10px;border-radius:6px;background:rgba(34,211,238,.12);color:var(--cyan);border:1px solid rgba(34,211,238,.25);transition:.2s}
 .pm-mode-badge.comparing{background:rgba(255,255,255,.05);color:var(--muted2);border-color:var(--border)}
+.pm-multi-label{position:absolute;top:14px;left:16px;font-size:10px;font-weight:700;padding:4px 10px;border-radius:6px;background:rgba(251,146,60,.12);color:#fb923c;border:1px solid rgba(251,146,60,.3)}
 
 /* Transport */
 .pm-transport{display:flex;align-items:center;gap:20px;justify-content:center}

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MIXPRO — Лента</title>
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400..900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/feed.css">
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">MIX<span>PRO</span></a>
+  <div class="nav-links">
+    <a href="profile.html" class="nav-btn">Профиль</a>
+    <a href="courses.html" class="nav-btn">Курсы</a>
+    <a href="portfolio.html" class="nav-btn">Портфолио</a>
+    <button class="nav-btn danger" onclick="logout()">Выйти</button>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div id="loading" class="loading">Загружаем ленту...</div>
+
+  <div id="content" style="display:none">
+    <form class="card composer" id="composerForm">
+      <textarea id="postContent" rows="2" placeholder="Поделись мыслями о миксе, спроси совета…"></textarea>
+      <div class="attach-preview" id="attachPreview">
+        <span id="attachName"></span>
+        <button type="button" id="attachRemove">✕</button>
+      </div>
+      <input type="file" id="attachInput" style="display:none">
+      <div class="composer-actions">
+        <div class="composer-tools">
+          <button type="button" class="tool-btn" id="attachBtn" title="Прикрепить видео/файл">📎</button>
+        </div>
+        <button type="submit" class="btn-primary" id="postBtn">Опубликовать</button>
+      </div>
+      <div class="composer-status" id="composerStatus"></div>
+    </form>
+
+    <div class="sec-h">Лента</div>
+    <div id="postsList" style="display:flex;flex-direction:column;gap:16px"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="../js/feed.js"></script>
+</body>
+</html>

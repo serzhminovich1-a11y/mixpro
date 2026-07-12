@@ -113,6 +113,10 @@ async function init() {
   renderAchievements(uid);
   renderWorksWall(uid);
 
+  if (profile.role === 'ADMIN') {
+    document.getElementById('adminUsersLink').style.display = '';
+  }
+
   // Аватар
   const av = document.getElementById('avatar');
   av.style.background = profile.avatar_color || '#22d3ee';

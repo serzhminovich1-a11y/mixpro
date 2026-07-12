@@ -12,6 +12,7 @@ nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-con
 .nav-btn{font-family:var(--mono);font-size:12px;padding:7px 14px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--muted2);cursor:pointer;text-decoration:none;transition:.15s}
 .nav-btn:hover{color:var(--text);border-color:var(--muted2)}
 .nav-btn.danger:hover{color:var(--red);border-color:var(--red)}
+.nav-btn.accent{color:var(--gold);border-color:rgba(250,204,21,.3)}
 .wrap{max-width:900px;margin:0 auto;padding:40px 20px 80px;display:flex;flex-direction:column;gap:28px}
 
 /* Общая "приподнятая панель" — карточки с мягкой тенью и подсветкой сверху */

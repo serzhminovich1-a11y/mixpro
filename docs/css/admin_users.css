@@ -1,0 +1,24 @@
+.au-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.au-toolbar input{flex:1;max-width:320px;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:9px 14px;color:var(--text);font-family:var(--sans);font-size:14px}
+.au-toolbar input:focus{outline:none;border-color:var(--cyan)}
+.au-count{font-family:var(--mono);font-size:12px;color:var(--muted2)}
+
+.au-table-wrap{background:linear-gradient(180deg,var(--surf-top),var(--surf-bot)),var(--bg);border:1px solid var(--border);border-radius:12px;overflow:auto;box-shadow:var(--shadow-lift)}
+.au-table{width:100%;border-collapse:collapse;min-width:680px}
+.au-table th{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted2);padding:12px 16px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+.au-table td{padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:middle}
+.au-table tr:last-child td{border-bottom:none}
+.au-table tr:hover td{background:var(--s2)}
+
+.au-user{display:flex;align-items:center;gap:10px}
+.au-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#0a0b16;background:linear-gradient(135deg,var(--cyan),var(--blue));flex-shrink:0}
+.au-username{font-family:var(--ox);font-weight:700;font-size:13px}
+
+.au-table select,.au-table input[type="number"]{background:var(--s2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:12px;padding:6px 8px}
+.au-table select:focus,.au-table input[type="number"]:focus{outline:none;border-color:var(--cyan)}
+.au-table input[type="number"]{width:90px}
+.au-role.role-ADMIN{color:var(--gold)}
+.au-role.role-MENTOR,.au-role.role-VERIFIED_PRO{color:var(--cyan)}
+.au-date{font-family:var(--mono);font-size:11px;color:var(--muted2);white-space:nowrap}
+.au-saved{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);margin-left:6px;opacity:0;transition:opacity .2s}
+.au-saved.show{opacity:1}

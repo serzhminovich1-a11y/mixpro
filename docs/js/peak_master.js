@@ -33,9 +33,39 @@ let guessFrac=0.5, dragging=false;
 let guessSource='noise';
 let trackManifest=[], trackCache={};
 
-// Streak data
+// Streak data — localStorage остаётся источником истины для мгновенного
+// отклика в игре, Supabase — просто зеркало для профиля/др. устройств.
 function loadSD(){return JSON.parse(localStorage.getItem('mp_sd')||JSON.stringify({streak:0,best:0,last:'',chDone:0,chDate:''}))}
-function saveSD(d){localStorage.setItem('mp_sd',JSON.stringify(d))}
+function saveSD(d){localStorage.setItem('mp_sd',JSON.stringify(d));syncStreakToSupabase(d)}
+
+async function syncStreakToSupabase(d){
+  if(!sbUser)return;
+  await SB.from('daily_streaks').upsert({
+    user_id:sbUser.id, game:'peak_master',
+    streak:d.streak||0, best_streak:d.best||0, last_played:d.last||null,
+  },{onConflict:'user_id,game'});
+}
+
+// Сверка при входе: если играли с другого устройства — подтягиваем
+// более свежие данные с сервера, а не наоборот перезатираем их старым
+// локальным состоянием.
+async function reconcileStreak(){
+  const local=loadSD();
+  const{data:remote}=await SB.from('daily_streaks').select('*').eq('user_id',sbUser.id).eq('game','peak_master').maybeSingle();
+  if(!remote){await syncStreakToSupabase(local);return;}
+
+  if(remote.last_played&&(!local.last||remote.last_played>local.last)){
+    const merged={streak:remote.streak,best:Math.max(remote.best_streak,local.best||0),last:remote.last_played,chDone:local.chDate===TODAY?local.chDone:0,chDate:local.chDate};
+    localStorage.setItem('mp_sd',JSON.stringify(merged));
+    updateStreakUI(merged);
+  }else if(local.last&&(!remote.last_played||local.last>remote.last_played)){
+    await syncStreakToSupabase(local);
+  }else if(remote.streak>local.streak||remote.best_streak>local.best){
+    const merged={...local,streak:Math.max(local.streak,remote.streak),best:Math.max(local.best,remote.best_streak)};
+    localStorage.setItem('mp_sd',JSON.stringify(merged));
+    updateStreakUI(merged);
+  }
+}
 
 // ══════════════════════════════════════
 //  SUPABASE
@@ -51,6 +81,7 @@ async function sbInit(){
       const nb=document.getElementById('navVip');
       if(nb){nb.textContent='👤 '+p.username;nb.style.color='var(--cyan)'}
     }
+    await reconcileStreak();
   }
 }
 async function saveScore(){

@@ -57,6 +57,48 @@ async function renderAchievements(uid){
   });
 }
 
+function workCard(p){
+  const card = document.createElement('div');
+  card.className = 'work-card';
+  const date = new Date(p.created_at).toLocaleDateString('ru-RU');
+  const bars = Array.from({ length: 22 }, () => Math.round(3 + Math.random() * 13))
+    .map(h => `<i style="height:${h}px"></i>`).join('');
+  card.innerHTML = `
+    <div class="work-thumb">${bars}<div class="work-play">▶</div></div>
+    <div class="work-body"><div class="work-title">${p.title}</div><div class="work-meta">${date}</div></div>`;
+
+  const audio = new Audio(p.file_url);
+  const playBtn = card.querySelector('.work-play');
+  playBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (audio.paused) {
+      document.querySelectorAll('#worksWall .work-play').forEach(b => { if (b !== playBtn) b.textContent = '▶'; });
+      document.dispatchEvent(new CustomEvent('pauseOtherWorks', { detail: audio }));
+      audio.play();
+      playBtn.textContent = '⏸';
+    } else {
+      audio.pause();
+      playBtn.textContent = '▶';
+    }
+  });
+  document.addEventListener('pauseOtherWorks', (e) => { if (e.detail !== audio) audio.pause(); });
+  audio.addEventListener('ended', () => { playBtn.textContent = '▶'; });
+  return card;
+}
+
+async function renderWorksWall(uid){
+  const wall = document.getElementById('worksWall');
+  const { data, error } = await SB.from('projects')
+    .select('*').eq('user_id', uid).order('created_at', { ascending: false }).limit(6);
+
+  if (error || !data || data.length === 0) {
+    wall.innerHTML = '<div class="empty">Пока нет работ — <a href="portfolio.html" style="color:var(--cyan)">загрузи первую</a></div>';
+    return;
+  }
+  wall.innerHTML = '';
+  data.forEach(p => wall.appendChild(workCard(p)));
+}
+
 async function init() {
   const { data: { session } } = await SB.auth.getSession();
   if (!session) { location.href = 'auth.html'; return; }
@@ -69,6 +111,7 @@ async function init() {
 
   renderLevelXp(profile.xp);
   renderAchievements(uid);
+  renderWorksWall(uid);
 
   // Аватар
   const av = document.getElementById('avatar');

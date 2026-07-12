@@ -76,8 +76,9 @@ body{background:#0a0b12;color:#eef0fb;font-family:'Golos Text',sans-serif;-webki
 
 /* ── START SCREEN ── */
 .start-card{
-  background:var(--s1);border:1px solid var(--border);border-radius:20px;
+  background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.015)),var(--bg);border:1px solid var(--border);border-radius:20px;
   padding:40px;display:flex;flex-direction:column;align-items:center;gap:24px;text-align:center;
+  box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 1px 0 rgba(0,0,0,.4), 0 24px 48px -22px rgba(0,0,0,.65);
 }
 .start-card h1{font-family:'Golos Text',sans-serif;font-size:clamp(26px,4vw,42px);font-weight:700;line-height:1.1;letter-spacing:-.5px}
 .start-card h1 em{font-style:normal;color:var(--cyan)}
@@ -197,8 +198,9 @@ body{background:#0a0b12;color:#eef0fb;font-family:'Golos Text',sans-serif;-webki
 
 /* ── TRAIN SETUP (были без стилей вообще) ── */
 .train-card{
-  background:var(--s1);border:1px solid var(--border);border-radius:20px;
+  background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.015)),var(--bg);border:1px solid var(--border);border-radius:20px;
   padding:32px;display:flex;flex-direction:column;gap:22px;width:100%;max-width:520px;
+  box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 1px 0 rgba(0,0,0,.4), 0 24px 48px -22px rgba(0,0,0,.65);
 }
 .train-card h2{font-family:'Golos Text',sans-serif;font-size:17px;font-weight:700;color:#fff}
 .train-row{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}

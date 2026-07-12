@@ -51,7 +51,7 @@ body{background:#0a0b12;color:#eef0fb;font-family:'Golos Text',sans-serif;-webki
 .screen{display:none}.screen.active{display:flex;flex-direction:column;gap:20px}
 
 /* START */
-.start-card{background:var(--s1);border:1px solid var(--border);border-radius:20px;padding:40px;display:flex;flex-direction:column;align-items:center;gap:24px;text-align:center}
+.start-card{background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.015)),var(--bg);border:1px solid var(--border);border-radius:20px;padding:40px;display:flex;flex-direction:column;align-items:center;gap:24px;text-align:center;box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 1px 0 rgba(0,0,0,.4), 0 24px 48px -22px rgba(0,0,0,.65)}
 .start-card h1{font-family:'Golos Text',sans-serif;font-size:clamp(24px,4vw,40px);font-weight:700;line-height:1.1}
 .start-card h1 em{font-style:normal;color:var(--purple)}
 .start-card p{font-size:14px;color:var(--muted2);max-width:460px;line-height:1.7}

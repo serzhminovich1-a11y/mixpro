@@ -22,3 +22,5 @@
 .au-date{font-family:var(--mono);font-size:11px;color:var(--muted2);white-space:nowrap}
 .au-saved{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);margin-left:6px;opacity:0;transition:opacity .2s}
 .au-saved.show{opacity:1}
+.au-del:hover{color:var(--red);border-color:var(--red)}
+.au-del:disabled{opacity:.4;cursor:default}

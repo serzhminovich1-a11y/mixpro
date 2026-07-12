@@ -53,6 +53,11 @@ nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-con
 .follow-btn.following{color:var(--cyan);border-color:rgba(34,211,238,.3);background:rgba(34,211,238,.06)}
 .post-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;flex-shrink:0}
 .post-del:hover{color:var(--red)}
+.post-edit-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;flex-shrink:0}
+.post-edit-btn:hover{color:var(--cyan)}
+.comment-edit-btn,.comment-del-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:10px;flex-shrink:0}
+.comment-edit-btn:hover{color:var(--cyan)}
+.comment-del-btn:hover{color:var(--red)}
 .post-body{font-size:14px;line-height:1.6;color:var(--text);white-space:pre-wrap;word-break:break-word}
 .post-attachment audio{width:100%;height:34px}
 .post-attachment video{width:100%;border-radius:10px;max-height:360px;background:#000}

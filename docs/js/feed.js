@@ -209,6 +209,37 @@ async function handleDeletePost(post, card){
   card.remove();
 }
 
+function startEditPost(post, card){
+  const bodyEl = card.querySelector('.post-body');
+  const wasEmpty = !bodyEl;
+  const editWrap = document.createElement('div');
+  editWrap.className = 'post-edit';
+  editWrap.style.cssText = 'display:flex;flex-direction:column;gap:8px';
+  editWrap.innerHTML = `
+    <textarea class="post-edit-text" rows="2" style="width:100%;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:var(--ox);font-size:14px;resize:vertical">${escapeHtml(post.content || '')}</textarea>
+    <div style="display:flex;gap:8px">
+      <button type="button" class="btn-primary post-edit-save">Сохранить</button>
+      <button type="button" class="nav-btn post-edit-cancel">Отмена</button>
+    </div>`;
+
+  if (wasEmpty) {
+    card.querySelector('.post-head').insertAdjacentElement('afterend', editWrap);
+  } else {
+    bodyEl.replaceWith(editWrap);
+  }
+  editWrap.querySelector('.post-edit-text').focus();
+
+  editWrap.querySelector('.post-edit-cancel').addEventListener('click', () => renderFeed());
+  editWrap.querySelector('.post-edit-save').addEventListener('click', async () => {
+    const newContent = editWrap.querySelector('.post-edit-text').value.trim();
+    const saveBtn = editWrap.querySelector('.post-edit-save');
+    saveBtn.disabled = true;
+    const { error } = await SB.from('posts').update({ content: newContent || null, updated_at: new Date().toISOString() }).eq('id', post.id);
+    if (error) { alert('Ошибка: ' + error.message); saveBtn.disabled = false; return; }
+    renderFeed();
+  });
+}
+
 async function toggleReaction(postId, emoji, pillWrap){
   const { data: mine } = await SB.from('post_reactions').select('id')
     .eq('post_id', postId).eq('user_id', currentUid).eq('emoji', emoji);
@@ -240,24 +271,88 @@ async function refreshReactions(postId, pillWrap){
   });
 }
 
-function commentRow(c){
+function commentStoragePath(url){
+  const idx = url.indexOf('/posts/');
+  return idx === -1 ? null : decodeURIComponent(url.slice(idx + '/posts/'.length));
+}
+
+async function handleDeleteComment(c, postId, container, countEl){
+  if (!confirm('Удалить комментарий?')) return;
+  if (c.audio_url) {
+    const path = commentStoragePath(c.audio_url);
+    if (path) await SB.storage.from('posts').remove([path]);
+  }
+  const { error } = await SB.from('post_comments').delete().eq('id', c.id);
+  if (error) { alert('Ошибка: ' + error.message); return; }
+  await loadComments(postId, container, countEl);
+  await refreshCommentCount(postId, countEl);
+}
+
+function startEditComment(c, row, postId, container, countEl){
+  const body = row.querySelector('.comment-body');
+  const editWrap = document.createElement('div');
+  editWrap.style.cssText = 'display:flex;flex-direction:column;gap:6px;margin-top:2px';
+  editWrap.innerHTML = `
+    <input type="text" class="c-edit-input" value="${escapeHtml(c.content || '')}" style="background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--text);font-family:var(--sans);font-size:12.5px">
+    <div style="display:flex;gap:6px">
+      <button type="button" class="c-edit-save" style="font-family:var(--mono);font-size:10.5px;padding:5px 10px;border-radius:20px;border:none;background:var(--cyan);color:#06131a;cursor:pointer">Сохранить</button>
+      <button type="button" class="c-edit-cancel" style="font-family:var(--mono);font-size:10.5px;padding:5px 10px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted2);cursor:pointer">Отмена</button>
+    </div>`;
+  const ctext = body.querySelector('.ctext');
+  const actionsRow = body.querySelector('.comment-row-actions');
+  ctext.style.display = 'none';
+  actionsRow.style.display = 'none';
+  body.insertBefore(editWrap, actionsRow);
+  editWrap.querySelector('.c-edit-input').focus();
+
+  editWrap.querySelector('.c-edit-cancel').addEventListener('click', () => {
+    editWrap.remove();
+    ctext.style.display = '';
+    actionsRow.style.display = '';
+  });
+  editWrap.querySelector('.c-edit-save').addEventListener('click', async () => {
+    const val = editWrap.querySelector('.c-edit-input').value.trim();
+    if (!val) return;
+    const { error } = await SB.from('post_comments').update({ content: val, updated_at: new Date().toISOString() }).eq('id', c.id);
+    if (error) { alert('Ошибка: ' + error.message); return; }
+    await loadComments(postId, container, countEl);
+  });
+}
+
+function commentRow(c, postId, container, countEl){
   const div = document.createElement('div');
   div.className = 'comment-row';
   const username = (c.profiles && c.profiles.username) || '?';
+  const isOwn = c.user_id === currentUid;
+  const canDelete = isOwn || currentRole === 'ADMIN';
+  const canEdit = isOwn && !c.audio_url;
   const body = c.audio_url
     ? `<audio controls src="${c.audio_url}"></audio>`
     : `<div class="ctext">${escapeHtml(c.content)}</div>`;
   div.innerHTML = `
     <div class="comment-avatar">${initialsOf(username)}</div>
-    <div class="comment-body"><div class="cname">${escapeHtml(username)}</div>${body}</div>`;
+    <div class="comment-body">
+      <div class="cname">${escapeHtml(username)}${c.updated_at ? ' <span style="font-weight:400;color:var(--muted);font-size:10px">· изменено</span>' : ''}</div>
+      ${body}
+      ${(canEdit || canDelete) ? `<div class="comment-row-actions" style="display:flex;gap:10px;margin-top:3px">
+        ${canEdit ? '<button type="button" class="comment-edit-btn">Изменить</button>' : ''}
+        ${canDelete ? '<button type="button" class="comment-del-btn">Удалить</button>' : ''}
+      </div>` : ''}
+    </div>`;
+
+  const editBtn = div.querySelector('.comment-edit-btn');
+  if (editBtn) editBtn.addEventListener('click', () => startEditComment(c, div, postId, container, countEl));
+  const delBtn = div.querySelector('.comment-del-btn');
+  if (delBtn) delBtn.addEventListener('click', () => handleDeleteComment(c, postId, container, countEl));
+
   return div;
 }
 
-async function loadComments(postId, container){
+async function loadComments(postId, container, countEl){
   const { data } = await SB.from('post_comments').select('*, profiles(username)').eq('post_id', postId).order('created_at', { ascending: true });
   container.querySelectorAll('.comment-row').forEach(el => el.remove());
   const form = container.querySelector('.comment-form');
-  (data || []).forEach(c => container.insertBefore(commentRow(c), form));
+  (data || []).forEach(c => container.insertBefore(commentRow(c, postId, container, countEl), form));
 }
 
 async function refreshCommentCount(postId, countEl){
@@ -271,7 +366,7 @@ async function handleAddComment(postId, input, container, countEl){
   const { error } = await SB.from('post_comments').insert({ post_id: postId, user_id: currentUid, content: text });
   if (error) { alert('Ошибка: ' + error.message); return; }
   input.value = '';
-  await loadComments(postId, container);
+  await loadComments(postId, container, countEl);
   await refreshCommentCount(postId, countEl);
 }
 
@@ -283,7 +378,7 @@ async function handleAddVoiceComment(postId, blob, container, countEl){
   const { data: pub } = SB.storage.from('posts').getPublicUrl(path);
   const { error } = await SB.from('post_comments').insert({ post_id: postId, user_id: currentUid, audio_url: pub.publicUrl });
   if (error) { alert('Ошибка: ' + error.message); return; }
-  await loadComments(postId, container);
+  await loadComments(postId, container, countEl);
   await refreshCommentCount(postId, countEl);
 }
 
@@ -299,8 +394,9 @@ function postCard(p, commentCounts){
   card.innerHTML = `
     <div class="post-head">
       <div class="post-avatar" style="background:${author.avatar_color || ''}">${initialsOf(username)}</div>
-      <div class="post-meta"><div class="name">${escapeHtml(username)}</div><div class="time">${timeAgo(p.created_at)}</div></div>
+      <div class="post-meta"><div class="name">${escapeHtml(username)}</div><div class="time">${timeAgo(p.created_at)}${p.updated_at ? ' · изменено' : ''}</div></div>
       ${!isOwn ? `<button type="button" class="follow-btn ${followingSet.has(p.user_id) ? 'following' : ''}">${followingSet.has(p.user_id) ? 'Вы подписаны' : 'Подписаться'}</button>` : ''}
+      ${isOwn ? '<button type="button" class="post-edit-btn" title="Редактировать">✏️</button>' : ''}
       ${(isOwn || currentRole === 'ADMIN') ? '<button type="button" class="post-del" title="Удалить">🗑</button>' : ''}
     </div>
     ${p.content ? `<div class="post-body">${escapeHtml(p.content)}</div>` : ''}
@@ -332,6 +428,9 @@ function postCard(p, commentCounts){
   const delBtn = card.querySelector('.post-del');
   if (delBtn) delBtn.addEventListener('click', () => handleDeletePost(p, card));
 
+  const editBtn = card.querySelector('.post-edit-btn');
+  if (editBtn) editBtn.addEventListener('click', () => startEditPost(p, card));
+
   const pillWrap = card.querySelector('.emoji-pills');
   refreshReactions(p.id, pillWrap);
 
@@ -350,7 +449,7 @@ function postCard(p, commentCounts){
     commentsBox.classList.toggle('open');
     if (commentsBox.classList.contains('open') && !commentsLoaded) {
       commentsLoaded = true;
-      await loadComments(p.id, commentsBox);
+      await loadComments(p.id, commentsBox, commentToggle);
     }
   });
   const commentInput = commentsBox.querySelector('input');

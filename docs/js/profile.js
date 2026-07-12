@@ -113,7 +113,7 @@ async function init() {
   renderAchievements(uid);
   renderWorksWall(uid);
 
-  if (profile.role === 'ADMIN') {
+  if (['VERIFIED_PRO', 'MENTOR', 'ADMIN'].includes(profile.role)) {
     document.getElementById('adminUsersLink').style.display = '';
   }
 

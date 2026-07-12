@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MIXPRO — Панель управления</title>
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400..900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/courses.css">
+<link rel="stylesheet" href="../css/admin_users.css">
+<link rel="stylesheet" href="../css/admin.css">
+</head>
+<body>
+
+<div id="loading" class="loading" style="padding:80px">Проверяем доступ...</div>
+
+<div id="noAccess" class="admin-full-block" style="display:none">
+  <div class="big">🔒</div>
+  <div>Панель управления доступна только тем, чей опыт подтверждён платформой</div>
+  <a href="verify.html" class="nav-btn" style="margin-top:16px;display:inline-block">Подать заявку на подтверждение →</a>
+  <div style="margin-top:10px"><a href="profile.html" class="back-link" style="justify-content:center">← Вернуться в профиль</a></div>
+</div>
+
+<div id="shell" class="admin-shell" style="display:none">
+  <aside class="admin-sidebar">
+    <a href="../index.html" class="logo">MIX<span>PRO</span></a>
+    <button type="button" class="admin-nav-item active" data-section="overview">📊 Обзор</button>
+    <button type="button" class="admin-nav-item" data-section="courses">📚 Курсы и уроки</button>
+    <button type="button" class="admin-nav-item" data-section="assignments">📝 Проверка заданий<span class="badge" id="badgeAssignments" style="display:none"></span></button>
+    <button type="button" class="admin-nav-item" data-section="verify" id="navVerify">✅ Верификация<span class="badge" id="badgeVerify" style="display:none"></span></button>
+    <button type="button" class="admin-nav-item" data-section="users" id="navUsers">👥 Пользователи</button>
+    <div class="admin-sidebar-foot">
+      <a href="profile.html" class="nav-btn">← Профиль</a>
+      <button class="nav-btn danger" onclick="logout()">Выйти</button>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+
+    <!-- ═══ ОБЗОР ═══ -->
+    <section class="admin-panel active" id="panel-overview">
+      <div class="sec-h">Обзор</div>
+      <div class="stat-grid-admin" id="overviewStats"></div>
+    </section>
+
+    <!-- ═══ КУРСЫ ═══ -->
+    <section class="admin-panel" id="panel-courses">
+      <div class="sec-h">Новый курс</div>
+      <form class="form-card" id="courseForm">
+        <div class="field">
+          <label for="cTitle">Название</label>
+          <input type="text" id="cTitle" required maxlength="120" placeholder="Например: Основы эквализации">
+        </div>
+        <div class="field">
+          <label for="cDesc">Описание</label>
+          <textarea id="cDesc" placeholder="О чём курс"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label for="cCategory">Категория</label>
+            <input type="text" id="cCategory" placeholder="Например: EQ, мастеринг">
+          </div>
+          <div class="field">
+            <label for="cDifficulty">Уровень</label>
+            <select id="cDifficulty">
+              <option value="beginner">Новичок</option>
+              <option value="intermediate">Средний</option>
+              <option value="advanced">Продвинутый</option>
+            </select>
+          </div>
+        </div>
+        <button type="submit" class="submit-btn" id="courseBtn">Создать курс</button>
+        <div class="form-status" id="courseStatus"></div>
+      </form>
+
+      <div class="sec-h">Курсы, уроки, задания</div>
+      <div id="coursesAdminList" style="display:flex;flex-direction:column;gap:16px"></div>
+    </section>
+
+    <!-- ═══ ЗАДАНИЯ ═══ -->
+    <section class="admin-panel" id="panel-assignments">
+      <div class="sec-h">Задания на проверке</div>
+      <div class="page-sub" style="margin-top:-14px">Послушай работу, поставь оценку и оставь отзыв</div>
+      <div id="assignmentQueue" style="display:flex;flex-direction:column;gap:12px"></div>
+    </section>
+
+    <!-- ═══ ВЕРИФИКАЦИЯ ═══ -->
+    <section class="admin-panel" id="panel-verify">
+      <div class="sec-h">Заявки на подтверждение опыта</div>
+      <div class="page-sub" style="margin-top:-14px">Одобришь — человек получит статус VERIFIED_PRO и право создавать курсы</div>
+      <div id="verifyQueue" style="display:flex;flex-direction:column;gap:12px"></div>
+    </section>
+
+    <!-- ═══ ПОЛЬЗОВАТЕЛИ ═══ -->
+    <section class="admin-panel" id="panel-users">
+      <div class="sec-h">Все пользователи</div>
+      <div class="page-sub" style="margin-top:-14px">Полный доступ: меняй роль, XP и статус верификации любому</div>
+
+      <div class="au-toolbar">
+        <input type="text" id="searchInput" placeholder="Поиск по нику...">
+        <div class="au-count" id="userCount"></div>
+      </div>
+
+      <div class="au-table-wrap">
+        <table class="au-table">
+          <thead>
+            <tr>
+              <th>Пользователь</th>
+              <th>Роль</th>
+              <th>XP</th>
+              <th>Верификация</th>
+              <th>С нами с</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="usersBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tus-js-client@4/dist/tus.min.js"></script>
+<script src="../js/admin.js"></script>
+</body>
+</html>

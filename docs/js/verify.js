@@ -40,7 +40,7 @@ async function renderStatus(){
   const form = document.getElementById('verifyForm');
 
   if (['VERIFIED_PRO', 'MENTOR', 'ADMIN'].includes(profile.role)) {
-    statusBox.innerHTML = box('✅ <b>Твой опыт подтверждён</b> — можешь создавать курсы.<br><a href="admin_courses.html" style="color:var(--cyan)">Перейти к управлению курсами →</a>');
+    statusBox.innerHTML = box('✅ <b>Твой опыт подтверждён</b> — можешь создавать курсы.<br><a href="admin.html" style="color:var(--cyan)">Перейти в панель управления →</a>');
     form.style.display = 'none';
     return;
   }

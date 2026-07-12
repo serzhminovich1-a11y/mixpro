@@ -1,0 +1,724 @@
+const SUPABASE_PROJECT_REF = 'mwzskffecoedpvyflswg';
+const SB = supabase.createClient(
+  `https://${SUPABASE_PROJECT_REF}.supabase.co`,
+  'sb_publishable_m1ImqMRye4s4yrpuBTvWvA_yMez-ZhD'
+);
+const TUS_ENDPOINT = `https://${SUPABASE_PROJECT_REF}.storage.supabase.co/storage/v1/upload/resumable`;
+
+let currentUid = null;
+let currentSession = null;
+let currentRole = null;
+const loadedSections = new Set();
+
+function escapeAttr(s){ return String(s == null ? '' : s).replace(/"/g, '&quot;'); }
+function escapeHtml(s){ return String(s == null ? '' : s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+async function logout() {
+  await SB.auth.signOut();
+  location.href = 'auth.html';
+}
+
+/* ══════════════════════════════════════
+   НАВИГАЦИЯ МЕЖДУ РАЗДЕЛАМИ
+   ══════════════════════════════════════ */
+function switchSection(name){
+  document.querySelectorAll('.admin-panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + name));
+  document.querySelectorAll('.admin-nav-item').forEach(b => b.classList.toggle('active', b.dataset.section === name));
+  location.hash = name;
+  loadSection(name);
+}
+
+async function loadSection(name){
+  if (loadedSections.has(name)) return;
+  loadedSections.add(name);
+  if (name === 'overview') await renderOverview();
+  if (name === 'courses') await renderCoursesAdmin();
+  if (name === 'assignments') await renderAssignmentQueue();
+  if (name === 'verify') await renderVerifyQueue();
+  if (name === 'users') await renderUsers(null);
+}
+
+/* ══════════════════════════════════════
+   ОБЗОР
+   ══════════════════════════════════════ */
+async function renderOverview(){
+  const grid = document.getElementById('overviewStats');
+  const boxes = [];
+
+  const { count: coursesCount } = await SB.from('courses').select('id', { count: 'exact', head: true });
+  boxes.push(`<button type="button" class="stat-box" onclick="switchSection('courses')" style="text-align:left;cursor:pointer;border:1px solid var(--border);width:100%"><div class="n">${coursesCount ?? 0}</div><div class="l">Курсов</div></button>`);
+
+  const { count: pendingAssignments } = await SB.from('assignment_submissions').select('id', { count: 'exact', head: true }).eq('status', 'submitted');
+  boxes.push(`<button type="button" class="stat-box ${pendingAssignments ? 'warn' : ''}" onclick="switchSection('assignments')" style="text-align:left;cursor:pointer;border:1px solid var(--border);width:100%"><div class="n">${pendingAssignments ?? 0}</div><div class="l">Заданий на проверке</div></button>`);
+
+  if (['MENTOR', 'ADMIN'].includes(currentRole)) {
+    const { count: pendingVerify } = await SB.from('verification_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending');
+    boxes.push(`<button type="button" class="stat-box ${pendingVerify ? 'warn' : ''}" onclick="switchSection('verify')" style="text-align:left;cursor:pointer;border:1px solid var(--border);width:100%"><div class="n">${pendingVerify ?? 0}</div><div class="l">Заявок на верификацию</div></button>`);
+  }
+
+  if (currentRole === 'ADMIN') {
+    const { count: usersCount } = await SB.from('profiles').select('id', { count: 'exact', head: true });
+    boxes.push(`<button type="button" class="stat-box" onclick="switchSection('users')" style="text-align:left;cursor:pointer;border:1px solid var(--border);width:100%"><div class="n">${usersCount ?? 0}</div><div class="l">Пользователей</div></button>`);
+  }
+
+  grid.innerHTML = boxes.join('');
+  updateSidebarBadges();
+}
+
+async function updateSidebarBadges(){
+  const { count: pendingAssignments } = await SB.from('assignment_submissions').select('id', { count: 'exact', head: true }).eq('status', 'submitted');
+  const badgeA = document.getElementById('badgeAssignments');
+  if (pendingAssignments) { badgeA.textContent = pendingAssignments; badgeA.style.display = ''; } else { badgeA.style.display = 'none'; }
+
+  if (['MENTOR', 'ADMIN'].includes(currentRole)) {
+    const { count: pendingVerify } = await SB.from('verification_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending');
+    const badgeV = document.getElementById('badgeVerify');
+    if (pendingVerify) { badgeV.textContent = pendingVerify; badgeV.style.display = ''; } else { badgeV.style.display = 'none'; }
+  }
+}
+
+/* ══════════════════════════════════════
+   КУРСЫ / УРОКИ / ЗАДАНИЯ (создание)
+   ══════════════════════════════════════ */
+function tusUploadFile({ file, bucket, path, onProgress }){
+  return new Promise((resolve, reject) => {
+    const upload = new tus.Upload(file, {
+      endpoint: TUS_ENDPOINT,
+      retryDelays: [0, 3000, 5000, 10000, 20000],
+      headers: {
+        authorization: `Bearer ${currentSession.access_token}`,
+        'x-upsert': 'false',
+      },
+      uploadDataDuringCreation: true,
+      removeFingerprintOnSuccess: true,
+      metadata: {
+        bucketName: bucket,
+        objectName: path,
+        contentType: file.type || 'application/octet-stream',
+        cacheControl: '3600',
+      },
+      chunkSize: 6 * 1024 * 1024,
+      onError: reject,
+      onProgress: (bytesUploaded, bytesTotal) => onProgress && onProgress(bytesUploaded, bytesTotal),
+      onSuccess: () => resolve(),
+    });
+    upload.findPreviousUploads().then((previousUploads) => {
+      if (previousUploads.length) upload.resumeFromPreviousUpload(previousUploads[0]);
+      upload.start();
+    });
+  });
+}
+
+async function handleCreateCourse(e){
+  e.preventDefault();
+  const btn = document.getElementById('courseBtn');
+  const status = document.getElementById('courseStatus');
+  btn.disabled = true;
+  status.textContent = '';
+  status.className = 'form-status';
+
+  const { error } = await SB.from('courses').insert({
+    title: document.getElementById('cTitle').value.trim(),
+    description: document.getElementById('cDesc').value.trim(),
+    category: document.getElementById('cCategory').value.trim(),
+    difficulty_level: document.getElementById('cDifficulty').value,
+    created_by: currentUid,
+  });
+
+  btn.disabled = false;
+  if (error) {
+    status.textContent = 'Ошибка: ' + error.message;
+    status.className = 'form-status error';
+    return;
+  }
+  status.textContent = 'Курс создан!';
+  status.className = 'form-status ok';
+  document.getElementById('courseForm').reset();
+  renderCoursesAdmin();
+}
+
+async function handleRenameLesson(lesson){
+  const newTitle = prompt('Новое название урока:', lesson.title);
+  if (newTitle == null) return;
+  const trimmed = newTitle.trim();
+  if (!trimmed || trimmed === lesson.title) return;
+  const { error } = await SB.from('lessons').update({ title: trimmed }).eq('id', lesson.id);
+  if (error) { alert('Ошибка: ' + error.message); return; }
+  renderCoursesAdmin();
+}
+
+async function handleDeleteLesson(lesson){
+  if (!confirm(`Удалить урок "${lesson.title}"?`)) return;
+  if (lesson.content_url) await SB.storage.from('lessons').remove([lesson.content_url]);
+  const { error } = await SB.from('lessons').delete().eq('id', lesson.id);
+  if (error) { alert('Ошибка: ' + error.message); return; }
+  renderCoursesAdmin();
+}
+
+async function handleDeleteCourse(course, lessons){
+  if (!confirm(`Удалить курс "${course.title}" вместе со всеми уроками (${lessons.length})? Это нельзя отменить.`)) return;
+  const paths = lessons.filter(l => l.content_url).map(l => l.content_url);
+  if (paths.length) await SB.storage.from('lessons').remove(paths);
+  const { error } = await SB.from('courses').delete().eq('id', course.id);
+  if (error) { alert('Ошибка: ' + error.message); return; }
+  renderCoursesAdmin();
+}
+
+function lessonAdminRow(l){
+  const row = document.createElement('div');
+  row.className = 'admin-lesson-row';
+  row.innerHTML = `
+    <span>${l.order_index + 1}. ${escapeHtml(l.title)}</span>
+    <span style="display:flex;align-items:center;gap:8px">
+      <span>${l.content_url ? '🎬 видео есть' : '— без видео'}</span>
+      <button type="button" class="icon-btn" title="Переименовать">✏️</button>
+      <button type="button" class="icon-btn" title="Удалить урок">🗑</button>
+    </span>`;
+  const [renameBtn, delBtn] = row.querySelectorAll('.icon-btn');
+  renameBtn.addEventListener('click', () => handleRenameLesson(l));
+  delBtn.addEventListener('click', () => handleDeleteLesson(l));
+  return row;
+}
+
+function formatMb(bytes){ return (bytes / 1048576).toFixed(1); }
+
+async function handleAddLesson(courseId, form){
+  const titleInput = form.querySelector('.lTitle');
+  const fileInput = form.querySelector('.lFile');
+  const statusEl = form.querySelector('.lStatus');
+  const btn = form.querySelector('.lBtn');
+  const progressWrap = form.querySelector('.upload-progress');
+  const progressFill = form.querySelector('.upload-progress-fill');
+  const progressLabel = form.querySelector('.upload-progress-label');
+  const title = titleInput.value.trim();
+  const file = fileInput.files[0];
+  if (!title) return;
+
+  btn.disabled = true;
+  statusEl.textContent = file ? '' : 'Сохраняем...';
+  statusEl.className = 'form-status';
+
+  const { count } = await SB.from('lessons').select('id', { count: 'exact', head: true }).eq('course_id', courseId);
+  const orderIndex = count || 0;
+
+  let contentUrl = null;
+  if (file) {
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const path = `${courseId}/${Date.now()}_${safeName}`;
+    progressWrap.classList.add('active');
+    progressFill.style.width = '0%';
+    progressLabel.textContent = 'Начинаем загрузку...';
+    try {
+      await tusUploadFile({
+        file, bucket: 'lessons', path,
+        onProgress: (uploaded, total) => {
+          const pct = Math.round((uploaded / total) * 100);
+          progressFill.style.width = pct + '%';
+          progressLabel.textContent = `${pct}% · ${formatMb(uploaded)} / ${formatMb(total)} МБ`;
+        },
+      });
+      contentUrl = path;
+    } catch (err) {
+      statusEl.textContent = 'Загрузка прервалась: ' + (err && err.message ? err.message : 'проблема с сетью') + '. Выбери тот же файл и нажми кнопку ещё раз — докачается с места обрыва.';
+      statusEl.className = 'form-status error';
+      btn.disabled = false;
+      progressWrap.classList.remove('active');
+      return;
+    }
+    progressWrap.classList.remove('active');
+  }
+
+  const { error: insErr } = await SB.from('lessons').insert({
+    course_id: courseId,
+    title,
+    content_url: contentUrl,
+    order_index: orderIndex,
+  });
+
+  btn.disabled = false;
+  if (insErr) {
+    statusEl.textContent = 'Ошибка: ' + insErr.message;
+    statusEl.className = 'form-status error';
+    return;
+  }
+  statusEl.textContent = 'Урок добавлен!';
+  statusEl.className = 'form-status ok';
+  titleInput.value = '';
+  fileInput.value = '';
+  renderCoursesAdmin();
+}
+
+async function handleDeleteAssignment(a){
+  if (!confirm(`Удалить задание "${a.title}"? Все сдачи по нему тоже удалятся.`)) return;
+  const { error } = await SB.from('assignments').delete().eq('id', a.id);
+  if (error) { alert('Ошибка: ' + error.message); return; }
+  renderCoursesAdmin();
+}
+
+function assignmentAdminRow(a){
+  const row = document.createElement('div');
+  row.className = 'admin-lesson-row';
+  row.innerHTML = `
+    <span>📝 ${escapeHtml(a.title)}</span>
+    <span style="display:flex;align-items:center;gap:8px">
+      <span>макс. ${a.max_score} баллов</span>
+      <button type="button" class="icon-btn" title="Удалить задание">🗑</button>
+    </span>`;
+  row.querySelector('.icon-btn').addEventListener('click', () => handleDeleteAssignment(a));
+  return row;
+}
+
+async function handleAddAssignment(courseId, form){
+  const titleInput = form.querySelector('.aTitle');
+  const descInput = form.querySelector('.aDesc');
+  const reqInput = form.querySelector('.aReq');
+  const scoreInput = form.querySelector('.aScore');
+  const statusEl = form.querySelector('.aStatus');
+  const btn = form.querySelector('.aBtn');
+  const title = titleInput.value.trim();
+  if (!title) return;
+
+  btn.disabled = true;
+  statusEl.textContent = '';
+  statusEl.className = 'form-status';
+
+  const { error } = await SB.from('assignments').insert({
+    course_id: courseId,
+    title,
+    description: descInput.value.trim(),
+    requirements: reqInput.value.trim(),
+    max_score: Math.max(1, parseInt(scoreInput.value, 10) || 100),
+  });
+
+  btn.disabled = false;
+  if (error) {
+    statusEl.textContent = 'Ошибка: ' + error.message;
+    statusEl.className = 'form-status error';
+    return;
+  }
+  statusEl.textContent = 'Задание добавлено!';
+  statusEl.className = 'form-status ok';
+  titleInput.value = ''; descInput.value = ''; reqInput.value = ''; scoreInput.value = '100';
+  renderCoursesAdmin();
+}
+
+function courseAdminBlock(course, lessons, assignments){
+  const block = document.createElement('div');
+  block.className = 'admin-course-block';
+
+  const head = document.createElement('div');
+  head.className = 'admin-course-head';
+  block.appendChild(head);
+
+  function renderHeadView(){
+    head.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+        <span>${escapeHtml(course.title)}</span>
+        <span style="display:flex;gap:6px">
+          <button type="button" class="icon-btn cEditBtn" title="Редактировать курс">✏️</button>
+          <button type="button" class="icon-btn cDelBtn" title="Удалить курс">🗑</button>
+        </span>
+      </div>`;
+    head.querySelector('.cEditBtn').addEventListener('click', renderHeadEdit);
+    head.querySelector('.cDelBtn').addEventListener('click', () => handleDeleteCourse(course, lessons));
+  }
+
+  function renderHeadEdit(){
+    head.innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:8px;font-weight:400">
+        <div class="field"><input type="text" class="ceTitle" value="${escapeAttr(course.title)}"></div>
+        <div class="field"><textarea class="ceDesc">${escapeHtml(course.description || '')}</textarea></div>
+        <div class="form-row">
+          <div class="field"><input type="text" class="ceCategory" value="${escapeAttr(course.category || '')}"></div>
+          <div class="field"><select class="ceDifficulty">
+            <option value="beginner">Новичок</option>
+            <option value="intermediate">Средний</option>
+            <option value="advanced">Продвинутый</option>
+          </select></div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button type="button" class="submit-btn ceSave">Сохранить</button>
+          <button type="button" class="nav-btn ceCancel">Отмена</button>
+        </div>
+        <div class="form-status ceStatus"></div>
+      </div>`;
+    head.querySelector('.ceDifficulty').value = course.difficulty_level || 'beginner';
+    head.querySelector('.ceCancel').addEventListener('click', renderHeadView);
+    head.querySelector('.ceSave').addEventListener('click', handleSaveCourse);
+  }
+
+  async function handleSaveCourse(){
+    const statusEl = head.querySelector('.ceStatus');
+    const saveBtn = head.querySelector('.ceSave');
+    const title = head.querySelector('.ceTitle').value.trim();
+    if (!title) { statusEl.textContent = 'Название не может быть пустым'; statusEl.className = 'form-status error'; return; }
+    saveBtn.disabled = true;
+    const updated = {
+      title,
+      description: head.querySelector('.ceDesc').value.trim(),
+      category: head.querySelector('.ceCategory').value.trim(),
+      difficulty_level: head.querySelector('.ceDifficulty').value,
+    };
+    const { error } = await SB.from('courses').update(updated).eq('id', course.id);
+    if (error) {
+      statusEl.textContent = 'Ошибка: ' + error.message;
+      statusEl.className = 'form-status error';
+      saveBtn.disabled = false;
+      return;
+    }
+    Object.assign(course, updated);
+    renderHeadView();
+  }
+
+  renderHeadView();
+
+  lessons.forEach(l => block.appendChild(lessonAdminRow(l)));
+
+  const formWrap = document.createElement('div');
+  formWrap.style.cssText = 'padding:14px 18px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px';
+  formWrap.innerHTML = `
+    <div class="form-row">
+      <div class="field"><input type="text" class="lTitle" placeholder="Название урока"></div>
+    </div>
+    <div class="field"><input type="file" class="lFile" accept="video/*"></div>
+    <div class="upload-progress">
+      <div class="upload-progress-bar"><div class="upload-progress-fill"></div></div>
+      <div class="upload-progress-label"></div>
+    </div>
+    <button type="button" class="submit-btn lBtn">Добавить урок</button>
+    <div class="form-status lStatus"></div>`;
+  formWrap.querySelector('.lBtn').addEventListener('click', () => handleAddLesson(course.id, formWrap));
+  block.appendChild(formWrap);
+
+  const aDivider = document.createElement('div');
+  aDivider.style.cssText = 'padding:10px 18px;border-top:1px solid var(--border);font-family:var(--mono);font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:.06em';
+  aDivider.textContent = 'Задания';
+  block.appendChild(aDivider);
+
+  assignments.forEach(a => block.appendChild(assignmentAdminRow(a)));
+
+  const aFormWrap = document.createElement('div');
+  aFormWrap.style.cssText = 'padding:14px 18px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px';
+  aFormWrap.innerHTML = `
+    <div class="field"><input type="text" class="aTitle" placeholder="Название задания"></div>
+    <div class="field"><textarea class="aDesc" placeholder="Что нужно сделать"></textarea></div>
+    <div class="field"><textarea class="aReq" placeholder="Требования к сдаче (необязательно)"></textarea></div>
+    <div class="form-row">
+      <div class="field"><label style="font-family:var(--mono);font-size:11px;color:var(--muted2)">Макс. баллов</label><input type="number" class="aScore" value="100" min="1"></div>
+    </div>
+    <button type="button" class="submit-btn aBtn">Добавить задание</button>
+    <div class="form-status aStatus"></div>`;
+  aFormWrap.querySelector('.aBtn').addEventListener('click', () => handleAddAssignment(course.id, aFormWrap));
+  block.appendChild(aFormWrap);
+
+  return block;
+}
+
+async function renderCoursesAdmin(){
+  const wrap = document.getElementById('coursesAdminList');
+  const { data: courses } = await SB.from('courses').select('*').order('created_at', { ascending: true });
+  if (!courses || courses.length === 0) {
+    wrap.innerHTML = '<div class="empty">Курсов пока нет — создай первый выше</div>';
+    return;
+  }
+  const [{ data: allLessons }, { data: allAssignments }] = await Promise.all([
+    SB.from('lessons').select('*').order('order_index', { ascending: true }),
+    SB.from('assignments').select('*').order('created_at', { ascending: true }),
+  ]);
+  wrap.innerHTML = '';
+  courses.forEach(c => {
+    const lessons = (allLessons || []).filter(l => l.course_id === c.id);
+    const assignments = (allAssignments || []).filter(a => a.course_id === c.id);
+    wrap.appendChild(courseAdminBlock(c, lessons, assignments));
+  });
+}
+
+/* ══════════════════════════════════════
+   ПРОВЕРКА ЗАДАНИЙ
+   ══════════════════════════════════════ */
+function submissionCard(s){
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.style.cssText = 'padding:20px 22px;display:flex;flex-direction:column;gap:12px';
+
+  const student = (s.profiles && s.profiles.username) || s.user_id;
+  const assignmentTitle = (s.assignments && s.assignments.title) || 'Задание';
+  const maxScore = (s.assignments && s.assignments.max_score) || 100;
+  const projectTitle = s.projects ? s.projects.title : null;
+  const projectUrl = s.projects ? s.projects.file_url : null;
+  const date = new Date(s.submitted_at).toLocaleDateString('ru-RU');
+
+  card.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+      <div>
+        <div style="font-family:var(--ox);font-weight:700;font-size:14px">${student}</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--cyan)">${assignmentTitle}</div>
+      </div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--muted2)">${date}</div>
+    </div>
+    ${projectUrl ? `<div><div style="font-family:var(--ox);font-size:13px;margin-bottom:6px">🎧 ${projectTitle}</div><audio controls src="${projectUrl}" style="width:100%;height:34px"></audio></div>` : '<div class="empty">Работа не прикреплена</div>'}
+    <div class="form-row">
+      <div class="field"><label>Оценка (из ${maxScore})</label><input type="number" class="rScore" min="0" max="${maxScore}" value="${maxScore}"></div>
+    </div>
+    <div class="field"><label>Отзыв</label><textarea class="rFeedback" placeholder="Что получилось хорошо, что доработать..."></textarea></div>
+    <div style="display:flex;gap:8px">
+      <button type="button" class="submit-btn rApprove" style="background:linear-gradient(90deg,var(--green),#22d3ee)">Принять</button>
+      <button type="button" class="nav-btn danger rReject">Отклонить</button>
+    </div>
+    <div class="form-status rStatus"></div>`;
+
+  card.querySelector('.rApprove').addEventListener('click', () => handleReviewSubmission(s, card, true, maxScore));
+  card.querySelector('.rReject').addEventListener('click', () => handleReviewSubmission(s, card, false, maxScore));
+
+  return card;
+}
+
+async function handleReviewSubmission(submission, card, approve, maxScore){
+  const scoreInput = card.querySelector('.rScore');
+  const feedback = card.querySelector('.rFeedback').value.trim();
+  const statusEl = card.querySelector('.rStatus');
+  let score = Math.max(0, Math.min(maxScore, parseInt(scoreInput.value, 10) || 0));
+
+  card.querySelectorAll('button, input, textarea').forEach(el => el.disabled = true);
+
+  const { error: reviewErr } = await SB.from('reviews').insert({
+    submission_id: submission.id,
+    reviewer_id: currentUid,
+    score,
+    feedback,
+  });
+  if (reviewErr) {
+    statusEl.textContent = 'Ошибка: ' + reviewErr.message;
+    statusEl.className = 'form-status error';
+    card.querySelectorAll('button, input, textarea').forEach(el => el.disabled = false);
+    return;
+  }
+
+  const { error: subErr } = await SB.from('assignment_submissions')
+    .update({ status: approve ? 'approved' : 'rejected', score })
+    .eq('id', submission.id);
+  if (subErr) {
+    statusEl.textContent = 'Ошибка: ' + subErr.message;
+    statusEl.className = 'form-status error';
+    return;
+  }
+
+  card.style.opacity = '.4';
+  statusEl.textContent = approve ? '✓ Принято' : 'Отклонено';
+  statusEl.className = 'form-status ' + (approve ? 'ok' : 'error');
+  updateSidebarBadges();
+}
+
+async function renderAssignmentQueue(){
+  const queue = document.getElementById('assignmentQueue');
+  const { data, error } = await SB.from('assignment_submissions')
+    .select('*, assignments(title, max_score), profiles(username), projects(title, file_url)')
+    .eq('status', 'submitted')
+    .order('submitted_at', { ascending: true });
+
+  if (error || !data || data.length === 0) {
+    queue.innerHTML = '<div class="empty">Заданий на проверке нет</div>';
+    return;
+  }
+  queue.innerHTML = '';
+  data.forEach(s => queue.appendChild(submissionCard(s)));
+}
+
+/* ══════════════════════════════════════
+   ВЕРИФИКАЦИЯ
+   ══════════════════════════════════════ */
+function verifyRequestCard(r){
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.style.cssText = 'padding:20px 22px;display:flex;flex-direction:column;gap:12px';
+  const date = new Date(r.created_at).toLocaleDateString('ru-RU');
+  const username = (r.profiles && r.profiles.username) || r.user_id;
+  card.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div style="font-family:var(--ox);font-weight:700;font-size:14px">${username}</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--muted2)">${date}</div>
+    </div>
+    <div style="font-size:13px;color:var(--muted2);line-height:1.6;white-space:pre-wrap">${r.portfolio_summary || ''}</div>
+    <div style="display:flex;gap:8px">
+      <button type="button" class="submit-btn approveBtn" style="background:linear-gradient(90deg,var(--green),#22d3ee)">Подтвердить</button>
+      <button type="button" class="nav-btn danger rejectBtn">Отклонить</button>
+    </div>
+    <div class="form-status rStatus"></div>`;
+
+  card.querySelector('.approveBtn').addEventListener('click', () => handleVerifyReview(r.id, true, card));
+  card.querySelector('.rejectBtn').addEventListener('click', () => handleVerifyReview(r.id, false, card));
+  return card;
+}
+
+async function handleVerifyReview(requestId, approve, card){
+  const statusEl = card.querySelector('.rStatus');
+  card.querySelectorAll('button').forEach(b => b.disabled = true);
+  const { error } = await SB.rpc('approve_verification_request', {
+    p_request_id: requestId,
+    p_approve: approve,
+  });
+  if (error) {
+    statusEl.textContent = 'Ошибка: ' + error.message;
+    statusEl.className = 'form-status error';
+    card.querySelectorAll('button').forEach(b => b.disabled = false);
+    return;
+  }
+  card.style.opacity = '.4';
+  statusEl.textContent = approve ? '✓ Подтверждено' : 'Отклонено';
+  statusEl.className = 'form-status ' + (approve ? 'ok' : 'error');
+  updateSidebarBadges();
+}
+
+async function renderVerifyQueue(){
+  const queue = document.getElementById('verifyQueue');
+  const { data, error } = await SB.from('verification_requests')
+    .select('*, profiles(username)')
+    .eq('status', 'pending')
+    .order('created_at', { ascending: true });
+
+  if (error || !data || data.length === 0) {
+    queue.innerHTML = '<div class="empty">Заявок на рассмотрении нет</div>';
+    return;
+  }
+  queue.innerHTML = '';
+  data.forEach(r => queue.appendChild(verifyRequestCard(r)));
+}
+
+/* ══════════════════════════════════════
+   ПОЛЬЗОВАТЕЛИ
+   ══════════════════════════════════════ */
+const ROLES = ['STUDENT', 'ENGINEER', 'MENTOR', 'VERIFIED_PRO', 'ADMIN'];
+const VSTATUSES = ['none', 'pending', 'approved', 'rejected'];
+let allUsers = [];
+
+function flashSaved(el){
+  const dot = el.parentElement.querySelector('.au-saved');
+  if (!dot) return;
+  dot.classList.add('show');
+  setTimeout(() => dot.classList.remove('show'), 1200);
+}
+
+async function saveField(userId, field, value, el){
+  const { error } = await SB.from('profiles').update({ [field]: value }).eq('id', userId);
+  if (error) {
+    alert('Не удалось сохранить: ' + error.message);
+    return;
+  }
+  flashSaved(el);
+}
+
+async function handleDeleteUser(u, tr){
+  const sure = confirm(`Удалить аккаунт "${u.username}" насовсем?\n\nЧеловек больше не сможет зайти, все его данные (профиль, очки, проекты) удалятся. Это нельзя отменить.`);
+  if (!sure) return;
+
+  const btn = tr.querySelector('.au-del');
+  btn.disabled = true;
+  const { error } = await SB.functions.invoke('delete-user', { body: { user_id: u.id } });
+  if (error) {
+    alert('Не удалось удалить: ' + (error.message || error));
+    btn.disabled = false;
+    return;
+  }
+  tr.remove();
+  allUsers = allUsers.filter(x => x.id !== u.id);
+  document.getElementById('userCount').textContent = document.querySelectorAll('#usersBody tr').length + ' из ' + allUsers.length;
+}
+
+function userRow(u){
+  const tr = document.createElement('tr');
+
+  const roleOptions = ROLES.map(r => `<option value="${r}" ${r === u.role ? 'selected' : ''}>${r}</option>`).join('');
+  const vOptions = VSTATUSES.map(v => `<option value="${v}" ${v === u.verification_status ? 'selected' : ''}>${v}</option>`).join('');
+  const initials = (u.username || '??').slice(0, 2).toUpperCase();
+  const date = u.created_at ? new Date(u.created_at).toLocaleDateString('ru-RU') : '—';
+  const isSelf = u.id === currentUid;
+
+  tr.innerHTML = `
+    <td><div class="au-user"><div class="au-avatar" style="background:${u.avatar_color || ''}">${initials}</div><div class="au-username">${u.username || '(без имени)'}</div></div></td>
+    <td><select class="au-role role-${u.role}">${roleOptions}</select><span class="au-saved"></span></td>
+    <td><input type="number" class="au-xp" value="${u.xp || 0}" min="0"><span class="au-saved"></span></td>
+    <td><select class="au-vstatus">${vOptions}</select><span class="au-saved"></span></td>
+    <td class="au-date">${date}</td>
+    <td>${isSelf ? '' : '<button type="button" class="icon-btn au-del" title="Удалить аккаунт">🗑</button>'}</td>`;
+
+  const roleSel = tr.querySelector('.au-role');
+  roleSel.addEventListener('change', () => {
+    roleSel.className = 'au-role role-' + roleSel.value;
+    saveField(u.id, 'role', roleSel.value, roleSel);
+  });
+  tr.querySelector('.au-xp').addEventListener('change', (e) => {
+    const val = Math.max(0, parseInt(e.target.value, 10) || 0);
+    e.target.value = val;
+    saveField(u.id, 'xp', val, e.target);
+  });
+  tr.querySelector('.au-vstatus').addEventListener('change', (e) => {
+    saveField(u.id, 'verification_status', e.target.value, e.target);
+  });
+  const delBtn = tr.querySelector('.au-del');
+  if (delBtn) delBtn.addEventListener('click', () => handleDeleteUser(u, tr));
+
+  return tr;
+}
+
+function renderUserList(list){
+  const body = document.getElementById('usersBody');
+  body.innerHTML = '';
+  list.forEach(u => body.appendChild(userRow(u)));
+  document.getElementById('userCount').textContent = list.length + ' из ' + allUsers.length;
+}
+
+function handleSearch(){
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  const filtered = q ? allUsers.filter(u => (u.username || '').toLowerCase().includes(q)) : allUsers;
+  renderUserList(filtered);
+}
+
+async function renderUsers(){
+  const { data: users } = await SB.from('profiles').select('*').order('created_at', { ascending: false });
+  allUsers = users || [];
+  renderUserList(allUsers);
+  document.getElementById('searchInput').addEventListener('input', handleSearch);
+}
+
+/* ══════════════════════════════════════
+   ИНИЦИАЛИЗАЦИЯ
+   ══════════════════════════════════════ */
+async function init() {
+  const { data: { session } } = await SB.auth.getSession();
+  if (!session) { location.href = 'auth.html'; return; }
+  currentUid = session.user.id;
+  currentSession = session;
+
+  const { data: profile } = await SB.from('profiles').select('role').eq('id', currentUid).single();
+  currentRole = profile ? profile.role : null;
+  document.getElementById('loading').style.display = 'none';
+
+  const canAccessPanel = ['VERIFIED_PRO', 'MENTOR', 'ADMIN'].includes(currentRole);
+  if (!canAccessPanel) {
+    document.getElementById('noAccess').style.display = 'block';
+    return;
+  }
+
+  document.getElementById('shell').style.display = 'flex';
+
+  if (!['MENTOR', 'ADMIN'].includes(currentRole)) {
+    document.getElementById('navVerify').style.display = 'none';
+  }
+  if (currentRole !== 'ADMIN') {
+    document.getElementById('navUsers').style.display = 'none';
+  }
+
+  document.querySelectorAll('.admin-nav-item[data-section]').forEach(btn => {
+    btn.addEventListener('click', () => switchSection(btn.dataset.section));
+  });
+
+  document.getElementById('courseForm').addEventListener('submit', handleCreateCourse);
+
+  const initialSection = (location.hash || '#overview').slice(1);
+  const validSections = Array.from(document.querySelectorAll('.admin-nav-item[data-section]'))
+    .filter(b => b.style.display !== 'none')
+    .map(b => b.dataset.section);
+  switchSection(validSections.includes(initialSection) ? initialSection : 'overview');
+}
+
+init();

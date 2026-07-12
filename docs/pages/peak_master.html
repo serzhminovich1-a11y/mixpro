@@ -15,6 +15,7 @@
   <nav class="pm-nav">
     <a href="../index.html" class="pm-back">← MIXPRO</a>
     <a href="../index.html" class="pm-logo"><span class="pm-logo-peak">PEAK</span><span class="pm-logo-master">MASTER</span></a>
+    <button class="pm-back" onclick="startTour(true)">🎓 Обучение</button>
     <div class="pm-vol">
       <span class="pm-vol-icon" onclick="toggleMute()">🔊</span>
       <div class="pm-vol-wrap" id="volWrap">
@@ -220,11 +221,6 @@
         <span class="pm-compare-key">зажать для сравнения</span>
       </button>
     </div>
-    <div class="hint-row">
-      <button class="hint-btn" id="hintBtn" onclick="useHint()">
-        💡 Подсказка <span class="hint-uses" id="hintUses">3</span>
-      </button>
-    </div>
     <div class="pm-hint" id="hint">Нажми ▶ чтобы начать слушать</div>
 
     <!-- Feedback -->
@@ -328,6 +324,20 @@
     <div class="summary-actions">
       <button class="start-btn" onclick="continueSession()" style="padding:12px 28px;font-size:13px">Играть ещё 10</button>
       <button class="pm-back" onclick="backToMenuFromSummary()" style="padding:12px 20px">В меню</button>
+    </div>
+  </div>
+</div>
+
+<!-- Обучающий тур -->
+<div class="tour-overlay" id="tourOverlay">
+  <div class="tour-spotlight" id="tourSpotlight"></div>
+  <div class="tour-card" id="tourCard">
+    <div class="tour-step-n" id="tourStepN">1 / 6</div>
+    <div class="tour-title" id="tourTitle"></div>
+    <div class="tour-text" id="tourText"></div>
+    <div class="tour-actions">
+      <button class="pm-back" onclick="skipTour()">Пропустить</button>
+      <button class="start-btn" onclick="nextTourStep()" id="tourNextBtn" style="padding:10px 22px;font-size:13px">Далее →</button>
     </div>
   </div>
 </div>

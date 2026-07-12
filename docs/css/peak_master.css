@@ -263,6 +263,29 @@ body{background:#0a0b12;color:#eef0fb;font-family:'Manrope',sans-serif;-webkit-f
 .summary-score{font-family:'Unbounded',sans-serif;font-size:44px;font-weight:700;color:var(--cyan)}
 .summary-actions{display:flex;flex-direction:column;gap:8px;width:100%;margin-top:6px}
 
+/* ── ОБУЧАЮЩИЙ ТУР ── */
+.tour-overlay{display:none;position:fixed;inset:0;z-index:500}
+.tour-overlay.open{display:block}
+.tour-spotlight{
+  position:absolute;border-radius:14px;
+  box-shadow:0 0 0 9999px rgba(6,7,14,.82);
+  border:2px solid var(--cyan);
+  transition:all .35s cubic-bezier(.4,0,.2,1);
+  pointer-events:none;
+}
+.tour-spotlight.center{
+  box-shadow:0 0 0 9999px rgba(6,7,14,.86);border-color:transparent;
+}
+.tour-card{
+  position:absolute;background:#0e0f1e;border:1px solid rgba(167,139,250,.4);border-radius:16px;
+  padding:22px 24px;max-width:320px;box-shadow:0 20px 60px rgba(0,0,0,.5);
+  transition:all .35s cubic-bezier(.4,0,.2,1);
+}
+.tour-step-n{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--cyan);letter-spacing:.1em;margin-bottom:8px}
+.tour-title{font-family:'Unbounded',sans-serif;font-size:15px;font-weight:700;color:#fff;margin-bottom:8px}
+.tour-text{font-size:13px;color:var(--muted2);line-height:1.6;margin-bottom:16px}
+.tour-actions{display:flex;align-items:center;justify-content:space-between;gap:10px}
+
 @media(max-width:600px){
   .pm-page{padding:16px 14px 40px}
   .pm-stats{gap:10px}.pm-num{font-size:15px}

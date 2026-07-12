@@ -78,30 +78,6 @@ function buildEQPath(hz,gainDB,q){
   return d;
 }
 
-function showBoostCurve(){
-  const easyAnswered = parseInt(localStorage.getItem('pm_easy_total')||'0');
-  const showCurve = trainMode || (diff === 'easy' && easyAnswered < 30);
-
-  const ep = document.getElementById('eqPath');
-  if(showCurve){
-    const path = buildEQPath(target, BOOST[diff], QV[diff]);
-    ep.setAttribute('d', path);
-    ep.style.stroke = '#34e0c4';
-    ep.style.filter = 'drop-shadow(0 0 7px rgba(52,224,196,.7))';
-    // Подсказка для новичков с счётчиком
-    const left = 30 - easyAnswered;
-    document.getElementById('hint').textContent =
-      playing ? ('С EQ бустом — слушай · подсказка ещё ' + left + ' раз') : 'Нажми ▶ чтобы начать слушать';
-  } else {
-    // Только плоская линия — тренируем слух без визуальной подсказки
-    ep.setAttribute('d','M0,100 L1240,100');
-    ep.style.stroke = 'rgba(255,255,255,.15)';
-    ep.style.filter = 'none';
-  }
-  document.getElementById('peakTag').style.opacity = '0';
-  document.getElementById('peakLine').style.opacity = '0';
-}
-
 function updateGraph(showCurve, color, label){
   const eqPath=document.getElementById('eqPath');
   const peakLine=document.getElementById('peakLine');
@@ -266,8 +242,6 @@ function endCompare(){
   if(playing) document.getElementById('hint').textContent='С EQ бустом — слушай';
   document.getElementById('modeBadge').textContent='С БУСТОМ';
   document.getElementById('modeBadge').classList.remove('comparing');
-  // B mode: показываем кривую буста (без метки)
-  if(target && !answered) showBoostCurve();
 }
 
 // ══════════════════════════════════════
@@ -312,6 +286,9 @@ function startGame(){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('scrGame').classList.add('active');
   updateScoreUI();newRound();
+  if(!trainMode&&!challengeMode&&!localStorage.getItem('pm_tour_seen')){
+    setTimeout(()=>startTour(false),400);
+  }
 }
 
 function showSessionSummary(){
@@ -363,14 +340,17 @@ function newRound(){
   document.getElementById('fbMain').className='pm-fb-main';
   document.getElementById('fbSub').textContent='';
   document.getElementById('hint').textContent='Нажми ▶ чтобы начать слушать';
-  updateHintBtn();
 
-  // Показываем фазу для hard
+  // Показываем фазу для hard и лёгкого (плавный рост сложности)
   const diffLabelEl = document.getElementById('diffLabel');
   if(diff==='hard' && !trainMode){
     const phase=getHardPhase();
     const phases=['','Одна полоса','Узкий Q','2 полосы','Буст/Срез'];
     diffLabelEl.textContent='Сложно · '+phases[phase];
+  } else if(diff==='easy' && !trainMode){
+    const phase=getEasyPhase();
+    const phases=['','Разминка','Знакомство','Почти готов','Финальный рывок'];
+    diffLabelEl.textContent='Легко · '+phases[phase];
   } else if(trainMode){
     diffLabelEl.textContent='Тренировка';
   }
@@ -489,7 +469,7 @@ function checkAnswer(){
 
   const elapsed=(Date.now()-qStart)/1000;
   const dist=Math.abs(Math.log2(picked/target));
-  const tol=TOLERANCE[diff]||TOLERANCE.medium;
+  const tol=getTolerance();
   const ok=dist<=tol;
   const accuracy=ok?Math.pow(Math.max(0,1-dist/tol),2):0;
   const isPerfect=ok&&dist<=tol*PERFECT_FRAC;
@@ -501,7 +481,6 @@ function checkAnswer(){
   updateGuessTag(guessFrac);
 
   // EQ кривая
-  clearHintZone();
   // Подсвечиваем вторую полосу если была
   if(targets2.length>0){
     const x2=fToSvgX(targets2[0]);
@@ -522,7 +501,6 @@ function checkAnswer(){
     const spd=Math.max(0,Math.round(50*Math.max(0,1-elapsed/8)));
     const mult=streak>=5?2:streak>=3?1.5:1;
     let base=trainMode?80:BASE[diff];
-    if(window._hintUsed) base=Math.round(base*0.5); // штраф за подсказку
     earned=Math.round((base*(0.4+0.6*accuracy)+spd)*mult);
     if(isPerfect){
       perfectBonus=Math.round(base*0.5);
@@ -539,15 +517,15 @@ function checkAnswer(){
     if(diff==='hard'&&!trainMode){
       hardRounds++;localStorage.setItem('pm_hard_rounds',hardRounds);
     }
-    if(diff==='easy'){
+    if(diff==='easy'&&!trainMode){
       const et=parseInt(localStorage.getItem('pm_easy_total')||'0')+1;
       localStorage.setItem('pm_easy_total',et);
-      if(et===30){
+      if(et===EASY_GRADUATE_AT){
         setTimeout(()=>{
           const n=document.createElement('div');
-          n.style.cssText='position:fixed;top:24px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#a78bfa,#22d3ee);color:#0a0b16;font-family:Unbounded,sans-serif;font-weight:700;font-size:13px;padding:12px 24px;border-radius:10px;z-index:9999;animation:fup 3s ease-out forwards';
-          n.textContent='🎓 Подсказка убрана — теперь только слух!';
-          document.body.appendChild(n);setTimeout(()=>n.remove(),3000);
+          n.style.cssText='position:fixed;top:24px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#a78bfa,#22d3ee);color:#0a0b16;font-family:Unbounded,sans-serif;font-weight:700;font-size:13px;padding:12px 24px;border-radius:10px;z-index:9999;animation:fup 3s ease-out forwards;text-align:center';
+          n.textContent='🎓 Ты прошёл разминку! Пора попробовать «Средний» уровень';
+          document.body.appendChild(n);setTimeout(()=>n.remove(),3500);
         },500);
       }
     }
@@ -598,7 +576,7 @@ function toggleReveal(){
 function roundWasOk(){
   if(!picked||!target)return false;
   const dist=Math.abs(Math.log2(picked/target));
-  return dist<=(TOLERANCE[diff]||TOLERANCE.medium);
+  return dist<=getTolerance();
 }
 
 function nextRound(){
@@ -875,67 +853,6 @@ function playWrongSound() {
 
 
 // ══════════════════════════════════════
-//  HINT SYSTEM
-// ══════════════════════════════════════
-let hintsLeft = 3;
-
-function initHints() {
-  hintsLeft = 3;
-  updateHintBtn();
-}
-
-function updateHintBtn() {
-  const btn = document.getElementById('hintBtn');
-  const uses = document.getElementById('hintUses');
-  if (!btn) return;
-  uses.textContent = hintsLeft;
-  btn.disabled = (hintsLeft <= 0 || answered || !playing);
-}
-
-function useHint() {
-  if (hintsLeft <= 0 || answered || !playing) return;
-  hintsLeft--;
-  updateHintBtn();
-
-  // Показываем зону на спектре (±1 октава) без точной частоты
-  const lo = target / 2;
-  const hi = target * 2;
-  showHintZone(lo, hi);
-
-  // Штраф к очкам этого раунда
-  document.getElementById('hint').textContent =
-    '💡 Зона подсказки показана на графике · этот раунд -50% очков';
-  window._hintUsed = true;
-}
-
-function showHintZone(lo, hi) {
-  const LO = Math.log10(20), HI = Math.log10(20000);
-  const x1 = ((Math.log10(Math.max(20, lo)) - LO) / (HI - LO)) * 1240;
-  const x2 = ((Math.log10(Math.min(20000, hi)) - LO) / (HI - LO)) * 1240;
-  const svg = document.getElementById('eqSvg');
-  let zone = svg.querySelector('#hintZone');
-  if (!zone) {
-    zone = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    zone.id = 'hintZone';
-    svg.insertBefore(zone, svg.firstChild);
-  }
-  zone.setAttribute('x', x1);
-  zone.setAttribute('y', 0);
-  zone.setAttribute('width', x2 - x1);
-  zone.setAttribute('height', 200);
-  zone.setAttribute('fill', 'rgba(250,204,21,.08)');
-  zone.setAttribute('stroke', 'rgba(250,204,21,.3)');
-  zone.setAttribute('stroke-width', '1');
-  zone.setAttribute('stroke-dasharray', '4 4');
-}
-
-function clearHintZone() {
-  const zone = document.getElementById('hintZone');
-  if (zone) zone.remove();
-  window._hintUsed = false;
-}
-
-// ══════════════════════════════════════
 //  PROGRESSIVE DIFFICULTY (Hard)
 // ══════════════════════════════════════
 let hardRounds = parseInt(localStorage.getItem('pm_hard_rounds') || '0');
@@ -947,6 +864,27 @@ function getHardPhase() {
   if (hardRounds < 40) return 2; // + narrower Q
   if (hardRounds < 60) return 3; // 2 полосы (найди сильнейшую)
   return 4; // иногда CUT вместо boost
+}
+
+// Плавный рост сложности внутри "Лёгкого" — готовит к переходу на "Средний"
+function getEasyPhase() {
+  const n = parseInt(localStorage.getItem('pm_easy_total') || '0');
+  if (n < 8) return 1;  // разминка — громкий буст, широкий допуск
+  if (n < 16) return 2;
+  if (n < 24) return 3;
+  return 4;              // почти как "Средний"
+}
+const EASY_GRADUATE_AT = 32;
+
+function getTolerance() {
+  if (diff === 'easy' && !trainMode) {
+    const phase = getEasyPhase();
+    if (phase >= 4) return 0.32;
+    if (phase >= 3) return 0.40;
+    if (phase >= 2) return 0.46;
+    return 0.6;
+  }
+  return TOLERANCE[diff] || TOLERANCE.medium;
 }
 
 function pickTarget(rawSet) {
@@ -977,19 +915,37 @@ function pickTarget(rawSet) {
 function setPhoneMode(v){ phoneMode=v; }
 
 function getBoostForPhase() {
-  if (diff !== 'hard') return BOOST[diff];
-  const phase = getHardPhase();
-  if (phase >= 3) return 6;
-  if (phase >= 2) return 7;
-  return BOOST.hard;
+  if (diff === 'hard') {
+    const phase = getHardPhase();
+    if (phase >= 3) return 6;
+    if (phase >= 2) return 7;
+    return BOOST.hard;
+  }
+  if (diff === 'easy' && !trainMode) {
+    const phase = getEasyPhase();
+    if (phase >= 4) return 9;
+    if (phase >= 3) return 10;
+    if (phase >= 2) return 11;
+    return 14; // громче базового — максимально заметно на старте
+  }
+  return BOOST[diff];
 }
 
 function getQForPhase() {
-  if (diff !== 'hard') return QV[diff];
-  const phase = getHardPhase();
-  if (phase >= 3) return 0.7;
-  if (phase >= 2) return 0.8;
-  return QV.hard;
+  if (diff === 'hard') {
+    const phase = getHardPhase();
+    if (phase >= 3) return 0.7;
+    if (phase >= 2) return 0.8;
+    return QV.hard;
+  }
+  if (diff === 'easy' && !trainMode) {
+    const phase = getEasyPhase();
+    if (phase >= 4) return 1.1;
+    if (phase >= 3) return 1.25;
+    if (phase >= 2) return 1.4;
+    return 1.8; // шире базового — легче услышать на старте
+  }
+  return QV[diff];
 }
 
 // ══════════════════════════════════════
@@ -1109,13 +1065,101 @@ function ptsPopup(txt,perfect){
 function fmtF(hz){return hz>=1000?(hz/1000)+'k':String(hz)}
 
 // ══════════════════════════════════════
+//  ОБУЧАЮЩИЙ ТУР
+// ══════════════════════════════════════
+const TOUR_STEPS=[
+  {sel:null,title:'👋 Добро пожаловать в Peak Master',
+    text:'Короткий тур покажет, что где находится и как играть. Займёт минуту — потом сразу начнёшь.'},
+  {sel:'.pm-vol',title:'🔊 Громкость',
+    text:'Настрой удобный уровень перед стартом. Можно менять в любой момент прямо во время игры.'},
+  {sel:'#playBtn',title:'▶ Слушай звук',
+    text:'Нажми PLAY — услышишь шум с поднятой (или вырезанной) частотой. Это то, что нужно найти на слух.'},
+  {sel:'#cmpBtn',title:'🅰️ / 🅱️ Сравнение',
+    text:'Зажми эту кнопку — услышишь оригинал без изменений. Отпусти — снова буст. Сравнивай туда-обратно.'},
+  {sel:'.pm-graph-card',title:'🎯 Угадывание на графике',
+    text:'Нажми прямо на графике, веди до нужной частоты и отпусти — воротики (⊏ ⊐) показывают, где ты сейчас. Отпустил — ответ сразу засчитан.'},
+  {sel:'.pm-freq-guide',title:'📖 Что где живёт',
+    text:'Эта полоска — шпаргалка по диапазонам: слева бас и гул, посередине тело и разборчивость речи, справа — шипящие и воздух.'},
+  {sel:'.diff-grid',title:'📈 Сложность растёт сама',
+    text:'В «Лёгком» уровне буст сначала громкий и допуск широкий. С каждым раундом — чуть тише и точнее, пока не подготовишься к «Среднему». Удачи!'},
+];
+let tourIdx=0, tourWasPlaying=false;
+
+function startTour(manual){
+  tourIdx=0;
+  if(document.getElementById('scrGame').classList.contains('active')){
+    tourWasPlaying=playing;
+    if(playing) stopAudio();
+  } else {
+    // Тур запущен не из игры — откроем пробный раунд, чтобы было что показывать
+    diff='easy';
+    document.querySelectorAll('.diff-btn').forEach(b=>b.classList.remove('on'));
+    const easyBtn=document.querySelector('.diff-btn[onclick*="easy"]');
+    if(easyBtn)easyBtn.classList.add('on');
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById('scrGame').classList.add('active');
+    sessionRound=0;sessionScore=0;sessionResults=[];
+    updateScoreUI();newRound();
+  }
+  document.getElementById('tourOverlay').classList.add('open');
+  showTourStep(0);
+}
+
+function showTourStep(i){
+  tourIdx=i;
+  const step=TOUR_STEPS[i];
+  const spot=document.getElementById('tourSpotlight');
+  const card=document.getElementById('tourCard');
+
+  document.getElementById('tourStepN').textContent=(i+1)+' / '+TOUR_STEPS.length;
+  document.getElementById('tourTitle').textContent=step.title;
+  document.getElementById('tourText').textContent=step.text;
+  document.getElementById('tourNextBtn').textContent=(i===TOUR_STEPS.length-1)?'Поехали! →':'Далее →';
+
+  const el=step.sel?document.querySelector(step.sel):null;
+  if(el){
+    const r=el.getBoundingClientRect();
+    const pad=8;
+    spot.classList.remove('center');
+    spot.style.left=(r.left-pad)+'px';
+    spot.style.top=(r.top-pad)+'px';
+    spot.style.width=(r.width+pad*2)+'px';
+    spot.style.height=(r.height+pad*2)+'px';
+
+    const belowSpace=window.innerHeight-r.bottom;
+    const cardTop=belowSpace>180?r.bottom+16:Math.max(16,r.top-16-260);
+    let cardLeft=r.left+r.width/2-160;
+    cardLeft=Math.max(16,Math.min(window.innerWidth-336,cardLeft));
+    card.style.left=cardLeft+'px';
+    card.style.top=cardTop+'px';
+  } else {
+    spot.classList.add('center');
+    spot.style.left='50%';spot.style.top='50%';spot.style.width='0px';spot.style.height='0px';
+    card.style.left=(window.innerWidth/2-160)+'px';
+    card.style.top=(window.innerHeight/2-140)+'px';
+  }
+}
+
+function nextTourStep(){
+  if(tourIdx>=TOUR_STEPS.length-1){endTour();return;}
+  showTourStep(tourIdx+1);
+}
+
+function skipTour(){endTour();}
+
+function endTour(){
+  document.getElementById('tourOverlay').classList.remove('open');
+  localStorage.setItem('pm_tour_seen','1');
+  if(tourWasPlaying) startAudio();
+}
+
+// ══════════════════════════════════════
 //  INIT
 // ══════════════════════════════════════
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&actx&&actx.state==='suspended')actx.resume();});
 updateScoreUI();
 initStreak();
 sbInit();
-initHints();
 loadTrackManifest();
 
 // Угадывание прямо на графике: мышь и тач

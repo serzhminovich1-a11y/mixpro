@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MIXPRO — Подтверждение опыта</title>
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400..900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/courses.css">
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">MIX<span>PRO</span></a>
+  <div class="nav-links">
+    <a href="courses.html" class="nav-btn">Курсы</a>
+    <a href="profile.html" class="nav-btn">Профиль</a>
+    <a href="verify_review.html" class="nav-btn accent" id="reviewLink" style="display:none">Проверка заявок</a>
+    <button class="nav-btn danger" onclick="logout()">Выйти</button>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div id="loading" class="loading">Загружаем...</div>
+
+  <div id="content" style="display:none">
+    <div>
+      <div class="sec-h">Подтверждение опыта</div>
+      <div class="page-sub">Пока у тебя нет подтверждённого статуса — курсы могут создавать только те, чей опыт признан платформой</div>
+    </div>
+
+    <div id="statusBox"></div>
+
+    <form class="form-card" id="verifyForm" style="display:none">
+      <div class="field">
+        <label for="vSummary">Расскажи о своём опыте</label>
+        <textarea id="vSummary" rows="6" placeholder="Что ты умеешь, сколько работаешь, ссылки на портфолио/проекты, где учился..." required></textarea>
+      </div>
+      <button type="submit" class="submit-btn" id="verifyBtn">Отправить заявку</button>
+      <div class="form-status" id="verifyStatus"></div>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="../js/verify.js"></script>
+</body>
+</html>

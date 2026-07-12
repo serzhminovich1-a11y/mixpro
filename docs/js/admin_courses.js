@@ -302,7 +302,8 @@ async function init() {
   const { data: profile } = await SB.from('profiles').select('role').eq('id', currentUid).single();
   document.getElementById('loading').style.display = 'none';
 
-  if (!profile || (profile.role !== 'MENTOR' && profile.role !== 'ADMIN')) {
+  const canAuthor = profile && ['VERIFIED_PRO', 'MENTOR', 'ADMIN'].includes(profile.role);
+  if (!canAuthor) {
     document.getElementById('noAccess').style.display = 'block';
     return;
   }

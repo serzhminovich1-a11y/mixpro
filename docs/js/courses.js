@@ -75,8 +75,11 @@ async function init() {
   currentUid = session.user.id;
 
   const { data: profile } = await SB.from('profiles').select('role').eq('id', currentUid).single();
-  if (profile && (profile.role === 'MENTOR' || profile.role === 'ADMIN')) {
+  const canAuthor = profile && ['VERIFIED_PRO', 'MENTOR', 'ADMIN'].includes(profile.role);
+  if (canAuthor) {
     document.getElementById('adminLink').style.display = '';
+  } else {
+    document.getElementById('verifyLink').style.display = '';
   }
 
   const courseId = new URLSearchParams(location.search).get('course');

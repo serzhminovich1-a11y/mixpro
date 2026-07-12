@@ -5,6 +5,58 @@ const SB = supabase.createClient(
 
 const GAME_NAMES = { peak_master:'Peak Master', pan_trainer:'Pan Trainer', db_king:'dB King', reverb_wizard:'Reverb Wizard', dr_compressor:'Dr. Compressor' };
 
+// Пороги XP — должны совпадать с get_level_from_xp() в docs/supabase/migrations/001_lms_schema.sql
+const XP_LEVELS = [
+  { name:'Beginner',     min:0 },
+  { name:'Intermediate', min:500 },
+  { name:'Advanced',     min:2000 },
+  { name:'Professional', min:5000 },
+  { name:'Master',       min:12000 },
+  { name:'Legend',       min:25000 },
+];
+
+function renderLevelXp(xp){
+  xp = xp || 0;
+  let current = XP_LEVELS[0], next = XP_LEVELS[1];
+  for (let i = 0; i < XP_LEVELS.length; i++) {
+    if (xp >= XP_LEVELS[i].min) { current = XP_LEVELS[i]; next = XP_LEVELS[i+1] || null; }
+  }
+  document.getElementById('levelName').textContent = current.name;
+  const pct = next ? Math.round(((xp - current.min) / (next.min - current.min)) * 100) : 100;
+  document.getElementById('xpFill').style.width = pct + '%';
+  document.getElementById('xpLabel').textContent = next
+    ? xp.toLocaleString('ru') + ' / ' + next.min.toLocaleString('ru') + ' XP до ' + next.name
+    : xp.toLocaleString('ru') + ' XP · максимальный уровень';
+}
+
+async function renderAchievements(uid){
+  const grid = document.getElementById('achvGrid');
+  const [{ data: all }, { data: earned }] = await Promise.all([
+    SB.from('achievements').select('*').order('condition_value', { ascending: true }),
+    SB.from('user_achievements').select('achievement_id, earned_at').eq('user_id', uid),
+  ]);
+
+  if (!all || all.length === 0) {
+    grid.innerHTML = '<div class="empty">Достижений пока нет</div>';
+    return;
+  }
+  const earnedMap = new Map((earned || []).map(e => [e.achievement_id, e.earned_at]));
+
+  grid.innerHTML = '';
+  all.forEach(a => {
+    const earnedAt = earnedMap.get(a.id);
+    const card = document.createElement('div');
+    card.className = 'achv-card' + (earnedAt ? ' unlocked' : ' locked');
+    const dateStr = earnedAt ? new Date(earnedAt).toLocaleDateString('ru-RU') : null;
+    card.innerHTML = `
+      <div class="achv-icon">${a.icon || '🏅'}</div>
+      <div class="achv-title">${a.title}</div>
+      <div class="achv-desc">${a.description || ''}</div>
+      <div class="achv-status">${earnedAt ? '✓ Получено ' + dateStr : '🔒 +' + a.xp_reward + ' XP'}</div>`;
+    grid.appendChild(card);
+  });
+}
+
 async function init() {
   const { data: { session } } = await SB.auth.getSession();
   if (!session) { location.href = 'auth.html'; return; }
@@ -14,6 +66,9 @@ async function init() {
   // Профиль
   const { data: profile } = await SB.from('profiles').select('*').eq('id', uid).single();
   if (!profile) { location.href = 'auth.html'; return; }
+
+  renderLevelXp(profile.xp);
+  renderAchievements(uid);
 
   // Аватар
   const av = document.getElementById('avatar');

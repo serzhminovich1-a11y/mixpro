@@ -182,7 +182,61 @@ async function handleAddLesson(courseId, form){
   renderCoursesAdmin();
 }
 
-function courseAdminBlock(course, lessons){
+async function handleDeleteAssignment(a){
+  if (!confirm(`Удалить задание "${a.title}"? Все сдачи по нему тоже удалятся.`)) return;
+  const { error } = await SB.from('assignments').delete().eq('id', a.id);
+  if (error) { alert('Ошибка: ' + error.message); return; }
+  renderCoursesAdmin();
+}
+
+function assignmentAdminRow(a){
+  const row = document.createElement('div');
+  row.className = 'admin-lesson-row';
+  row.innerHTML = `
+    <span>📝 ${escapeHtml(a.title)}</span>
+    <span style="display:flex;align-items:center;gap:8px">
+      <span>макс. ${a.max_score} баллов</span>
+      <button type="button" class="icon-btn" title="Удалить задание">🗑</button>
+    </span>`;
+  row.querySelector('.icon-btn').addEventListener('click', () => handleDeleteAssignment(a));
+  return row;
+}
+
+async function handleAddAssignment(courseId, form){
+  const titleInput = form.querySelector('.aTitle');
+  const descInput = form.querySelector('.aDesc');
+  const reqInput = form.querySelector('.aReq');
+  const scoreInput = form.querySelector('.aScore');
+  const statusEl = form.querySelector('.aStatus');
+  const btn = form.querySelector('.aBtn');
+  const title = titleInput.value.trim();
+  if (!title) return;
+
+  btn.disabled = true;
+  statusEl.textContent = '';
+  statusEl.className = 'form-status';
+
+  const { error } = await SB.from('assignments').insert({
+    course_id: courseId,
+    title,
+    description: descInput.value.trim(),
+    requirements: reqInput.value.trim(),
+    max_score: Math.max(1, parseInt(scoreInput.value, 10) || 100),
+  });
+
+  btn.disabled = false;
+  if (error) {
+    statusEl.textContent = 'Ошибка: ' + error.message;
+    statusEl.className = 'form-status error';
+    return;
+  }
+  statusEl.textContent = 'Задание добавлено!';
+  statusEl.className = 'form-status ok';
+  titleInput.value = ''; descInput.value = ''; reqInput.value = ''; scoreInput.value = '100';
+  renderCoursesAdmin();
+}
+
+function courseAdminBlock(course, lessons, assignments){
   const block = document.createElement('div');
   block.className = 'admin-course-block';
 
@@ -270,6 +324,27 @@ function courseAdminBlock(course, lessons){
   formWrap.querySelector('.lBtn').addEventListener('click', () => handleAddLesson(course.id, formWrap));
   block.appendChild(formWrap);
 
+  const aDivider = document.createElement('div');
+  aDivider.style.cssText = 'padding:10px 18px;border-top:1px solid var(--border);font-family:var(--mono);font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:.06em';
+  aDivider.textContent = 'Задания';
+  block.appendChild(aDivider);
+
+  assignments.forEach(a => block.appendChild(assignmentAdminRow(a)));
+
+  const aFormWrap = document.createElement('div');
+  aFormWrap.style.cssText = 'padding:14px 18px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px';
+  aFormWrap.innerHTML = `
+    <div class="field"><input type="text" class="aTitle" placeholder="Название задания"></div>
+    <div class="field"><textarea class="aDesc" placeholder="Что нужно сделать"></textarea></div>
+    <div class="field"><textarea class="aReq" placeholder="Требования к сдаче (необязательно)"></textarea></div>
+    <div class="form-row">
+      <div class="field"><label style="font-family:var(--mono);font-size:11px;color:var(--muted2)">Макс. баллов</label><input type="number" class="aScore" value="100" min="1"></div>
+    </div>
+    <button type="button" class="submit-btn aBtn">Добавить задание</button>
+    <div class="form-status aStatus"></div>`;
+  aFormWrap.querySelector('.aBtn').addEventListener('click', () => handleAddAssignment(course.id, aFormWrap));
+  block.appendChild(aFormWrap);
+
   return block;
 }
 
@@ -280,11 +355,15 @@ async function renderCoursesAdmin(){
     wrap.innerHTML = '<div class="empty">Курсов пока нет — создай первый выше</div>';
     return;
   }
-  const { data: allLessons } = await SB.from('lessons').select('*').order('order_index', { ascending: true });
+  const [{ data: allLessons }, { data: allAssignments }] = await Promise.all([
+    SB.from('lessons').select('*').order('order_index', { ascending: true }),
+    SB.from('assignments').select('*').order('created_at', { ascending: true }),
+  ]);
   wrap.innerHTML = '';
   courses.forEach(c => {
     const lessons = (allLessons || []).filter(l => l.course_id === c.id);
-    wrap.appendChild(courseAdminBlock(c, lessons));
+    const assignments = (allAssignments || []).filter(a => a.course_id === c.id);
+    wrap.appendChild(courseAdminBlock(c, lessons, assignments));
   });
 }
 

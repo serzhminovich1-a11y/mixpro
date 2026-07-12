@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MIXPRO — Курсы</title>
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400..900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/courses.css">
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">MIX<span>PRO</span></a>
+  <div class="nav-links">
+    <a href="profile.html" class="nav-btn">Профиль</a>
+    <a href="portfolio.html" class="nav-btn">Портфолио</a>
+    <a href="admin_courses.html" class="nav-btn accent" id="adminLink" style="display:none">Управление курсами</a>
+    <button class="nav-btn danger" onclick="logout()">Выйти</button>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div id="loading" class="loading">Загружаем курсы...</div>
+
+  <!-- Course grid view -->
+  <div id="listView" style="display:none">
+    <div>
+      <div class="sec-h">Курсы</div>
+      <div class="page-sub">Выбери курс, чтобы увидеть уроки</div>
+    </div>
+    <div class="course-grid" id="courseGrid"></div>
+  </div>
+
+  <!-- Single course / lessons view -->
+  <div id="courseView" style="display:none">
+    <a href="courses.html" class="back-link">← Все курсы</a>
+    <div>
+      <div class="sec-h" id="courseTitle">—</div>
+      <div class="page-sub" id="courseDesc"></div>
+    </div>
+    <div class="lesson-list" id="lessonList"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="../js/courses.js"></script>
+</body>
+</html>

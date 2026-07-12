@@ -11,9 +11,9 @@
   --text: #eef0fb;
   --muted: rgba(255, 255, 255, .35);
   --muted2: rgba(255, 255, 255, .55);
-  --ox: 'Unbounded', sans-serif;
+  --ox: 'Golos Text', sans-serif;
   --mono: 'JetBrains Mono', monospace;
-  --sans: 'Manrope', sans-serif;
+  --sans: 'Golos Text', sans-serif;
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body {

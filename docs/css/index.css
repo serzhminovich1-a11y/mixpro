@@ -2,7 +2,7 @@
   --bg:#0a0b16; --surface:rgba(255,255,255,.03); --card:rgba(255,255,255,.045); --border:rgba(255,255,255,.1);
   --amber:#22d3ee; --amber-dim:#a78bfa; --amber-glow:rgba(34,211,238,.12);
   --text:#eef0fb; --muted:rgba(255,255,255,.4); --green:#4ade80; --red:#f87171;
-  --display:'Unbounded', sans-serif; --mono:'JetBrains Mono',monospace; --sans:'Manrope', sans-serif;
+  --display:'Golos Text', sans-serif; --mono:'JetBrains Mono',monospace; --sans:'Golos Text', sans-serif;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}

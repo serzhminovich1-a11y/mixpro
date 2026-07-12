@@ -177,10 +177,17 @@ async function startAudio(){
   if(comparing){
     filtNode.gain.value=0;
     if(filtNode2) filtNode2.gain.value=0;
+    if(filtNode3) filtNode3.gain.value=0;
   }
   gainNode=actx.createGain();
   gainNode.gain.value=0;
-  srcNode.connect(filtNode);filtNode.connect(gainNode);gainNode.connect(actx.destination);
+  // Полосы включаются последовательно: source -> filt1 -> [filt2] -> [filt3] -> gain -> output
+  srcNode.connect(filtNode);
+  let lastNode=filtNode;
+  if(filtNode2){lastNode.connect(filtNode2);lastNode=filtNode2;}
+  if(filtNode3){lastNode.connect(filtNode3);lastNode=filtNode3;}
+  lastNode.connect(gainNode);
+  gainNode.connect(actx.destination);
   srcNode.start();
   const t=actx.currentTime;
   gainNode.gain.setValueAtTime(0,t);
@@ -195,8 +202,8 @@ async function startAudio(){
 
 function stopAudio(){
   if(raf){cancelAnimationFrame(raf);raf=null;}
-  const os=srcNode,of=filtNode,og=gainNode;
-  srcNode=null;filtNode=null;gainNode=null;
+  const os=srcNode,of=filtNode,of2=filtNode2,of3=filtNode3,og=gainNode;
+  srcNode=null;filtNode=null;filtNode2=null;filtNode3=null;gainNode=null;
   playing=false;
   const pb=document.getElementById('playBtn');
   pb.classList.remove('playing');
@@ -205,7 +212,7 @@ function stopAudio(){
   if(og&&actx&&actx.state!=='closed'){
     const t=actx.currentTime;og.gain.setValueAtTime(og.gain.value,t);og.gain.linearRampToValueAtTime(0,t+.08);
   }
-  setTimeout(()=>{try{os.stop();os.disconnect();}catch(e){}try{if(of)of.disconnect();}catch(e){}try{if(og)og.disconnect();}catch(e){}},100);
+  setTimeout(()=>{try{os.stop();os.disconnect();}catch(e){}try{if(of)of.disconnect();}catch(e){}try{if(of2)of2.disconnect();}catch(e){}try{if(of3)of3.disconnect();}catch(e){}try{if(og)og.disconnect();}catch(e){}},100);
 }
 
 function togglePlay(){if(playing)stopAudio();else startAudio();}
@@ -218,6 +225,7 @@ function startCompare(){
   document.getElementById('modeBadge').classList.add('comparing');
   if(filtNode&&actx) filtNode.gain.setTargetAtTime(0,actx.currentTime,.015);
   if(filtNode2&&actx) filtNode2.gain.setTargetAtTime(0,actx.currentTime,.015);
+  if(filtNode3&&actx) filtNode3.gain.setTargetAtTime(0,actx.currentTime,.015);
   if(!playing) startAudio();
   else document.getElementById('hint').textContent='Оригинал без буста';
   // A mode: плоская линия
@@ -230,7 +238,7 @@ function startCompare(){
   document.getElementById('modeBadge').classList.add('comparing');
 }
 function endCompare(){
-  if(answered)return;
+  if(!comparing)return;
   comparing=false;
   document.getElementById('cmpBtn').classList.remove('active');
   document.getElementById('modeBadge').textContent='С БУСТОМ';
@@ -239,6 +247,7 @@ function endCompare(){
   const curSign = isCutMode?-1:1;
   if(filtNode&&actx) filtNode.gain.setTargetAtTime(curBoost*curSign,actx.currentTime,.015);
   if(filtNode2&&actx) filtNode2.gain.setTargetAtTime(curBoost*curSign*0.85,actx.currentTime,.015);
+  if(filtNode3&&actx) filtNode3.gain.setTargetAtTime(curBoost*curSign*0.7,actx.currentTime,.015);
   if(playing) document.getElementById('hint').textContent='С EQ бустом — слушай';
   document.getElementById('modeBadge').textContent='С БУСТОМ';
   document.getElementById('modeBadge').classList.remove('comparing');
@@ -332,7 +341,7 @@ function newRound(){
   answered=false;picked=null;qStart=0;comparing=false;
   if(!trainMode&&!challengeMode) sessionRound++;
 
-  const set=SETS[diff];
+  const set=trainMode?(FREQ_RANGES[trainCfg.range]||FREQ_RANGES.all):SETS[diff];
   target=pickTarget(set);
   document.getElementById('rn').textContent=round;
   document.getElementById('diffLabel').textContent={easy:'Легко',medium:'Средне',hard:'Сложно'}[diff];
@@ -1011,6 +1020,7 @@ function startTrainGame() {
 //  MULTI-BAND AUDIO
 // ══════════════════════════════════════
 let filtNode2 = null;
+let filtNode3 = null;
 
 function buildAudioChain(ctx) {
   const gain = trainMode ? trainCfg.gain : getBoostForPhase();
@@ -1023,6 +1033,9 @@ function buildAudioChain(ctx) {
   filtNode.Q.value = q;
   filtNode.gain.value = cut ? -gain : gain;
 
+  filtNode2 = null;
+  filtNode3 = null;
+
   if (targets2.length > 0 || (trainMode && trainCfg.bands >= 2)) {
     const t2 = targets2[0] || SETS.hard[Math.floor(Math.random() * SETS.hard.length)];
     filtNode2 = ctx.createBiquadFilter();
@@ -1033,7 +1046,13 @@ function buildAudioChain(ctx) {
   }
 
   if (trainMode && trainCfg.bands >= 3) {
-    // Третья полоса через WaveShaperNode не нужна — просто второй фильтр достаточно
+    const rangeSet = FREQ_RANGES[trainCfg.range] || FREQ_RANGES.all;
+    const t3 = rangeSet[Math.floor(Math.random() * rangeSet.length)];
+    filtNode3 = ctx.createBiquadFilter();
+    filtNode3.type = 'peaking';
+    filtNode3.frequency.value = t3;
+    filtNode3.Q.value = q;
+    filtNode3.gain.value = (cut ? -gain : gain) * 0.7;
   }
 }
 
@@ -1186,3 +1205,8 @@ window.addEventListener('mousemove',graphPointerMove);
 window.addEventListener('touchmove',graphPointerMove,{passive:false});
 window.addEventListener('mouseup',graphPointerUp);
 window.addEventListener('touchend',graphPointerUp);
+
+// A/Б сравнение: если отпустить вне кнопки, подсветка не должна "залипать"
+window.addEventListener('mouseup',endCompare);
+window.addEventListener('touchend',endCompare);
+window.addEventListener('mouseleave',endCompare);

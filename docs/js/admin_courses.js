@@ -68,10 +68,49 @@ async function handleCreateCourse(e){
   renderCoursesAdmin();
 }
 
+function escapeAttr(s){ return String(s == null ? '' : s).replace(/"/g, '&quot;'); }
+function escapeHtml(s){ return String(s == null ? '' : s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+async function handleRenameLesson(lesson){
+  const newTitle = prompt('Новое название урока:', lesson.title);
+  if (newTitle == null) return;
+  const trimmed = newTitle.trim();
+  if (!trimmed || trimmed === lesson.title) return;
+  const { error } = await SB.from('lessons').update({ title: trimmed }).eq('id', lesson.id);
+  if (error) { alert('Ошибка: ' + error.message); return; }
+  renderCoursesAdmin();
+}
+
+async function handleDeleteLesson(lesson){
+  if (!confirm(`Удалить урок "${lesson.title}"?`)) return;
+  if (lesson.content_url) await SB.storage.from('lessons').remove([lesson.content_url]);
+  const { error } = await SB.from('lessons').delete().eq('id', lesson.id);
+  if (error) { alert('Ошибка: ' + error.message); return; }
+  renderCoursesAdmin();
+}
+
+async function handleDeleteCourse(course, lessons){
+  if (!confirm(`Удалить курс "${course.title}" вместе со всеми уроками (${lessons.length})? Это нельзя отменить.`)) return;
+  const paths = lessons.filter(l => l.content_url).map(l => l.content_url);
+  if (paths.length) await SB.storage.from('lessons').remove(paths);
+  const { error } = await SB.from('courses').delete().eq('id', course.id);
+  if (error) { alert('Ошибка: ' + error.message); return; }
+  renderCoursesAdmin();
+}
+
 function lessonAdminRow(l){
   const row = document.createElement('div');
   row.className = 'admin-lesson-row';
-  row.innerHTML = `<span>${l.order_index + 1}. ${l.title}</span><span>${l.content_url ? '🎬 видео есть' : '— без видео'}</span>`;
+  row.innerHTML = `
+    <span>${l.order_index + 1}. ${escapeHtml(l.title)}</span>
+    <span style="display:flex;align-items:center;gap:8px">
+      <span>${l.content_url ? '🎬 видео есть' : '— без видео'}</span>
+      <button type="button" class="icon-btn" title="Переименовать">✏️</button>
+      <button type="button" class="icon-btn" title="Удалить урок">🗑</button>
+    </span>`;
+  const [renameBtn, delBtn] = row.querySelectorAll('.icon-btn');
+  renameBtn.addEventListener('click', () => handleRenameLesson(l));
+  delBtn.addEventListener('click', () => handleDeleteLesson(l));
   return row;
 }
 
@@ -149,8 +188,69 @@ function courseAdminBlock(course, lessons){
 
   const head = document.createElement('div');
   head.className = 'admin-course-head';
-  head.textContent = course.title;
   block.appendChild(head);
+
+  function renderHeadView(){
+    head.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+        <span>${escapeHtml(course.title)}</span>
+        <span style="display:flex;gap:6px">
+          <button type="button" class="icon-btn cEditBtn" title="Редактировать курс">✏️</button>
+          <button type="button" class="icon-btn cDelBtn" title="Удалить курс">🗑</button>
+        </span>
+      </div>`;
+    head.querySelector('.cEditBtn').addEventListener('click', renderHeadEdit);
+    head.querySelector('.cDelBtn').addEventListener('click', () => handleDeleteCourse(course, lessons));
+  }
+
+  function renderHeadEdit(){
+    head.innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:8px;font-weight:400">
+        <div class="field"><input type="text" class="ceTitle" value="${escapeAttr(course.title)}"></div>
+        <div class="field"><textarea class="ceDesc">${escapeHtml(course.description || '')}</textarea></div>
+        <div class="form-row">
+          <div class="field"><input type="text" class="ceCategory" value="${escapeAttr(course.category || '')}"></div>
+          <div class="field"><select class="ceDifficulty">
+            <option value="beginner">Новичок</option>
+            <option value="intermediate">Средний</option>
+            <option value="advanced">Продвинутый</option>
+          </select></div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button type="button" class="submit-btn ceSave">Сохранить</button>
+          <button type="button" class="nav-btn ceCancel">Отмена</button>
+        </div>
+        <div class="form-status ceStatus"></div>
+      </div>`;
+    head.querySelector('.ceDifficulty').value = course.difficulty_level || 'beginner';
+    head.querySelector('.ceCancel').addEventListener('click', renderHeadView);
+    head.querySelector('.ceSave').addEventListener('click', handleSaveCourse);
+  }
+
+  async function handleSaveCourse(){
+    const statusEl = head.querySelector('.ceStatus');
+    const saveBtn = head.querySelector('.ceSave');
+    const title = head.querySelector('.ceTitle').value.trim();
+    if (!title) { statusEl.textContent = 'Название не может быть пустым'; statusEl.className = 'form-status error'; return; }
+    saveBtn.disabled = true;
+    const updated = {
+      title,
+      description: head.querySelector('.ceDesc').value.trim(),
+      category: head.querySelector('.ceCategory').value.trim(),
+      difficulty_level: head.querySelector('.ceDifficulty').value,
+    };
+    const { error } = await SB.from('courses').update(updated).eq('id', course.id);
+    if (error) {
+      statusEl.textContent = 'Ошибка: ' + error.message;
+      statusEl.className = 'form-status error';
+      saveBtn.disabled = false;
+      return;
+    }
+    Object.assign(course, updated);
+    renderHeadView();
+  }
+
+  renderHeadView();
 
   lessons.forEach(l => block.appendChild(lessonAdminRow(l)));
 

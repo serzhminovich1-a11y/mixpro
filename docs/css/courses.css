@@ -63,7 +63,9 @@ nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-con
 
 .admin-course-block{border:1px solid var(--border);border-radius:11px;overflow:hidden;box-shadow:var(--shadow-lift)}
 .admin-course-head{padding:14px 18px;background:var(--s2);font-family:var(--ox);font-weight:700;font-size:14px}
-.admin-lesson-row{padding:10px 18px;border-top:1px solid var(--border);font-family:var(--mono);font-size:12px;color:var(--muted2);display:flex;justify-content:space-between}
+.admin-lesson-row{padding:10px 18px;border-top:1px solid var(--border);font-family:var(--mono);font-size:12px;color:var(--muted2);display:flex;justify-content:space-between;align-items:center}
+.icon-btn{width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted2);cursor:pointer;font-size:12px;display:inline-flex;align-items:center;justify-content:center;transition:.15s;flex-shrink:0}
+.icon-btn:hover{border-color:var(--border-hi);color:var(--text)}
 
 /* Video player */
 .player-wrap{background:#000;border-radius:12px;overflow:hidden;position:relative;aspect-ratio:16/9}

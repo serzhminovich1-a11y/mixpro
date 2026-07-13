@@ -35,7 +35,8 @@ let trackManifest=[], trackCache={};
 
 // Streak data — localStorage остаётся источником истины для мгновенного
 // отклика в игре, Supabase — просто зеркало для профиля/др. устройств.
-function loadSD(){return JSON.parse(localStorage.getItem('mp_sd')||JSON.stringify({streak:0,best:0,last:'',chDone:0,chDate:''}))}
+function loadSD(){return JSON.parse(localStorage.getItem('mp_sd')||JSON.stringify({streak:0,best:0,last:'',chDone:0,chDate:'',freezes:0}))}
+function dateStr(offsetDays){const d=new Date();d.setDate(d.getDate()+offsetDays);return d.toISOString().slice(0,10)}
 function saveSD(d){localStorage.setItem('mp_sd',JSON.stringify(d));syncStreakToSupabase(d)}
 
 async function syncStreakToSupabase(d){
@@ -55,7 +56,7 @@ async function reconcileStreak(){
   if(!remote){await syncStreakToSupabase(local);return;}
 
   if(remote.last_played&&(!local.last||remote.last_played>local.last)){
-    const merged={streak:remote.streak,best:Math.max(remote.best_streak,local.best||0),last:remote.last_played,chDone:local.chDate===TODAY?local.chDone:0,chDate:local.chDate};
+    const merged={streak:remote.streak,best:Math.max(remote.best_streak,local.best||0),last:remote.last_played,chDone:local.chDate===TODAY?local.chDone:0,chDate:local.chDate,freezes:local.freezes||0};
     localStorage.setItem('mp_sd',JSON.stringify(merged));
     updateStreakUI(merged);
   }else if(local.last&&(!remote.last_played||local.last>remote.last_played)){
@@ -582,8 +583,8 @@ function checkAnswer(){
     showTip(target);
     if(isPerfect){playPerfectSound();ptsPopup('🎯 В ЯБЛОЧКО! +'+earned,true);}
     else{playSuccessSound();ptsPopup('+'+earned);}
-    if(!trainMode){setTimeout(saveScore,300);updateDailyStreak();}
-    if(!trainMode&&challengeMode) updateChallenge();
+    if(!trainMode){setTimeout(saveScore,300);}
+    if(!trainMode) updateChallenge();
     // Считаем hard раунды
     if(diff==='hard'&&!trainMode){
       hardRounds++;localStorage.setItem('pm_hard_rounds',hardRounds);
@@ -662,21 +663,31 @@ function nextRound(){
 // ══════════════════════════════════════
 //  DAILY STREAK
 // ══════════════════════════════════════
+const FREEZE_COST=300;
+const FREEZE_MAX=2;
+
 function initStreak(){
   const d=loadSD();
-  const yest=new Date();yest.setDate(yest.getDate()-1);
-  const ys=yest.toISOString().slice(0,10);
-  if(d.last&&d.last!==TODAY&&d.last!==ys&&d.streak>0){
-    d.streak=0;saveSD(d);showStreakPopup(0,'lost');
+  const yest=dateStr(-1), twoAgo=dateStr(-2);
+  if(d.last&&d.last!==TODAY&&d.last!==yest&&d.streak>0){
+    if((d.freezes||0)>0&&d.last===twoAgo){
+      d.freezes--;d.last=yest;saveSD(d);
+      showStreakPopup(d.streak,'freeze');
+    }else{
+      d.streak=0;saveSD(d);showStreakPopup(0,'lost');
+    }
   }
   updateStreakUI(d);
 }
 
+// Стрик продлевается не за любой ответ, а именно за выполнение
+// дневного челленджа (5/5) — так понятнее и совпадает с тем, что
+// показывают дневные точки на баннере.
 function updateDailyStreak(){
   const d=loadSD();
   if(d.last!==TODAY){
-    const yest=new Date();yest.setDate(yest.getDate()-1);
-    d.streak=(d.last===yest.toISOString().slice(0,10)?d.streak:0)+1;
+    const yest=dateStr(-1);
+    d.streak=(d.last===yest?d.streak:0)+1;
     d.best=Math.max(d.best,d.streak);d.last=TODAY;saveSD(d);
     if([3,7,14,30,60,100].includes(d.streak)) showStreakPopup(d.streak,'milestone');
   }
@@ -686,7 +697,17 @@ function updateDailyStreak(){
 function updateStreakUI(d){
   const n=d.streak||0;
   document.getElementById('streakNum').textContent=n;
-  document.getElementById('streakIcon').textContent=n>=7?'🔥':n>=3?'🔥':'🔥';
+  const icon=document.getElementById('streakIcon');
+  if(n<=0){icon.textContent='🕯️';icon.className='pm-streak-icon';}
+  else if(n<7){icon.textContent='🔥';icon.className='pm-streak-icon lit';}
+  else{icon.textContent='🔥';icon.className='pm-streak-icon lit hot';}
+
+  const freezes=d.freezes||0;
+  document.getElementById('freezeCount').textContent=freezes;
+  const buyBtn=document.getElementById('freezeBuyBtn');
+  if(freezes>=FREEZE_MAX){buyBtn.textContent='макс.';buyBtn.disabled=true;}
+  else{buyBtn.textContent='за '+FREEZE_COST;buyBtn.disabled=false;}
+
   const done=d.chDate===TODAY?(d.chDone||0):0;
   document.getElementById('chCount').textContent=done+'/5';
   for(let i=0;i<5;i++){
@@ -703,9 +724,22 @@ function updateChallenge(){
   if(d.chDate!==TODAY){d.chDate=TODAY;d.chDone=0;}
   if(d.chDone<5){
     d.chDone++;saveSD(d);
-    if(d.chDone===5){score+=250;localStorage.setItem('pm_s',score);updateScoreUI();ptsPopup('+250 🎯');}
+    updateStreakUI(d);
+    if(d.chDone===5){
+      score+=250;localStorage.setItem('pm_s',score);updateScoreUI();ptsPopup('+250 🎯');
+      updateDailyStreak();
+    }
   }
+}
+
+function buyFreeze(){
+  const d=loadSD();
+  if((d.freezes||0)>=FREEZE_MAX)return;
+  if(score<FREEZE_COST){ptsPopup('Нужно ещё '+(FREEZE_COST-score)+' очков');return;}
+  score-=FREEZE_COST;localStorage.setItem('pm_s',score);updateScoreUI();
+  d.freezes=(d.freezes||0)+1;saveSD(d);
   updateStreakUI(d);
+  ptsPopup('🧊 Заморозка куплена');
 }
 
 function startChallenge(){
@@ -718,11 +752,12 @@ function startChallenge(){
 
 function showStreakPopup(n,type){
   const ov=document.getElementById('streakOverlay');
-  document.getElementById('streakEmoji').textContent=type==='lost'?'💔':'🔥';
+  document.getElementById('streakEmoji').textContent=type==='lost'?'💔':type==='freeze'?'🧊':'🔥';
   document.getElementById('streakN').textContent=n;
-  document.getElementById('streakN').style.color=type==='lost'?'var(--red)':'var(--gold)';
+  document.getElementById('streakN').style.color=type==='lost'?'var(--red)':type==='freeze'?'#7dd3fc':'var(--gold)';
   const msgs={3:['3 дня подряд!','Хорошее начало — не останавливайся!'],7:['Неделя!','7 дней ежедневной практики. Ты молодец.'],14:['Две недели!','Привычка формируется за 21 день — ты на пути.'],30:['30 дней! 🏆','Месяц. Это уже серьёзно.'],60:['60 дней! 👑','Два месяца без перерыва. Профессиональная дисциплина.'],100:['100 ДНЕЙ! 🌟','Легендарный стрик. Ты звезда.']};
   if(type==='lost'){document.getElementById('streakT').textContent='Стрик потерян';document.getElementById('streakS').textContent='Ты пропустил день. Начинай заново!';}
+  else if(type==='freeze'){document.getElementById('streakT').textContent='Стрик защищён';document.getElementById('streakS').textContent='Заморозка спасла твою серию из '+n+' дней. Не забудь сыграть сегодня!';}
   else{const[t,s]=msgs[n]||[n+' дней!','Продолжай!'];document.getElementById('streakT').textContent=t;document.getElementById('streakS').textContent=s;}
   ov.classList.add('open');
 }

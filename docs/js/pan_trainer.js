@@ -433,9 +433,8 @@ function newRound(){
 function buildButtons(){
   const set=POSITIONS[diff];
   const g=document.getElementById('panButtons');g.innerHTML='';
-  const set2=POSITIONS[diff];
-  const cols2 = set2.length <= 5 ? 5 : set2.length <= 9 ? 5 : 7;
-  g.style.gridTemplateColumns='repeat(9, 1fr)';
+  const cols=set.length<=5?5:set.length<=9?5:7;
+  g.style.gridTemplateColumns='repeat('+cols+', 1fr)';
   g.style.width='100%';
   set.forEach(p=>{
     const b=document.createElement('button');

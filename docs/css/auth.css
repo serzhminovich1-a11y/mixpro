@@ -32,8 +32,8 @@ body {
   justify-content: center;
   padding: 20px;
 }
-.logo { font-family: var(--ox); font-size: 24px; font-weight: 800; color: var(--cyan); letter-spacing: .05em; text-align: center; margin-bottom: 32px; text-decoration: none; display: block; }
-.logo span { color: var(--text); }
+.logo { font-family: var(--ox); font-size: 24px; font-weight: 800; color: var(--text); letter-spacing: .05em; text-align: center; margin-bottom: 32px; text-decoration: none; display: block; }
+.logo span { color: var(--cyan); }
 .card { width: 100%; max-width: 420px; background: linear-gradient(180deg,var(--surf-top),var(--surf-bot)),var(--bg); border: 1px solid var(--border); border-radius: 16px; padding: 32px; box-shadow: var(--shadow-lift); }
 .tabs { display: flex; background: var(--s2); border-radius: 8px; padding: 3px; margin-bottom: 28px; }
 .tab { flex: 1; padding: 9px; border: none; background: transparent; color: var(--muted2); font-family: var(--ox); font-size: 14px; font-weight: 700; cursor: pointer; border-radius: 6px; transition: .15s; }

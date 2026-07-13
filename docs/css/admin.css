@@ -4,6 +4,8 @@ body{min-height:100vh}
 .admin-sidebar{width:230px;flex-shrink:0;border-right:1px solid var(--border);padding:18px 12px;display:flex;flex-direction:column;gap:3px;position:sticky;top:0;align-self:flex-start;height:100vh;background:rgba(10,11,22,.5)}
 .admin-sidebar .logo{padding:8px 10px 20px;display:block}
 .admin-nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;border:none;background:transparent;color:var(--muted2);font-family:var(--sans);font-size:13.5px;text-align:left;cursor:pointer;transition:.15s;width:100%}
+.admin-nav-icon{width:16px;height:16px;flex-shrink:0}
+.admin-nav-icon svg{width:100%;height:100%;display:block}
 .admin-nav-item:hover{background:var(--s2);color:var(--text)}
 .admin-nav-item.active{background:rgba(74,222,128,.1);color:var(--cyan)}
 .admin-nav-item .badge{margin-left:auto;font-family:var(--mono);font-size:10px;padding:1px 7px;border-radius:20px;background:rgba(250,204,21,.15);color:var(--gold)}

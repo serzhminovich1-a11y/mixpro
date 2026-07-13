@@ -13,18 +13,20 @@ body{background:radial-gradient(1200px 600px at 82% -10%,rgba(167,139,250,.14),t
 
 /* ── NAV ── */
 nav{position:sticky;top:0;z-index:100;background:rgba(10,11,22,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 32px;height:58px}
-.nav-logo{font-family:var(--display);font-weight:700;font-size:18px;color:var(--amber);text-decoration:none;letter-spacing:-0.5px;display:flex;align-items:center;gap:9px}
-.nav-logo span{color:var(--text)}
+.nav-logo{font-family:var(--display);font-weight:700;font-size:18px;color:var(--text);text-decoration:none;letter-spacing:-0.5px;display:flex;align-items:center;gap:9px}
+.nav-logo span{color:var(--amber)}
 .nav-logo-badge{width:26px;height:26px;border-radius:50%;background:var(--amber);color:#0C0C10;font-family:var(--display);font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .nav-tabs{display:flex;gap:3px}
 .nav-tab{font-family:var(--display);font-size:13px;font-weight:500;padding:6px 16px;border-radius:6px;border:none;background:transparent;color:var(--muted);cursor:pointer;transition:.15s}
 .nav-tab:hover{color:var(--text);background:var(--card)}
 .nav-tab.active{color:var(--amber);background:var(--amber-glow)}
-.nav-right{display:flex;align-items:center;gap:8px}
-.nav-link-btn{font-family:var(--mono);font-size:12px;padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);text-decoration:none;transition:.15s}
-.nav-link-btn:hover{color:var(--text);border-color:var(--muted)}
+.nav-right{display:flex;align-items:center;gap:18px}
+.nav-link-btn{font-family:var(--display);font-size:13px;font-weight:500;padding:4px 2px;border:none;background:transparent;color:var(--muted);text-decoration:none;transition:.15s}
+.nav-link-btn:hover{color:var(--text)}
 .nav-link-btn.soon{opacity:.4;cursor:default;pointer-events:none}
-.nav-vip-btn{font-family:var(--display);font-size:12px;font-weight:700;padding:7px 16px;border-radius:6px;border:1px solid var(--amber);background:transparent;color:var(--amber);cursor:pointer;transition:.15s;letter-spacing:.03em}
+.nav-link-btn-primary{font-family:var(--display);font-size:13px;font-weight:700;padding:8px 22px;border-radius:999px;border:none;background:var(--amber);color:#0C0C10;text-decoration:none;transition:.15s;margin-left:2px}
+.nav-link-btn-primary:hover{opacity:.88;transform:translateY(-1px)}
+.nav-vip-btn{font-family:var(--display);font-size:12px;font-weight:700;padding:7px 16px;border-radius:999px;border:1px solid var(--amber);background:transparent;color:var(--amber);cursor:pointer;transition:.15s;letter-spacing:.03em}
 .nav-vip-btn:hover{background:var(--amber-glow)}
 .nav-vip-btn.unlocked{border-color:var(--green);color:var(--green);background:rgba(61,220,132,.08)}
 
@@ -56,12 +58,13 @@ nav{position:sticky;top:0;z-index:100;background:rgba(10,11,22,.85);backdrop-fil
 .inside-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;text-align:left}
 .inside-card{background:linear-gradient(180deg,var(--surf-top),var(--surf-bot)),var(--bg);border:1px solid var(--border);border-radius:14px;padding:26px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:10px;transition:.18s;box-shadow:var(--shadow-lift);cursor:pointer;font-family:inherit;text-align:left;width:100%}
 .inside-card:hover{border-color:var(--amber-dim);transform:translateY(-2px);box-shadow:var(--shadow-lift-hover)}
-.inside-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:4px}
-.inside-icon-green{background:rgba(74,222,128,.12)}
-.inside-icon-blue{background:rgba(96,165,250,.12)}
-.inside-icon-violet{background:rgba(167,139,250,.14)}
-.inside-icon-gold{background:rgba(250,204,21,.12)}
-.inside-icon-cyan{background:rgba(56,189,248,.12)}
+.inside-icon{width:30px;height:30px;margin-bottom:6px}
+.inside-icon svg{width:100%;height:100%;display:block}
+.inside-icon-green{color:var(--green)}
+.inside-icon-blue{color:#60a5fa}
+.inside-icon-violet{color:#a78bfa}
+.inside-icon-gold{color:#facc15}
+.inside-icon-cyan{color:#38bdf8}
 .inside-title{font-family:var(--display);font-size:16px;font-weight:700;color:var(--text)}
 .inside-desc{font-size:13px;color:var(--muted);line-height:1.6}
 .inside-link{font-family:var(--display);font-size:13px;font-weight:600;color:var(--amber);margin-top:auto;padding-top:4px}

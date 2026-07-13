@@ -55,4 +55,7 @@
   --text-body-3-size:17px;    --text-body-3-line:24px;
   --text-header-1-size:20px;  --text-header-1-line:24px;
   --text-header-2-size:24px;  --text-header-2-line:28px;
+  --text-display-1-size:28px; --text-display-1-line:36px;
+  --text-display-2-size:32px; --text-display-2-line:40px;
+  --text-display-3-size:40px; --text-display-3-line:48px;
 }

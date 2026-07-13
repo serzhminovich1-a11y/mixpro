@@ -12,7 +12,7 @@
 <body>
 
 <nav>
-  <a class="nav-logo" href="#">MIX<span>PRO</span></a>
+  <a class="nav-logo" href="#"><span class="nav-logo-badge">M</span>MIX<span>PRO</span></a>
   <div class="nav-tabs">
     <button class="nav-tab active" onclick="tab('home',this)">Главная</button>
     <button class="nav-tab" onclick="tab('lessons',this)">Уроки</button>
@@ -32,18 +32,56 @@
 
 <!-- ══ HOME ══ -->
 <div id="home" class="section active">
-  <div class="hero">
-    <div class="eyebrow">ПЛАТФОРМА ДЛЯ ЗВУКОРЕЖИССЁРОВ</div>
-    <h1>Учись делать<br>звук, который<br><em>ценят.</em></h1>
-    <p class="hero-sub">Научись микшировать любую музыку на профессиональном уровне. Никакой нудной теории — только мощная практика с интерактивными инструментами прямо в браузере. Создай свой фирменный звук с нуля.</p>
-    <div class="hero-actions">
-      <button class="btn btn-primary" onclick="tab('lessons',document.querySelectorAll('.nav-tab')[1])">Начать бесплатно</button>
+  <div class="hero hero-centered">
+    <h1>Стань <em>звукорежиссёром</em><br>лучше</h1>
+    <div class="hero-waves" aria-hidden="true">
+      <svg viewBox="0 0 800 80" preserveAspectRatio="none">
+        <path d="M0,40 C100,10 200,70 300,40 C400,10 500,70 600,40 C700,10 750,25 800,40" fill="none" stroke="var(--green)" stroke-width="1.5" opacity=".45"/>
+        <path d="M0,45 C120,75 220,15 340,45 C460,75 560,15 680,45 C740,60 770,50 800,45" fill="none" stroke="var(--amber-dim)" stroke-width="1.5" opacity=".4"/>
+      </svg>
     </div>
-    <div class="vu" id="vuEl"></div>
+    <p class="hero-sub">Тренируй слух в играх, изучай сведение, качай пресеты и соревнуйся с другими инженерами.</p>
+    <div class="hero-actions">
+      <button class="btn btn-primary" onclick="tab('trainers',document.querySelectorAll('.nav-tab')[2])">Начать тренировку →</button>
+      <button class="btn btn-ghost" onclick="tab('lessons',document.querySelectorAll('.nav-tab')[1])">Смотреть уроки</button>
+    </div>
     <div class="hero-stats reveal-group">
       <div class="stat reveal"><div class="stat-n">10</div><div class="stat-l">уроков в курсе</div></div>
-      <div class="stat reveal"><div class="stat-n">3</div><div class="stat-l">бесплатно</div></div>
+      <div class="stat reveal"><div class="stat-n">2</div><div class="stat-l">тренажёра слуха</div></div>
       <div class="stat reveal"><div class="stat-n">6</div><div class="stat-l">инструментов</div></div>
+      <div class="stat reveal"><div class="stat-n">3</div><div class="stat-l">урока бесплатно</div></div>
+    </div>
+  </div>
+
+  <div class="whats-inside">
+    <h2>Что внутри</h2>
+    <div class="inside-grid reveal-group">
+      <a href="pages/leaderboard.html" class="inside-card reveal">
+        <div class="inside-icon inside-icon-green">🏆</div>
+        <div class="inside-title">Рейтинг</div>
+        <div class="inside-desc">Зарабатывай XP в играх и поднимайся в таблице лидеров.</div>
+      </a>
+      <button type="button" class="inside-card reveal" onclick="tab('trainers',document.querySelectorAll('.nav-tab')[2])">
+        <div class="inside-icon inside-icon-blue">🎮</div>
+        <div class="inside-title">Игры для слуха</div>
+        <div class="inside-desc">Угадай частоту, сравни громкость — прокачай уши как настоящий инженер.</div>
+      </button>
+      <button type="button" class="inside-card reveal" onclick="tab('lessons',document.querySelectorAll('.nav-tab')[1])">
+        <div class="inside-icon inside-icon-violet">🎓</div>
+        <div class="inside-title">Обучение</div>
+        <div class="inside-desc">Уроки по эквализации, компрессии, сведению вокала и мастерингу.</div>
+        <span class="inside-link">Открыть →</span>
+      </button>
+      <a href="pages/profile.html" class="inside-card reveal">
+        <div class="inside-icon inside-icon-gold">🎛️</div>
+        <div class="inside-title">Пресеты</div>
+        <div class="inside-desc">Витрина пресетов и портфолио — свои миксы и загрузки.</div>
+      </a>
+      <a href="pages/feed.html" class="inside-card reveal">
+        <div class="inside-icon inside-icon-cyan">💬</div>
+        <div class="inside-title">Сообщество</div>
+        <div class="inside-desc">Задавай вопросы, делись миксами и общайся с коллегами.</div>
+      </a>
     </div>
   </div>
 </div>

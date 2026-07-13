@@ -637,6 +637,7 @@ function pink(ctx,dur){
 
 function buildVU(){
   const el=document.getElementById('vuEl');
+  if(!el)return;
   [.3,.5,.7,.9,1,.85,.6,.4,.7,.95,.8,.5,.35,.6,.9,.75,.45,.3,.65,.85,.5].forEach((h,i)=>{
     const b=document.createElement('div');b.className='vu-bar';const c=i<15?'#22d3ee':i<18?'#a78bfa':'#f87171';
     b.style.cssText='height:'+(h*44)+'px;background:'+c+';animation-delay:'+(i*.07).toFixed(2)+'s;animation-duration:'+(.9+Math.random()*.6).toFixed(2)+'s;';

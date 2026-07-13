@@ -119,7 +119,11 @@
             <span class="diff-meta">+6 dB · допуск ±⅛ окт.</span>
           </button>
         </div>
-        <div class="diff-note" style="margin-top:10px">В лёгком режиме буст громче и допуск шире. В сложном — тихий буст, узкая кривая, промах прощает меньше. Советы после ответа отличаются по жанровому контексту.</div>
+        <div class="diff-note" style="margin-top:10px">
+          <b>Лёгко</b> — громкий буст и широкий допуск, сложность сама подрастает по ходу игры: за 32 верных ответа плавно готовит к переходу на «Средне».<br>
+          <b>Средне</b> — фиксированный уровень, ничего не меняется, пока не наиграешь опыт для перехода дальше.<br>
+          <b>Сложно</b> — тоже растёт с опытом: сначала обычный тихий буст, после 20 верных — пик становится более размытым (труднее локализовать), после 40 — иногда две частоты сразу (нужно найти самую сильную), после 60 — иногда срез вместо буста, после 80 — иногда полка вместо колокола и появляется таймер на ответ.
+        </div>
       </div>
       <div class="start-toggles">
         <label class="start-toggle">
@@ -145,6 +149,7 @@
       <span class="pm-q-text">Какая частота <em>поднята</em> в этом звуке?</span>
       <span class="pm-round">Раунд <span id="rn">1</span> · <span id="diffLabel">Средне</span></span>
     </div>
+    <div class="pm-phase-progress" id="phaseProgress" style="display:none"></div>
 
     <!-- EQ Graph -->
     <div class="pm-graph-card">
@@ -217,6 +222,13 @@
       <div class="pm-mode-badge" id="modeBadge">С БУСТОМ</div>
       <div class="pm-multi-label" id="multiLabel" style="display:none">🎹 Несколько полос — после ответа увидишь все</div>
       <div class="pm-guess-hint" id="freqLabel">Проведи по графику и отпусти на нужной частоте</div>
+    </div>
+
+    <!-- Answer timer (высокие фазы "Сложно") -->
+    <div class="pm-timer-wrap" id="answerTimerWrap" style="display:none">
+      <span class="pm-timer-icon">⏱</span>
+      <div class="pm-timer-track"><div class="pm-timer-fill" id="answerTimerFill"></div></div>
+      <span class="pm-timer-num" id="answerTimerNum">10</span>
     </div>
 
     <!-- Transport -->

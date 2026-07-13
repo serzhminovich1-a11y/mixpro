@@ -131,6 +131,7 @@ body{background:#0a0b12;color:#eef0fb;font-family:'Golos Text',sans-serif;-webki
 .pm-q-text{font-size:18px;font-weight:600;color:#fff}
 .pm-q-text em{color:var(--cyan);font-style:normal;font-weight:800}
 .pm-round{font-size:13px;color:var(--muted);font-weight:600;font-family:'JetBrains Mono',monospace}
+.pm-phase-progress{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:-6px;padding-left:2px}
 
 /* EQ Graph */
 .pm-graph-card{background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:18px;padding:18px 24px 10px;position:relative}
@@ -145,6 +146,16 @@ body{background:#0a0b12;color:#eef0fb;font-family:'Golos Text',sans-serif;-webki
 .pm-mode-badge{position:absolute;top:14px;right:16px;font-size:11px;font-weight:700;letter-spacing:.1em;padding:4px 10px;border-radius:6px;background:rgba(74,222,128,.12);color:var(--cyan);border:1px solid rgba(74,222,128,.25);transition:.2s}
 .pm-mode-badge.comparing{background:rgba(255,255,255,.05);color:var(--muted2);border-color:var(--border)}
 .pm-multi-label{position:absolute;top:14px;left:16px;font-size:10px;font-weight:700;padding:4px 10px;border-radius:6px;background:rgba(251,146,60,.12);color:#fb923c;border:1px solid rgba(251,146,60,.3)}
+
+/* Answer timer */
+.pm-timer-wrap{display:flex;align-items:center;gap:8px;max-width:280px;margin:0 auto;padding:6px 12px;border-radius:20px;background:rgba(255,255,255,.04);border:1px solid var(--border);transition:.2s}
+.pm-timer-wrap.urgent{border-color:rgba(248,113,113,.5);background:rgba(248,113,113,.08)}
+.pm-timer-icon{font-size:13px;flex-shrink:0}
+.pm-timer-track{flex:1;height:5px;border-radius:3px;background:rgba(255,255,255,.1);overflow:hidden}
+.pm-timer-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--cyan),var(--purple));transition:width .2s linear}
+.pm-timer-wrap.urgent .pm-timer-fill{background:var(--red)}
+.pm-timer-num{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--muted2);min-width:16px;text-align:right}
+.pm-timer-wrap.urgent .pm-timer-num{color:var(--red)}
 
 /* Transport */
 .pm-transport{display:flex;align-items:center;gap:20px;justify-content:center}

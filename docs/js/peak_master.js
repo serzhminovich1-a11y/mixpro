@@ -110,6 +110,22 @@ function buildEQPath(hz,gainDB,q){
   return d;
 }
 
+// Стилизованная кривая полки (shelf) — плавный переход через corner-частоту
+// к постоянному уровню gainDB с одной стороны, и 0 дБ с другой.
+function buildShelfPath(hz,gainDB,isHigh){
+  let d='';
+  const k=3.2; // крутизна перехода в декадах log10(f)
+  for(let px=0;px<=1240;px+=4){
+    const f=Math.pow(10,LO+(px/1240)*(HI-LO));
+    const t=(Math.log10(f)-Math.log10(hz))*k;
+    const shape=isHigh?1/(1+Math.exp(-t)):1/(1+Math.exp(t));
+    const db=gainDB*shape;
+    const y=dbToSvgY(db);
+    d+=(px===0?'M':'L')+px.toFixed(1)+','+y.toFixed(1);
+  }
+  return d;
+}
+
 function updateGraph(showCurve, color, label){
   const eqPath=document.getElementById('eqPath');
   const peakLine=document.getElementById('peakLine');
@@ -117,8 +133,10 @@ function updateGraph(showCurve, color, label){
   const peakFreqLabel=document.getElementById('peakFreqLabel');
 
   if(showCurve && target){
-    const g=comparing?0:BOOST[diff];
-    eqPath.setAttribute('d', buildEQPath(target,g,QV[diff]));
+    const sign=lastCutApplied?-1:1;
+    const g=comparing?0:sign*(trainMode?trainCfg.gain:getBoostForPhase());
+    const q=trainMode?trainCfg.q:getQForPhase();
+    eqPath.setAttribute('d', isShelfMode ? buildShelfPath(target,g,isHighShelf) : buildEQPath(target,g,q));
     eqPath.style.stroke=color||'#34e0c4';
     eqPath.style.filter=color?`drop-shadow(0 0 7px ${color}88)`:'drop-shadow(0 0 7px rgba(52,224,196,.7))';
 
@@ -249,7 +267,7 @@ async function startAudio(){
   const pb=document.getElementById('playBtn');
   pb.classList.add('playing');
   pb.innerHTML='<div class="pm-pause"><span class="pm-pause-bar"></span><span class="pm-pause-bar"></span></div>';
-  if(qStart===0) qStart=Date.now();
+  if(qStart===0){qStart=Date.now();maybeStartAnswerTimer();}
   document.getElementById('hint').textContent=comparing?'Оригинал без буста':'С EQ бустом — слушай';
 }
 
@@ -405,35 +423,46 @@ function newRound(){
 
   // Показываем фазу для hard и лёгкого (плавный рост сложности)
   const diffLabelEl = document.getElementById('diffLabel');
+  const progEl = document.getElementById('phaseProgress');
   if(diff==='hard' && !trainMode){
     const phase=getHardPhase();
-    const phases=['','Одна полоса','Узкий Q','2 полосы','Буст/Срез'];
+    const phases=['','Одна полоса','Шире пик','2 полосы','Буст/Срез','+ Полка и таймер'];
     diffLabelEl.textContent='Сложно · '+phases[phase];
+    if(progEl){progEl.style.display='block';progEl.textContent=getPhaseProgressText();}
   } else if(diff==='easy' && !trainMode){
     const phase=getEasyPhase();
     const phases=['','Разминка','Знакомство','Почти готов','Финальный рывок'];
     diffLabelEl.textContent='Легко · '+phases[phase];
+    if(progEl){progEl.style.display='block';progEl.textContent=getPhaseProgressText();}
   } else if(trainMode){
     diffLabelEl.textContent='Тренировка';
+    if(progEl)progEl.style.display='none';
+  } else {
+    if(progEl)progEl.style.display='none';
   }
 
-  // Надпись режима
+  // Надпись режима (буст/срез/полка)
   const modeB=document.getElementById('modeBadge');
-  if(modeB) modeB.textContent=isCutMode?'СО СРЕЗОМ':'С БУСТОМ';
+  if(modeB){
+    let txt=isCutMode?'СО СРЕЗОМ':'С БУСТОМ';
+    if(isShelfMode) txt=(isCutMode?'СРЕЗ':'БУСТ')+' ПОЛКОЙ';
+    modeB.textContent=txt;
+  }
 
   // Multi-band hint
   const ml=document.getElementById('multiLabel');
   if(ml) ml.style.display=(targets2.length>0||(trainMode&&trainCfg.bands>=2))?'block':'none';
-  document.getElementById('modeBadge').textContent='С БУСТОМ';
   document.getElementById('modeBadge').classList.remove('comparing');
   document.getElementById('cmpBtn').classList.remove('active');
   const tb=document.getElementById('tipBox');tb.style.display='none';tb.textContent='';
-  const fl=document.getElementById('freqLabel');if(fl)fl.textContent=isCutMode?'Найди срез частоты':'Выбери частоту буста';
+  const fl=document.getElementById('freqLabel');
+  if(fl)fl.textContent=isShelfMode?'Найди частоту среза полки':(isCutMode?'Найди срез частоты':'Выбери частоту буста');
   const nb=document.getElementById('nextBtn');nb.style.display='none';
   const rb=document.getElementById('revealBtn');rb.style.display='none';
   // Graph — пустая кривая
   updateGraph(false);
   clearExtraBandMarkers();
+  clearAnswerTimer();
 
   // Сброс гипотезы — воротики видны полупрозрачно по центру, ждут перетаскивания
   guessFrac=0.5;dragging=false;
@@ -535,15 +564,55 @@ function submitGuess(){
   checkAnswer();
 }
 
-function checkAnswer(){
+// ── Таймер на ответ (только "Сложно", фаза 3+) ──
+const ANSWER_TIMER_PHASE=3, ANSWER_TIMER_SECONDS=10;
+let answerTimerId=null, answerDeadline=0;
+
+function maybeStartAnswerTimer(){
+  clearAnswerTimer();
+  if(trainMode||diff!=='hard'||getHardPhase()<ANSWER_TIMER_PHASE)return;
+  const wrap=document.getElementById('answerTimerWrap');
+  if(!wrap)return;
+  wrap.style.display='flex';
+  answerDeadline=Date.now()+ANSWER_TIMER_SECONDS*1000;
+  tickAnswerTimer();
+  answerTimerId=setInterval(tickAnswerTimer,200);
+}
+function tickAnswerTimer(){
+  const left=Math.max(0,answerDeadline-Date.now());
+  const secs=Math.ceil(left/1000);
+  const num=document.getElementById('answerTimerNum');
+  if(num)num.textContent=secs;
+  const fill=document.getElementById('answerTimerFill');
+  if(fill)fill.style.width=(left/(ANSWER_TIMER_SECONDS*1000)*100)+'%';
+  const wrap=document.getElementById('answerTimerWrap');
+  if(wrap)wrap.classList.toggle('urgent',secs<=3);
+  if(left<=0){
+    clearAnswerTimer();
+    handleAnswerTimeout();
+  }
+}
+function clearAnswerTimer(){
+  if(answerTimerId){clearInterval(answerTimerId);answerTimerId=null;}
+  const wrap=document.getElementById('answerTimerWrap');
+  if(wrap){wrap.style.display='none';wrap.classList.remove('urgent');}
+}
+function handleAnswerTimeout(){
+  if(answered||!qStart)return;
+  picked=sliderToFreq(guessFrac);
+  checkAnswer(true);
+}
+
+function checkAnswer(timedOut){
   if(!picked||answered)return;
   answered=true;
   stopAudio();
+  clearAnswerTimer();
 
   const elapsed=(Date.now()-qStart)/1000;
   const dist=Math.abs(Math.log2(picked/target));
   const tol=getTolerance();
-  const ok=dist<=tol;
+  const ok=!timedOut&&dist<=tol;
   const accuracy=ok?Math.pow(Math.max(0,1-dist/tol),2):0;
   const isPerfect=ok&&dist<=tol*PERFECT_FRAC;
   let earned=0;
@@ -613,8 +682,8 @@ function checkAnswer(){
     fm.textContent=isPerfect?'🎯 В яблочко!':'✓ Верно!';
     fs.textContent=fmtF(target)+' Hz · +'+earned+' pts'+(streak>=3?' · 🔥×'+streak:'');
   } else {
-    fm.textContent='✗ Неверно';
-    fs.textContent='Это был '+fmtF(target)+' Hz — слушай ещё раз';
+    fm.textContent=timedOut?'⏱ Время вышло':'✗ Неверно';
+    fs.textContent='Это был '+fmtF(target)+' Hz'+(timedOut?'':' — слушай ещё раз');
   }
 
   updateScoreUI();
@@ -964,12 +1033,18 @@ function playWrongSound() {
 let hardRounds = parseInt(localStorage.getItem('pm_hard_rounds') || '0');
 let targets2 = []; // вторая полоса (multi-band)
 let isCutMode = false; // режим среза
+let isShelfMode = false; // режим полки вместо колокола
+let isHighShelf = false; // полка сверху или снизу от частоты
+let lastCutApplied = false; // фактический знак (буст/срез), применённый в текущем раунде — источник правды для графика-разгадки
+
+const HARD_PHASE_BOUNDS = [0,20,40,60,80];
 
 function getHardPhase() {
   if (hardRounds < 20) return 1; // обычный буст
-  if (hardRounds < 40) return 2; // + narrower Q
+  if (hardRounds < 40) return 2; // более широкий/размытый пик
   if (hardRounds < 60) return 3; // 2 полосы (найди сильнейшую)
-  return 4; // иногда CUT вместо boost
+  if (hardRounds < 80) return 4; // иногда CUT вместо boost
+  return 5; // иногда ПОЛКА вместо колокола + таймер на ответ
 }
 
 // Плавный рост сложности внутри "Лёгкого" — готовит к переходу на "Средний"
@@ -993,17 +1068,46 @@ function getTolerance() {
   return TOLERANCE[diff] || TOLERANCE.medium;
 }
 
+const EASY_PHASE_BOUNDS = [0,8,16,24,32];
+
+// Понятная подпись прогресса внутри фазы — чтобы игрок видел рост сложности, а не гадал
+function getPhaseProgressText() {
+  if (diff === 'hard') {
+    const phase = getHardPhase();
+    if (phase >= 5) return hardRounds + ' верных с начала — все механики сложного уже открыты';
+    const start = HARD_PHASE_BOUNDS[phase - 1], end = HARD_PHASE_BOUNDS[phase];
+    return (hardRounds - start) + '/' + (end - start) + ' до следующей фазы';
+  }
+  if (diff === 'easy') {
+    const n = parseInt(localStorage.getItem('pm_easy_total') || '0');
+    if (n >= EASY_GRADUATE_AT) return 'Готов к переходу на «Средне»';
+    const phase = getEasyPhase();
+    const start = EASY_PHASE_BOUNDS[phase - 1], end = EASY_PHASE_BOUNDS[phase];
+    return (n - start) + '/' + (end - start) + ' до следующей фазы';
+  }
+  return '';
+}
+
 function pickTarget(rawSet) {
   const phase = (diff === 'hard' && !trainMode) ? getHardPhase() : 1;
   isCutMode = false;
+  isShelfMode = false;
+  isHighShelf = false;
   targets2 = [];
 
   const phoneSet = rawSet.filter(f => f >= PHONE_MIN && f <= PHONE_MAX);
   const set = (phoneMode && phoneSet.length) ? phoneSet : rawSet;
 
-  // Phase 4: 30% вероятность среза
+  // Phase 4+: 30% вероятность среза
   if (phase >= 4 && Math.random() < 0.3) {
     isCutMode = true;
+  }
+
+  // Phase 5: 35% вероятность полки вместо колокола — одна полоса, без combo с 2-band
+  if (phase >= 5 && Math.random() < 0.35) {
+    isShelfMode = true;
+    isHighShelf = Math.random() < 0.5;
+    return set[Math.floor(Math.random() * set.length)];
   }
 
   // Phase 3+: 2 полосы (50% раундов)
@@ -1124,11 +1228,13 @@ function buildAudioChain(ctx) {
   const gain = trainMode ? trainCfg.gain : getBoostForPhase();
   const q    = trainMode ? trainCfg.q   : getQForPhase();
   const cut  = trainMode ? (trainCfg.mode === 'cut' || (trainCfg.mode === 'both' && Math.random() < 0.5)) : isCutMode;
+  lastCutApplied = cut;
+  const shelf = !trainMode && isShelfMode;
 
   filtNode = ctx.createBiquadFilter();
-  filtNode.type = 'peaking';
+  filtNode.type = shelf ? (isHighShelf ? 'highshelf' : 'lowshelf') : 'peaking';
   filtNode.frequency.value = target;
-  filtNode.Q.value = q;
+  if (!shelf) filtNode.Q.value = q;
   filtNode.gain.value = cut ? -gain : gain;
 
   filtNode2 = null;
@@ -1136,7 +1242,7 @@ function buildAudioChain(ctx) {
   trainBand2Freq = null;
   trainBand3Freq = null;
 
-  if (targets2.length > 0 || (trainMode && trainCfg.bands >= 2)) {
+  if (!shelf && (targets2.length > 0 || (trainMode && trainCfg.bands >= 2))) {
     const t2 = targets2[0] || SETS.hard[Math.floor(Math.random() * SETS.hard.length)];
     filtNode2 = ctx.createBiquadFilter();
     filtNode2.type = 'peaking';

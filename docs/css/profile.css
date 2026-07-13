@@ -95,16 +95,13 @@ tr:hover td{background:var(--s2)}
 .achv-card.unlocked .achv-status{color:var(--gold)}
 
 /* Стена работ */
-.works-wall{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
-.work-card{border-radius:11px;overflow:hidden;text-decoration:none;color:inherit;display:flex;flex-direction:column;cursor:pointer}
+.works-wall{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.work-card{border-radius:11px;overflow:hidden;display:flex;flex-direction:column}
 .work-card:hover{border-color:rgba(74,222,128,.28);box-shadow:var(--shadow-lift-hover);transform:translateY(-1px)}
-.work-thumb{height:84px;position:relative;background:linear-gradient(135deg,rgba(74,222,128,.13),rgba(167,139,250,.13));display:flex;align-items:center;justify-content:center;gap:2px;padding:0 14px;border-bottom:1px solid var(--border)}
-.work-thumb i{width:2.5px;border-radius:1px;background:linear-gradient(180deg,var(--cyan),var(--blue));opacity:.8;display:block}
-.work-play{position:absolute;top:9px;right:9px;width:26px;height:26px;border-radius:50%;background:rgba(10,11,22,.6);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;border:1px solid var(--border-hi);color:var(--text)}
-.work-play svg{width:12px;height:12px;display:block}
-.work-body{padding:12px 14px}
+.work-body{padding:12px 14px 4px}
 .work-title{font-family:var(--ox);font-size:13px;font-weight:700}
 .work-meta{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:4px}
+.work-card .wave-player{border:none;background:transparent;padding:8px 14px 14px}
 
 /* Пресеты / Мерч — витрина, оплата будет отдельным этапом */
 .shop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}

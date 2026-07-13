@@ -26,10 +26,13 @@ let followingSet = new Set();
 let pendingFile = null;
 
 // Пауза остальных плееров на странице, когда запускается новый — иначе
-// вложения постов и голосовые комментарии могут играть внахлёст.
+// вложения постов, голосовые комментарии и плеер с волной могут играть
+// внахлёст. mixpro:pauseOtherPlayers — тот же сигнал, что слушает
+// createWavePlayer() из waveform_player.js.
 document.addEventListener('play', (e) => {
   if (e.target.tagName !== 'AUDIO' && e.target.tagName !== 'VIDEO') return;
   document.querySelectorAll('audio, video').forEach(el => { if (el !== e.target) el.pause(); });
+  document.dispatchEvent(new CustomEvent('mixpro:pauseOtherPlayers', { detail: e.target }));
 }, true);
 
 // Один общий обработчик на все пикеры реакций (а не по одному на пост —
@@ -377,7 +380,7 @@ async function handlePublish(e){
    ══════════════════════════════════════ */
 function attachmentHtml(p){
   if (!p.attachment_url) return '';
-  if (p.attachment_type === 'audio') return `<div class="post-attachment"><audio controls src="${p.attachment_url}"></audio></div>`;
+  if (p.attachment_type === 'audio') return `<div class="post-attachment"><div class="wp-mount"></div></div>`;
   if (p.attachment_type === 'video') return `<div class="post-attachment"><video controls src="${p.attachment_url}"></video></div>`;
   if (p.attachment_type === 'image') return `<div class="post-attachment"><a href="${p.attachment_url}" target="_blank" rel="noopener"><img src="${p.attachment_url}" alt="" loading="lazy"></a></div>`;
   return `<div class="post-attachment"><a class="post-file-link" href="${p.attachment_url}" target="_blank" rel="noopener">${ICON_PAPERCLIP} ${escapeHtml(p.attachment_name || 'Файл')}</a></div>`;
@@ -727,6 +730,10 @@ function postCard(p, commentCounts){
         <button type="button" class="vc-cancel">${ICON_X}</button>
       </div>
     </div>`;
+
+  if (p.attachment_type === 'audio' && p.attachment_url) {
+    createWavePlayer(p.attachment_url, card.querySelector('.wp-mount'));
+  }
 
   const followBtn = card.querySelector('.follow-btn');
   if (followBtn) followBtn.addEventListener('click', () => handleFollowToggle(p.user_id, followBtn));

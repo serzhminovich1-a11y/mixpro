@@ -16,8 +16,6 @@ const ACHV_ICONS = {
 const ACHV_ICON_DEFAULT = pIcon('<path d="m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526"/><circle cx="12" cy="8" r="6"/>');
 const ICON_LOCK = pIcon('<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>');
 const ICON_CHECK_SM = pIcon('<path d="M20 6 9 17l-5-5"/>');
-const ICON_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
-const ICON_PAUSE = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>';
 
 // Пороги XP — должны совпадать с get_level_from_xp() в docs/supabase/migrations/001_lms_schema.sql
 const XP_LEVELS = [
@@ -76,28 +74,11 @@ function workCard(p){
   const card = document.createElement('div');
   card.className = 'work-card';
   const date = new Date(p.created_at).toLocaleDateString('ru-RU');
-  const bars = Array.from({ length: 22 }, () => Math.round(3 + Math.random() * 13))
-    .map(h => `<i style="height:${h}px"></i>`).join('');
   card.innerHTML = `
-    <div class="work-thumb">${bars}<div class="work-play">${ICON_PLAY}</div></div>
-    <div class="work-body"><div class="work-title">${p.title}</div><div class="work-meta">${date}</div></div>`;
+    <div class="work-body"><div class="work-title">${p.title}</div><div class="work-meta">${date}</div></div>
+    <div class="wp-mount"></div>`;
 
-  const audio = new Audio(p.file_url);
-  const playBtn = card.querySelector('.work-play');
-  playBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    if (audio.paused) {
-      document.querySelectorAll('#worksWall .work-play').forEach(b => { if (b !== playBtn) b.innerHTML = ICON_PLAY; });
-      document.dispatchEvent(new CustomEvent('pauseOtherWorks', { detail: audio }));
-      audio.play();
-      playBtn.innerHTML = ICON_PAUSE;
-    } else {
-      audio.pause();
-      playBtn.innerHTML = ICON_PLAY;
-    }
-  });
-  document.addEventListener('pauseOtherWorks', (e) => { if (e.detail !== audio) audio.pause(); });
-  audio.addEventListener('ended', () => { playBtn.innerHTML = ICON_PLAY; });
+  createWavePlayer(p.file_url, card.querySelector('.wp-mount'));
   return card;
 }
 

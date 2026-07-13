@@ -70,12 +70,202 @@ async function sbInit(){
     }
     const{data:best}=await SB.from('scores').select('score').eq('user_id',sbUser.id).eq('game','pan_trainer').order('score',{ascending:false}).limit(1).maybeSingle();
     if(best) bestDbScore=best.score;
+    await reconcileStreak();
   }
 }
 async function saveScore(){
   if(!sbUser||!sbProfile||score<=bestDbScore) return;
   const{error}=await SB.from('scores').insert({user_id:sbUser.id,username:sbProfile.username,game:'pan_trainer',score,accuracy:totalAns>0?Math.round(totalRight/totalAns*100):0,streak,difficulty:diff,rounds:totalAns});
   if(!error) bestDbScore=score;
+}
+
+// ══════════════════════════════════════
+//  DAILY STREAK (та же система, что в Peak Master — общая таблица daily_streaks,
+//  но свой ключ 'pan_trainer' и своё локальное хранилище, не пересекается)
+// ══════════════════════════════════════
+const TODAY=new Date().toISOString().slice(0,10);
+function dateStr(offsetDays){const d=new Date();d.setDate(d.getDate()+offsetDays);return d.toISOString().slice(0,10)}
+function loadSD(){return JSON.parse(localStorage.getItem('pt_sd')||JSON.stringify({streak:0,best:0,last:'',chDone:0,chDate:'',freezes:0}))}
+function saveSD(d){localStorage.setItem('pt_sd',JSON.stringify(d));syncStreakToSupabase(d)}
+
+async function syncStreakToSupabase(d){
+  if(!sbUser)return;
+  await SB.from('daily_streaks').upsert({
+    user_id:sbUser.id, game:'pan_trainer',
+    streak:d.streak||0, best_streak:d.best||0, last_played:d.last||null,
+  },{onConflict:'user_id,game'});
+}
+
+async function reconcileStreak(){
+  const local=loadSD();
+  const{data:remote}=await SB.from('daily_streaks').select('*').eq('user_id',sbUser.id).eq('game','pan_trainer').maybeSingle();
+  if(!remote){await syncStreakToSupabase(local);return;}
+
+  if(remote.last_played&&(!local.last||remote.last_played>local.last)){
+    const merged={streak:remote.streak,best:Math.max(remote.best_streak,local.best||0),last:remote.last_played,chDone:local.chDate===TODAY?local.chDone:0,chDate:local.chDate,freezes:local.freezes||0};
+    localStorage.setItem('pt_sd',JSON.stringify(merged));
+    updateStreakUI(merged);
+  }else if(local.last&&(!remote.last_played||local.last>remote.last_played)){
+    await syncStreakToSupabase(local);
+  }else if(remote.streak>local.streak||remote.best_streak>local.best){
+    const merged={...local,streak:Math.max(local.streak,remote.streak),best:Math.max(local.best,remote.best_streak)};
+    localStorage.setItem('pt_sd',JSON.stringify(merged));
+    updateStreakUI(merged);
+  }
+}
+
+const FREEZE_COST=300;
+const FREEZE_MAX=2;
+
+function initStreak(){
+  const d=loadSD();
+  const yest=dateStr(-1), twoAgo=dateStr(-2);
+  if(d.last&&d.last!==TODAY&&d.last!==yest&&d.streak>0){
+    if((d.freezes||0)>0&&d.last===twoAgo){
+      d.freezes--;d.last=yest;saveSD(d);
+      showStreakPopup(d.streak,'freeze');
+    }else{
+      d.streak=0;saveSD(d);showStreakPopup(0,'lost');
+    }
+  }
+  updateStreakUI(d);
+}
+
+// Стрик продлевается за выполнение дневного челленджа (5/5), не за любой ответ
+function updateDailyStreak(){
+  const d=loadSD();
+  if(d.last!==TODAY){
+    const yest=dateStr(-1);
+    d.streak=(d.last===yest?d.streak:0)+1;
+    d.best=Math.max(d.best,d.streak);d.last=TODAY;saveSD(d);
+    if([3,7,14,30,60,100].includes(d.streak)) showStreakPopup(d.streak,'milestone');
+  }
+  updateStreakUI(d);
+}
+
+function updateStreakUI(d){
+  const n=d.streak||0;
+  document.getElementById('streakNum').textContent=n;
+  const icon=document.getElementById('streakIcon');
+  if(n<=0){icon.textContent='🕯️';icon.className='pm-streak-icon';}
+  else if(n<7){icon.textContent='🔥';icon.className='pm-streak-icon lit';}
+  else{icon.textContent='🔥';icon.className='pm-streak-icon lit hot';}
+
+  const freezes=d.freezes||0;
+  document.getElementById('freezeCount').textContent=freezes;
+  const buyBtn=document.getElementById('freezeBuyBtn');
+  if(freezes>=FREEZE_MAX){buyBtn.textContent='макс.';buyBtn.disabled=true;}
+  else{buyBtn.textContent='за '+FREEZE_COST;buyBtn.disabled=false;}
+
+  const done=d.chDate===TODAY?(d.chDone||0):0;
+  document.getElementById('chCount').textContent=done+'/5';
+  for(let i=0;i<5;i++){
+    const dot=document.getElementById('cd'+i);
+    if(dot) dot.className='pm-dot'+(i<done?' done':i===done?' active':'');
+  }
+  const btn=document.getElementById('chPlayBtn');
+  if(done>=5){btn.textContent='✓ Выполнен';btn.className='pm-ch-play done';}
+  else{btn.textContent='Играть';btn.className='pm-ch-play';}
+}
+
+function updateChallenge(){
+  const d=loadSD();
+  if(d.chDate!==TODAY){d.chDate=TODAY;d.chDone=0;}
+  if(d.chDone<5){
+    d.chDone++;saveSD(d);
+    updateStreakUI(d);
+    if(d.chDone===5){
+      score+=250;localStorage.setItem('pt_s',score);updateScoreUI();ptsPopup('+250 🎯');
+      updateDailyStreak();
+    }
+  }
+}
+
+function buyFreeze(){
+  const d=loadSD();
+  if((d.freezes||0)>=FREEZE_MAX)return;
+  if(score<FREEZE_COST){ptsPopup('Нужно ещё '+(FREEZE_COST-score)+' очков');return;}
+  score-=FREEZE_COST;localStorage.setItem('pt_s',score);updateScoreUI();
+  d.freezes=(d.freezes||0)+1;saveSD(d);
+  updateStreakUI(d);
+  ptsPopup('🧊 Заморозка куплена');
+}
+
+function startChallenge(){
+  const d=loadSD();
+  const done=d.chDate===TODAY?(d.chDone||0):0;
+  if(done>=5)return;
+  startGame();
+}
+
+function showStreakPopup(n,type){
+  const ov=document.getElementById('streakOverlay');
+  document.getElementById('streakEmoji').textContent=type==='lost'?'💔':type==='freeze'?'🧊':'🔥';
+  document.getElementById('streakN').textContent=n;
+  document.getElementById('streakN').style.color=type==='lost'?'var(--red)':type==='freeze'?'#7dd3fc':'var(--gold)';
+  const msgs={3:['3 дня подряд!','Хорошее начало — не останавливайся!'],7:['Неделя!','7 дней ежедневной практики. Ты молодец.'],14:['Две недели!','Привычка формируется за 21 день — ты на пути.'],30:['30 дней! 🏆','Месяц. Это уже серьёзно.'],60:['60 дней! 👑','Два месяца без перерыва. Профессиональная дисциплина.'],100:['100 ДНЕЙ! 🌟','Легендарный стрик. Ты звезда.']};
+  if(type==='lost'){document.getElementById('streakT').textContent='Стрик потерян';document.getElementById('streakS').textContent='Ты пропустил день. Начинай заново!';}
+  else if(type==='freeze'){document.getElementById('streakT').textContent='Стрик защищён';document.getElementById('streakS').textContent='Заморозка спасла твою серию из '+n+' дней. Не забудь сыграть сегодня!';}
+  else{const[t,s]=msgs[n]||[n+' дней!','Продолжай!'];document.getElementById('streakT').textContent=t;document.getElementById('streakS').textContent=s;}
+  ov.classList.add('open');
+}
+function closeStreak(){document.getElementById('streakOverlay').classList.remove('open');}
+
+// ══════════════════════════════════════
+//  PROGRESSIVE DIFFICULTY (Hard) — своя механика под панораму:
+//  фаза 2 прячет VU-метр (иначе это просто "смотри на шкалу"), фаза 3 добавляет таймер.
+// ══════════════════════════════════════
+let hardRounds=parseInt(localStorage.getItem('pt_hard_rounds')||'0');
+const HARD_PHASE_BOUNDS=[0,20,40];
+function getHardPhase(){
+  if(hardRounds<20) return 1; // обычный режим, VU-метр виден
+  if(hardRounds<40) return 2; // VU-метр скрыт — только слух
+  return 3; // + таймер на ответ
+}
+function getPhaseProgressText(){
+  if(diff!=='hard') return '';
+  const phase=getHardPhase();
+  if(phase>=3) return hardRounds+' верных с начала — все механики сложного уже открыты';
+  const start=HARD_PHASE_BOUNDS[phase-1], end=HARD_PHASE_BOUNDS[phase];
+  return (hardRounds-start)+'/'+(end-start)+' до следующей фазы';
+}
+
+// ── Таймер на ответ (только "Сложно", фаза 3) ──
+const ANSWER_TIMER_PHASE=3, ANSWER_TIMER_SECONDS=10;
+let answerTimerId=null, answerDeadline=0;
+
+function maybeStartAnswerTimer(){
+  clearAnswerTimer();
+  if(diff!=='hard'||getHardPhase()<ANSWER_TIMER_PHASE)return;
+  const wrap=document.getElementById('answerTimerWrap');
+  if(!wrap)return;
+  wrap.style.display='flex';
+  answerDeadline=Date.now()+ANSWER_TIMER_SECONDS*1000;
+  tickAnswerTimer();
+  answerTimerId=setInterval(tickAnswerTimer,200);
+}
+function tickAnswerTimer(){
+  const left=Math.max(0,answerDeadline-Date.now());
+  const secs=Math.ceil(left/1000);
+  const num=document.getElementById('answerTimerNum');
+  if(num)num.textContent=secs;
+  const fill=document.getElementById('answerTimerFill');
+  if(fill)fill.style.width=(left/(ANSWER_TIMER_SECONDS*1000)*100)+'%';
+  const wrap=document.getElementById('answerTimerWrap');
+  if(wrap)wrap.classList.toggle('urgent',secs<=3);
+  if(left<=0){
+    clearAnswerTimer();
+    handleAnswerTimeout();
+  }
+}
+function clearAnswerTimer(){
+  if(answerTimerId){clearInterval(answerTimerId);answerTimerId=null;}
+  const wrap=document.getElementById('answerTimerWrap');
+  if(wrap){wrap.style.display='none';wrap.classList.remove('urgent');}
+}
+function handleAnswerTimeout(){
+  if(answered||!qStart)return;
+  checkAnswer(true);
 }
 
 // ══════════════════════════════════════
@@ -118,7 +308,7 @@ async function startAudio(){
   pb.classList.add('playing');
   pb.innerHTML='<div class="pm-pause"><span class="pm-pause-bar"></span><span class="pm-pause-bar"></span></div>';
   document.getElementById('hint').textContent='Слушай → где сидит звук?';
-  if(qStart===0) qStart=Date.now();
+  if(qStart===0){qStart=Date.now();maybeStartAnswerTimer();}
   drawVU();
 }
 
@@ -197,11 +387,31 @@ function startGame(){
 function newRound(){
   stopAudio();
   answered=false;picked=null;qStart=0;
-  
+  clearAnswerTimer();
+
   const set=POSITIONS[diff];
   target=set[Math.floor(Math.random()*set.length)];
   document.getElementById('rn').textContent=round;
-  document.getElementById('diffLabel').textContent={easy:'Легко',medium:'Средне',hard:'Сложно'}[diff];
+
+  const diffLabelEl=document.getElementById('diffLabel');
+  const progEl=document.getElementById('phaseProgress');
+  const vuWrap=document.getElementById('vuWrap');
+  const vuNote=document.getElementById('vuHiddenNote');
+  if(diff==='hard'){
+    const phase=getHardPhase();
+    const phases=['','Обычный','Без VU-метра','Без VU-метра + таймер'];
+    diffLabelEl.textContent='Сложно · '+phases[phase];
+    if(progEl){progEl.style.display='block';progEl.textContent=getPhaseProgressText();}
+    const hideVu=phase>=2;
+    if(vuWrap)vuWrap.style.display=hideVu?'none':'flex';
+    if(vuNote)vuNote.style.display=hideVu?'block':'none';
+  } else {
+    diffLabelEl.textContent={easy:'Легко',medium:'Средне'}[diff];
+    if(progEl)progEl.style.display='none';
+    if(vuWrap)vuWrap.style.display='flex';
+    if(vuNote)vuNote.style.display='none';
+  }
+
   document.getElementById('fbMain').textContent='';document.getElementById('fbMain').className='pm-fb-main';
   document.getElementById('fbSub').textContent='';
   document.getElementById('hint').textContent='Нажми ▶ чтобы начать слушать';
@@ -247,12 +457,13 @@ function pickPos(pos,btn){
   checkAnswer();
 }
 
-function checkAnswer(){
-  if(!picked||answered)return;
+function checkAnswer(timedOut){
+  if((!picked&&!timedOut)||answered)return;
   answered=true;stopAudio();
+  clearAnswerTimer();
   const elapsed=(Date.now()-qStart)/1000;
-  const diff_val=Math.abs(picked.val-target.val);
-  const ok=diff_val<0.01;
+  const diff_val=picked?Math.abs(picked.val-target.val):Infinity;
+  const ok=!timedOut&&diff_val<0.01;
   let earned=0;
   totalAns++;
 
@@ -267,7 +478,7 @@ function checkAnswer(){
   // Позиции на поле
   const correctPct=((target.val+1)/2*100);
   document.getElementById('panDotCorrect').style.left=correctPct+'%';
-  if(!ok){
+  if(!ok&&picked){
     const userPct=((picked.val+1)/2*100);
     document.getElementById('panDotUser').style.left=userPct+'%';
     document.getElementById('panDotUser').style.opacity='1';
@@ -284,6 +495,10 @@ function checkAnswer(){
     showTip();
     playSuccessSound();
     setTimeout(saveScore,300);
+    updateChallenge();
+    if(diff==='hard'){
+      hardRounds++;localStorage.setItem('pt_hard_rounds',hardRounds);
+    }
   } else {streak=0;}
 
   // Фидбек
@@ -295,6 +510,9 @@ function checkAnswer(){
     fm.textContent='✓ Верно!';
     fs.textContent=tname+' · +'+earned+' pts'+(streak>=3?' · 🔥×'+streak:'');
     ptsPopup('+'+earned);
+  } else if(timedOut){
+    fm.textContent='⏱ Время вышло';
+    fs.textContent='Это был '+tname;
   } else {
     const close=diff_val<=0.26;
     fm.textContent=close?'✗ Почти!':'✗ Неверно';
@@ -396,4 +614,5 @@ function ptsPopup(txt){
 
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&actx&&actx.state==='suspended')actx.resume();});
 updateScoreUI();
+initStreak();
 sbInit();

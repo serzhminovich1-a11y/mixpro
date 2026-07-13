@@ -40,6 +40,34 @@
     </div>
   </nav>
 
+  <!-- STREAK BANNER -->
+  <div class="pm-banner">
+    <div class="pm-banner-left">
+      <div class="pm-streak-icon" id="streakIcon">🕯️</div>
+      <div>
+        <div class="pm-streak-num" id="streakNum">0</div>
+        <div class="pm-streak-sub">дней подряд</div>
+      </div>
+      <div class="pm-freeze-wrap" id="freezeWrap" title="Заморозка защищает стрик, если пропустишь один день">
+        <span class="pm-freeze-icon">🧊</span>
+        <span class="pm-freeze-count" id="freezeCount">0</span>
+        <button class="pm-freeze-buy" id="freezeBuyBtn" onclick="buyFreeze()">за 300</button>
+      </div>
+    </div>
+    <div class="pm-banner-right">
+      <div class="pm-ch-info">
+        <span class="pm-ch-label">ЧЕЛЛЕНДЖ ДНЯ</span>
+        <span class="pm-ch-sub">5 верных ответов продлевают стрик</span>
+      </div>
+      <div class="pm-dots" id="chDots">
+        <div class="pm-dot" id="cd0"></div><div class="pm-dot" id="cd1"></div>
+        <div class="pm-dot" id="cd2"></div><div class="pm-dot" id="cd3"></div><div class="pm-dot" id="cd4"></div>
+      </div>
+      <span class="pm-ch-count" id="chCount">0/5</span>
+      <button class="pm-ch-play" id="chPlayBtn" onclick="startChallenge()">Играть</button>
+    </div>
+  </div>
+
   <!-- START -->
   <div id="scrStart" class="screen active">
     <div class="start-card">
@@ -85,6 +113,7 @@
       <span class="pm-q-text">Где <em>находится</em> звук в стерео?</span>
       <span class="pm-round">Раунд <span id="rn">1</span> · <span id="diffLabel">Средне</span></span>
     </div>
+    <div class="pm-phase-progress" id="phaseProgress" style="display:none"></div>
 
     <!-- Stereo field -->
     <div class="stereo-card">
@@ -95,11 +124,12 @@
       </div>
 
       <!-- VU meter -->
-      <div class="vu-wrap">
+      <div class="vu-wrap" id="vuWrap">
         <div class="vu-left"><div class="vu-bar-l" id="vuL" style="width:50%"></div></div>
         <div class="vu-center"></div>
         <div class="vu-right"><div class="vu-bar-r" id="vuR" style="width:50%"></div></div>
       </div>
+      <div class="vu-hidden-note" id="vuHiddenNote" style="display:none">👂 VU-метр скрыт на этой фазе — полагайся только на слух</div>
 
       <!-- Pan indicator -->
       <div class="pan-field" id="panField">
@@ -120,6 +150,13 @@
         <span style="font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace">R50</span>
         <span style="font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace">R100</span>
       </div>
+    </div>
+
+    <!-- Answer timer (высокие фазы "Сложно") -->
+    <div class="pm-timer-wrap" id="answerTimerWrap" style="display:none">
+      <span class="pm-timer-icon">⏱</span>
+      <div class="pm-timer-track"><div class="pm-timer-fill" id="answerTimerFill"></div></div>
+      <span class="pm-timer-num" id="answerTimerNum">10</span>
     </div>
 
     <!-- Transport -->
@@ -143,6 +180,16 @@
     <div id="tipBox"></div>
     <button class="pm-next" id="nextBtn" onclick="nextRound()">Далее →</button>
 
+  </div>
+</div>
+
+<div class="streak-overlay" id="streakOverlay" onclick="closeStreak()">
+  <div class="streak-card" onclick="event.stopPropagation()">
+    <div class="streak-emoji" id="streakEmoji">🔥</div>
+    <div class="streak-n" id="streakN">0</div>
+    <div class="streak-t" id="streakT">Стрик!</div>
+    <div class="streak-s" id="streakS"></div>
+    <button class="start-btn" onclick="closeStreak()" style="padding:12px 32px;font-size:13px;margin-top:6px">Продолжить</button>
   </div>
 </div>
 

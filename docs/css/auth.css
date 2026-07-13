@@ -4,7 +4,7 @@
   --s2: rgba(255, 255, 255, .07);
   --border: rgba(255, 255, 255, .1);
   --blue: #a78bfa;
-  --cyan: #22d3ee;
+  --cyan: #4ade80;
   --green: #4ade80;
   --red: #f87171;
   --gold: #facc15;
@@ -21,7 +21,7 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body {
   background: radial-gradient(1100px 560px at 82% -10%, rgba(167, 139, 250, .16), transparent),
-              radial-gradient(900px 480px at 4% 100%, rgba(34, 211, 238, .10), transparent),
+              radial-gradient(900px 480px at 4% 100%, rgba(74, 222, 128, .10), transparent),
               var(--bg);
   color: var(--text);
   font-family: var(--sans);
@@ -43,7 +43,7 @@ body {
 .field input { width: 100%; background: var(--s2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: var(--sans); font-size: 15px; padding: 11px 14px; outline: none; transition: .15s; }
 .field input:focus { border-color: var(--blue); }
 .field input::placeholder { color: var(--muted); }
-.submit { width: 100%; padding: 14px; border-radius: 8px; border: none; background: linear-gradient(135deg, var(--blue), var(--cyan)); color: #0a0b16; font-family: var(--ox); font-size: 15px; font-weight: 800; letter-spacing: .05em; cursor: pointer; transition: .15s; margin-top: 8px; box-shadow: 0 8px 22px -8px rgba(34,211,238,.45); }
+.submit { width: 100%; padding: 14px; border-radius: 999px; border: none; background: linear-gradient(135deg, var(--blue), var(--cyan)); color: #0a0b16; font-family: var(--ox); font-size: 15px; font-weight: 800; letter-spacing: .05em; cursor: pointer; transition: .15s; margin-top: 8px; box-shadow: 0 8px 22px -8px rgba(74,222,128,.45); }
 .submit:hover { opacity: .9; transform: translateY(-1px); }
 .submit:disabled { opacity: .45; cursor: not-allowed; transform: none; }
 .msg { text-align: center; font-size: 13px; min-height: 20px; margin-top: 14px; font-family: var(--mono); }

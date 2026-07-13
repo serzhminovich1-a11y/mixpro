@@ -27,8 +27,25 @@
   a.card:hover,.card.hoverable:hover,
   .stat-card:hover,.game-card:hover,.course-card:hover,
   .lesson-row:hover,.work-card:hover,.proj-card:hover,
-  .trainer-card:hover,.tool-card:hover,.achv-card.unlocked:hover{
+  .trainer-card:hover,.tool-card:hover,.achv-card.unlocked:hover,
+  .inside-card:hover,.post:hover,.assignment-card:hover,
+  .mode-btn:hover,.stat-box:hover,.form-card:hover{
     transform:translateY(-3px);
+  }
+  a.card,.card.hoverable,.stat-card,.game-card,.course-card,
+  .lesson-row,.work-card,.proj-card,.trainer-card,.tool-card,
+  .achv-card,.inside-card,.post,.assignment-card,.mode-btn,
+  .stat-box,.form-card{
+    transition:transform .2s cubic-bezier(.2,.8,.2,1), border-color .2s ease, box-shadow .2s ease;
+  }
+
+  /* ── Плавная смена экранов/секций/вкладок ── */
+  .section.active,.admin-panel.active,.screen.active,.tab-panel.active{
+    animation:fadeSlideIn .4s cubic-bezier(.2,.8,.2,1);
+  }
+  @keyframes fadeSlideIn{
+    from{opacity:0;transform:translateY(10px)}
+    to{opacity:1;transform:translateY(0)}
   }
 
   /* ── Нажатие кнопок — лёгкое "вжатие" ── */
@@ -60,6 +77,14 @@
   /* ── Затухание всей страницы при переходе по ссылке ── */
   body{animation:pageIn .35s ease}
   @keyframes pageIn{from{opacity:0}to{opacity:1}}
+
+  /* ── Заметный фокус с клавиатуры ── */
+  button:focus-visible,a:focus-visible,input:focus-visible,
+  textarea:focus-visible,select:focus-visible{
+    outline:2px solid rgba(74,222,128,.6);
+    outline-offset:2px;
+    transition:outline-offset .12s ease;
+  }
 
   /* ── Скелетон-заглушка на время загрузки данных ── */
   .skeleton{

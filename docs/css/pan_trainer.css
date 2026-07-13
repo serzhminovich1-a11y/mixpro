@@ -2,7 +2,7 @@
 body{background:#0a0b12;color:#eef0fb;font-family:'Golos Text',sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh}
 
 :root{
-  --cyan:#22d3ee;--purple:#a78bfa;--gold:#facc15;
+  --cyan:#4ade80;--purple:#a78bfa;--gold:#facc15;
   --green:#4ade80;--red:#f87171;--orange:#fb923c;
   --bg:#0a0b16;--s1:rgba(255,255,255,.03);--border:rgba(255,255,255,.08);
   --muted:rgba(255,255,255,.4);--muted2:rgba(255,255,255,.6);
@@ -11,7 +11,7 @@ body{background:#0a0b12;color:#eef0fb;font-family:'Golos Text',sans-serif;-webki
 .pm-page{
   min-height:100vh;
   background:radial-gradient(1000px 500px at 20% -10%,rgba(167,139,250,.15),transparent),
-             radial-gradient(800px 400px at 100% 100%,rgba(34,211,238,.1),transparent),#0a0b16;
+             radial-gradient(800px 400px at 100% 100%,rgba(74,222,128,.1),transparent),#0a0b16;
   padding:24px 32px 48px;
   display:flex;flex-direction:column;gap:18px;
   max-width:1000px;margin:0 auto;
@@ -65,7 +65,7 @@ body{background:#0a0b12;color:#eef0fb;font-family:'Golos Text',sans-serif;-webki
 .diff-name{font-family:'Golos Text',sans-serif;font-size:12px;font-weight:600;display:block;margin-bottom:6px}
 .diff-meta{font-size:10px;opacity:.6;display:block;line-height:1.5}
 .diff-genre{font-size:10px;color:var(--green);display:block;margin-top:4px}
-.start-btn{font-family:'Golos Text',sans-serif;font-size:15px;font-weight:700;padding:16px 48px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--purple),var(--cyan));color:#0a0b16;cursor:pointer;transition:.15s}
+.start-btn{font-family:'Golos Text',sans-serif;font-size:15px;font-weight:700;padding:16px 48px;border-radius:999px;border:none;background:linear-gradient(135deg,var(--purple),var(--cyan));color:#0a0b16;cursor:pointer;transition:.15s}
 .start-btn:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(167,139,250,.3)}
 
 /* GAME */
@@ -87,7 +87,7 @@ body{background:#0a0b12;color:#eef0fb;font-family:'Golos Text',sans-serif;-webki
 .vu-left{flex:1;height:40px;border-radius:6px 2px 2px 6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);overflow:hidden;display:flex;align-items:center;justify-content:flex-end}
 .vu-right{flex:1;height:40px;border-radius:2px 6px 6px 2px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);overflow:hidden;display:flex;align-items:center}
 .vu-bar-l{height:100%;background:linear-gradient(to left,var(--purple),rgba(167,139,250,.3));transition:width .05s;border-radius:2px}
-.vu-bar-r{height:100%;background:linear-gradient(to right,var(--cyan),rgba(34,211,238,.3));transition:width .05s;border-radius:2px}
+.vu-bar-r{height:100%;background:linear-gradient(to right,var(--cyan),rgba(74,222,128,.3));transition:width .05s;border-radius:2px}
 .vu-center{width:4px;height:60px;background:rgba(255,255,255,.15);border-radius:2px;flex-shrink:0;z-index:2}
 
 /* PAN FIELD — интерактивная шкала */

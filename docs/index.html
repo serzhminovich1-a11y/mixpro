@@ -34,11 +34,8 @@
 <div id="home" class="section active">
   <div class="hero hero-centered">
     <h1>Стань <em>лучшим</em> в работе со звуком</h1>
-    <div class="hero-waves" aria-hidden="true">
-      <svg viewBox="0 0 1600 80" preserveAspectRatio="none">
-        <path d="M0,40 C100,10 200,70 300,40 C400,10 500,70 600,40 C700,10 750,25 800,40 C900,10 1000,70 1100,40 C1200,10 1300,70 1400,40 C1500,10 1550,25 1600,40" fill="none" stroke="var(--green)" stroke-width="1.5" opacity=".45"/>
-        <path d="M0,45 C120,75 220,15 340,45 C460,75 560,15 680,45 C740,60 770,50 800,45 C920,75 1020,15 1140,45 C1260,75 1360,15 1480,45 C1540,60 1570,50 1600,45" fill="none" stroke="var(--amber-dim)" stroke-width="1.5" opacity=".4"/>
-      </svg>
+    <div class="hero-waves" id="heroWaves" title="Кликни по волне">
+      <canvas id="heroCanvas"></canvas>
     </div>
     <p class="hero-sub">Тренируй слух в играх, изучай сведение, качай пресеты и соревнуйся с другими инженерами.</p>
     <div class="hero-actions">
@@ -344,5 +341,6 @@
 
 <script src="js/animations.js"></script>
 <script src="js/main.js"></script>
+<script src="js/hero_wave.js"></script>
 </body>
 </html>

@@ -31,7 +31,8 @@ tr:hover td{background:var(--s2)}
 .rank.gold{color:#FFD700;font-size:15px}
 .rank.silver{color:#C0C0C0;font-size:15px}
 .rank.bronze{color:#CD7F32;font-size:15px}
-.username{font-weight:700;color:var(--text);display:flex;align-items:center;gap:10px}
+.username{font-weight:700;color:var(--text);display:flex;align-items:center;gap:10px;text-decoration:none;transition:.15s}
+.username:hover{color:var(--cyan)}
 .av-mini{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0}
 .score-val{color:var(--gold);font-weight:700;font-size:15px}
 .you-row td{background:rgba(10,132,255,.07);border-left:3px solid var(--blue)}

@@ -4,6 +4,7 @@ const SB = supabase.createClient(
 );
 
 let currentUid = null;
+let currentRole = null;
 
 function projectCard(p){
   const card = document.createElement('div');
@@ -16,10 +17,12 @@ function projectCard(p){
       <div class="proj-date">${date}</div>
     </div>
     <div class="wp-mount"></div>
+    <div class="pf-mount"></div>
     <button class="proj-del" data-id="${p.id}">Удалить</button>`;
   card.querySelector('.proj-del').addEventListener('click', () => deleteProject(p));
 
   createWavePlayer(p.file_url, card.querySelector('.wp-mount'));
+  mountProjectFeedback(SB, p, card.querySelector('.pf-mount'), { currentUid, currentRole });
 
   return card;
 }
@@ -106,7 +109,8 @@ async function init() {
   currentUid = session.user.id;
 
   const { data: profile } = await SB.from('profiles').select('role').eq('id', currentUid).single();
-  if (profile && ['VERIFIED_PRO', 'MENTOR', 'ADMIN'].includes(profile.role)) {
+  currentRole = profile ? profile.role : null;
+  if (['VERIFIED_PRO', 'MENTOR', 'ADMIN'].includes(currentRole)) {
     document.getElementById('adminLink').style.display = '';
   }
 

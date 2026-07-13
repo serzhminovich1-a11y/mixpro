@@ -70,9 +70,11 @@ nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-con
 /* Post */
 .post{padding:18px 20px;display:flex;flex-direction:column;gap:12px}
 .post-head{display:flex;align-items:center;gap:10px}
-.post-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--ox);font-weight:800;font-size:13px;color:#06131a;background:linear-gradient(135deg,var(--cyan),var(--blue));flex-shrink:0}
+.post-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--ox);font-weight:800;font-size:13px;color:#06131a;background:linear-gradient(135deg,var(--cyan),var(--blue));flex-shrink:0;text-decoration:none;transition:.15s}
+.post-avatar:hover{opacity:.85}
 .post-meta{flex:1;min-width:0}
-.post-meta .name{font-family:var(--ox);font-weight:700;font-size:13px}
+.post-meta .name{font-family:var(--ox);font-weight:700;font-size:13px;color:var(--text);text-decoration:none;display:block}
+.post-meta .name:hover{text-decoration:underline}
 .post-meta .time{font-family:var(--mono);font-size:10.5px;color:var(--muted)}
 .follow-btn{font-family:var(--mono);font-size:11px;padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted2);cursor:pointer;transition:.15s;flex-shrink:0}
 .follow-btn:hover{border-color:var(--cyan);color:var(--cyan)}

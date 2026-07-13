@@ -638,19 +638,24 @@ async function renderReportsQueue(){
   const reporterIds = [...new Set(reports.map(r => r.reporter_id))];
   const postIds = [...new Set(reports.filter(r => r.content_type === 'post').map(r => r.content_id))];
   const commentIds = [...new Set(reports.filter(r => r.content_type === 'comment').map(r => r.content_id))];
+  const projectCommentIds = [...new Set(reports.filter(r => r.content_type === 'project_comment').map(r => r.content_id))];
 
-  const [{ data: reporters }, { data: posts }, { data: comments }] = await Promise.all([
+  const [{ data: reporters }, { data: posts }, { data: comments }, { data: projectComments }] = await Promise.all([
     reporterIds.length ? SB.from('profiles').select('id, username').in('id', reporterIds) : Promise.resolve({ data: [] }),
     postIds.length ? SB.from('posts').select('id, content, user_id').in('id', postIds) : Promise.resolve({ data: [] }),
     commentIds.length ? SB.from('post_comments').select('id, content, audio_url, user_id').in('id', commentIds) : Promise.resolve({ data: [] }),
+    projectCommentIds.length ? SB.from('project_comments').select('id, content, user_id').in('id', projectCommentIds) : Promise.resolve({ data: [] }),
   ]);
   const reporterMap = new Map((reporters || []).map(u => [u.id, u.username]));
   const postMap = new Map((posts || []).map(p => [p.id, p]));
   const commentMap = new Map((comments || []).map(c => [c.id, c]));
+  const projectCommentMap = new Map((projectComments || []).map(c => [c.id, c]));
 
   queue.innerHTML = '';
   reports.forEach(r => {
-    const content = r.content_type === 'post' ? postMap.get(r.content_id) : commentMap.get(r.content_id);
+    const content = r.content_type === 'post' ? postMap.get(r.content_id)
+      : r.content_type === 'project_comment' ? projectCommentMap.get(r.content_id)
+      : commentMap.get(r.content_id);
     queue.appendChild(reportCard(r, content, reporterMap.get(r.reporter_id)));
   });
 }
@@ -660,7 +665,7 @@ function reportCard(r, content, reporterName){
   card.className = 'card';
   card.style.cssText = 'padding:20px 22px;display:flex;flex-direction:column;gap:10px';
   const date = new Date(r.created_at).toLocaleDateString('ru-RU');
-  const typeLabel = r.content_type === 'post' ? 'Пост' : 'Комментарий';
+  const typeLabel = r.content_type === 'post' ? 'Пост' : r.content_type === 'project_comment' ? 'Комментарий (портфолио)' : 'Комментарий';
   let preview;
   if (!content) {
     preview = '<span style="color:var(--muted)">Контент уже удалён</span>';
@@ -689,7 +694,7 @@ function reportCard(r, content, reporterName){
 async function handleResolveReport(r, card, action){
   card.querySelectorAll('button').forEach(b => b.disabled = true);
   if (action === 'delete') {
-    const table = r.content_type === 'post' ? 'posts' : 'post_comments';
+    const table = r.content_type === 'post' ? 'posts' : r.content_type === 'project_comment' ? 'project_comments' : 'post_comments';
     const { error: delErr } = await SB.from(table).delete().eq('id', r.content_id);
     if (delErr) { alert('Не удалось удалить: ' + delErr.message); card.querySelectorAll('button').forEach(b => b.disabled = false); return; }
   }

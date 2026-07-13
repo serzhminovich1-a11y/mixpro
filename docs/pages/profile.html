@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="../css/profile.css">
 <link rel="stylesheet" href="../css/animations.css">
 <link rel="stylesheet" href="../css/waveform_player.css">
+<link rel="stylesheet" href="../css/project_feedback.css">
 </head>
 <body>
 <nav>
@@ -69,12 +70,12 @@
 
     <!-- Стена работ -->
     <div>
-      <div class="sec-h with-link"><span>Стена работ</span><a href="portfolio.html" class="sec-link">Всё портфолио + загрузить →</a></div>
+      <div class="sec-h with-link"><span>Стена работ</span><a href="portfolio.html" class="sec-link" id="worksWallLink">Всё портфолио + загрузить →</a></div>
       <div class="works-wall" id="worksWall"><div class="empty">Загружаем работы...</div></div>
     </div>
 
     <!-- Пресеты -->
-    <div>
+    <div id="shopPresets">
       <div class="sec-h">Пресеты</div>
       <div class="shop-grid">
         <div class="shop-card">
@@ -99,7 +100,7 @@
     </div>
 
     <!-- Мерч -->
-    <div>
+    <div id="shopMerch">
       <div class="sec-h">Мерч</div>
       <div class="shop-grid">
         <div class="shop-card">
@@ -188,6 +189,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="../js/animations.js"></script>
 <script src="../js/waveform_player.js"></script>
+<script src="../js/content_filter.js"></script>
+<script src="../js/project_feedback.js"></script>
 <script src="../js/profile.js"></script>
 </body>
 </html>

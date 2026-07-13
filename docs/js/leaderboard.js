@@ -89,10 +89,10 @@ async function load() {
     const gameLabel = GAME_MAP[r.game] || r.game;
     tr.innerHTML = `
       <td class="${rankClass}">${medal || rank}</td>
-      <td><div class="username">
+      <td><a class="username" href="profile.html?user=${r.user_id}">
         <div class="av-mini" style="background:${color}">${initials}</div>
         ${r.username}${isMe ? ' <span style="color:var(--cyan);font-size:10px">(ты)</span>' : ''}
-      </div></td>
+      </a></td>
       <td class="score-val">${r.score.toLocaleString('ru')}</td>
       <td>${r.accuracy}%</td>
       <td>${r.rounds || '—'}</td>

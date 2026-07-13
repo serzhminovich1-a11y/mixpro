@@ -3,7 +3,9 @@ const SB = supabase.createClient(
   'sb_publishable_m1ImqMRye4s4yrpuBTvWvA_yMez-ZhD'
 );
 
-const EMOJI_SET = ['🔥', '👏', '❤️', '😂', '💡', '👎'];
+// EMOJI_SET / censorText / containsPoliticalContent / POLITICAL_GUARD_MESSAGE —
+// теперь в общем content_filter.js (тот же список фильтров нужен и
+// комментариям к трекам в портфолио).
 
 // Контурные SVG-иконки вместо эмодзи для служебных кнопок (запись,
 // вложение, закрыть, редактировать, удалить, пожаловаться и т.п.) —
@@ -54,71 +56,6 @@ function timeAgo(iso){
   if (diffH < 24) return diffH + ' ч назад';
   return d.toLocaleDateString('ru-RU');
 }
-
-/* ══════════════════════════════════════
-   ФИЛЬТР МАТА — автоматически заменяет найденные слова звёздочками
-   до того, как текст попадёт в базу. Ловит основные формы через корни
-   слов и частые способы обхода (英/лат буквы-омоглифы, "х.у.й" через
-   точки/дефисы внутри одного "слова"). Не ловит намеренно разбитые
-   пробелами буквы ("х у й") — это отдельная, гораздо более сложная
-   задача, для нее лучше жалобы + модератор.
-   ══════════════════════════════════════ */
-const PROFANITY_ROOTS = [
-  'хуй', 'хуя', 'хуе', 'хуё', 'хуи', 'хую',
-  'пизд',
-  'еба', 'ёба', 'ебу', 'ебё', 'ебы', 'ебл',
-  'бляд', 'блят',
-  'муда', 'мудо',
-  'пидор', 'пидар', 'пидр',
-  'гондон',
-  'залуп',
-];
-// Короткие корни небезопасно матчить как подстроку (например "бля" входит
-// в безобидное "бляха-муха") — эти проверяем только на точное совпадение
-// со всем словом.
-const PROFANITY_EXACT_WORDS = ['бля', 'ебн'];
-const PROFANITY_HOMOGLYPHS = { a: 'а', e: 'е', o: 'о', p: 'р', c: 'с', x: 'х', y: 'у', k: 'к', m: 'м', t: 'т', h: 'н', b: 'в' };
-
-function normalizeForFilter(chunk){
-  let s = '';
-  for (const ch of chunk.toLowerCase()) s += PROFANITY_HOMOGLYPHS[ch] || ch;
-  return s.replace(/[^a-zа-яё]/gi, '');
-}
-// Заменяет найденные "плохие" слова звёздочками той же длины, что и оригинал.
-// Работает на обычном тексте (используется и для комментариев, и как шаг
-// внутри sanitizeRichHtml — там применяется к каждому текстовому узлу,
-// так что HTML-теги форматирования никогда не задеваются).
-function censorText(text){
-  if (!text) return text;
-  return text.split(/(\s+)/).map(chunk => {
-    if (!chunk || /^\s+$/.test(chunk)) return chunk;
-    const core = normalizeForFilter(chunk);
-    const isBad = PROFANITY_EXACT_WORDS.includes(core) || PROFANITY_ROOTS.some(root => core.includes(root));
-    return isBad ? '*'.repeat(chunk.length) : chunk;
-  }).join('');
-}
-
-/* ══════════════════════════════════════
-   ГАРД НА ПОЛИТИКУ — в отличие от мата, тут не подменяем слова звёздочками
-   (пост из одних звёздочек выглядит как баг, не как решение), а просто
-   не даём отправить, с понятным сообщением — можно отредактировать
-   и отправить снова. Список — только однозначно политические имена/
-   термины: специально не включили голое "война" — это ещё и обычный
-   термин в сведении ("война громкости"/"война миксов"), было бы много
-   ложных срабатываний именно на этой площадке.
-   ══════════════════════════════════════ */
-const POLITICAL_KEYWORDS = [
-  'путин', 'зеленск', 'байден', 'трамп', 'лукашенко', 'порошенко', 'макрон',
-  'кремл', 'госдум', 'минобороны', 'спецоперац', 'мобилизац',
-  'нато', 'донбасс', 'вторжени', 'госпереворот', 'референдум',
-  'санкци', 'оппозици',
-];
-function containsPoliticalContent(text){
-  if (!text) return false;
-  const core = normalizeForFilter(text);
-  return POLITICAL_KEYWORDS.some(kw => core.includes(kw));
-}
-const POLITICAL_GUARD_MESSAGE = 'Здесь не обсуждаем политику — только про звук и музыку 🎧. Отредактируй текст.';
 
 /* ══════════════════════════════════════
    ФОРМАТИРОВАННЫЙ ТЕКСТ (жирный/курсив/подчёркнутый/зачёркнутый/шрифт/размер)
@@ -701,8 +638,8 @@ function postCard(p, commentCounts){
 
   card.innerHTML = `
     <div class="post-head">
-      <div class="post-avatar" style="background:${author.avatar_color || ''}">${initialsOf(username)}</div>
-      <div class="post-meta"><div class="name">${escapeHtml(username)}</div><div class="time">${timeAgo(p.created_at)}${p.updated_at ? ' · изменено' : ''}</div></div>
+      <a href="profile.html?user=${p.user_id}" class="post-avatar" style="background:${author.avatar_color || ''}">${initialsOf(username)}</a>
+      <div class="post-meta"><a href="profile.html?user=${p.user_id}" class="name">${escapeHtml(username)}</a><div class="time">${timeAgo(p.created_at)}${p.updated_at ? ' · изменено' : ''}</div></div>
       ${!isOwn ? `<button type="button" class="follow-btn ${followingSet.has(p.user_id) ? 'following' : ''}">${followingSet.has(p.user_id) ? 'Вы подписаны' : 'Подписаться'}</button>` : ''}
       ${isOwn ? '<button type="button" class="post-edit-btn" title="Редактировать">' + ICON_PENCIL + '</button>' : ''}
       ${(isOwn || currentRole === 'ADMIN') ? '<button type="button" class="post-del" title="Удалить">' + ICON_TRASH + '</button>' : ''}

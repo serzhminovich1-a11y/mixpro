@@ -70,29 +70,31 @@ async function renderAchievements(uid){
   if (window.animateChildren) animateChildren(grid);
 }
 
-function workCard(p){
+function workCard(p, viewerCtx){
   const card = document.createElement('div');
   card.className = 'work-card';
   const date = new Date(p.created_at).toLocaleDateString('ru-RU');
   card.innerHTML = `
     <div class="work-body"><div class="work-title">${p.title}</div><div class="work-meta">${date}</div></div>
-    <div class="wp-mount"></div>`;
+    <div class="wp-mount"></div>
+    <div class="pf-mount"></div>`;
 
   createWavePlayer(p.file_url, card.querySelector('.wp-mount'));
+  mountProjectFeedback(SB, p, card.querySelector('.pf-mount'), viewerCtx);
   return card;
 }
 
-async function renderWorksWall(uid){
+async function renderWorksWall(uid, viewerCtx){
   const wall = document.getElementById('worksWall');
   const { data, error } = await SB.from('projects')
     .select('*').eq('user_id', uid).order('created_at', { ascending: false }).limit(6);
 
   if (error || !data || data.length === 0) {
-    wall.innerHTML = '<div class="empty">Пока нет работ — <a href="portfolio.html" style="color:var(--cyan)">загрузи первую</a></div>';
+    wall.innerHTML = '<div class="empty">Пока нет работ' + (viewerCtx.isOwn ? ' — <a href="portfolio.html" style="color:var(--cyan)">загрузи первую</a>' : '') + '</div>';
     return;
   }
   wall.innerHTML = '';
-  data.forEach(p => wall.appendChild(workCard(p)));
+  data.forEach(p => wall.appendChild(workCard(p, viewerCtx)));
   if (window.animateChildren) animateChildren(wall);
 }
 
@@ -100,23 +102,42 @@ async function init() {
   const { data: { session } } = await SB.auth.getSession();
   if (!session) { location.href = 'auth.html'; return; }
 
-  const uid = session.user.id;
+  const myUid = session.user.id;
+  const uid = new URLSearchParams(location.search).get('user') || myUid;
+  const isOwn = uid === myUid;
 
-  // Профиль
+  // Профиль (свой или чужой — смотрим по ?user=)
   const { data: profile } = await SB.from('profiles').select('*').eq('id', uid).single();
   if (!profile) { location.href = 'auth.html'; return; }
 
+  // Моя роль — нужна для прав вроде "Оставить разбор" (это всегда про
+  // того, кто СЕЙЧАС смотрит страницу, не про владельца профиля).
+  let myRole;
+  if (isOwn) {
+    myRole = profile.role;
+  } else {
+    const { data: myProfile } = await SB.from('profiles').select('role').eq('id', myUid).single();
+    myRole = myProfile ? myProfile.role : null;
+  }
+  const viewerCtx = { currentUid: myUid, currentRole: myRole, isOwn };
+
   renderLevelXp(profile.xp);
   renderAchievements(uid);
-  renderWorksWall(uid);
+  renderWorksWall(uid, viewerCtx);
 
-  if (['VERIFIED_PRO', 'MENTOR', 'ADMIN'].includes(profile.role)) {
+  if (['VERIFIED_PRO', 'MENTOR', 'ADMIN'].includes(myRole)) {
     document.getElementById('adminUsersLink').style.display = '';
+  }
+
+  if (!isOwn) {
+    document.getElementById('shopPresets').style.display = 'none';
+    document.getElementById('shopMerch').style.display = 'none';
+    document.getElementById('worksWallLink').style.display = 'none';
   }
 
   // Аватар
   const av = document.getElementById('avatar');
-  av.style.background = profile.avatar_color || '#22d3ee';
+  av.style.background = profile.avatar_color || '#4ade80';
   av.textContent = profile.username.slice(0,2).toUpperCase();
 
   document.getElementById('username').textContent = profile.username;

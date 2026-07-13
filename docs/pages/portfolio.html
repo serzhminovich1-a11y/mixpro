@@ -32,9 +32,31 @@
   <div id="loading" class="loading">Загружаем портфолио...</div>
 
   <div id="content" style="display:none">
-    <div>
-      <div class="sec-h">Портфолио</div>
-      <div class="page-sub">Загружай свои миксы — они появятся здесь и в профиле</div>
+
+    <!-- Hero -->
+    <div class="port-hero">
+      <div class="port-hero-main">
+        <div class="port-avatar" id="portAvatar"></div>
+        <div class="port-hero-info">
+          <div class="port-name-row">
+            <h1 id="portName">—</h1>
+            <span class="port-pro-badge" id="portProBadge" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/></svg><span id="portProBadgeText">Проверенный специалист</span></span>
+          </div>
+          <div class="port-tagline" id="portTagline">Загружай свои миксы — они появятся здесь и в профиле</div>
+        </div>
+      </div>
+      <button type="button" class="port-share-btn" id="shareBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/></svg>
+        <span>Поделиться</span>
+      </button>
+    </div>
+
+    <!-- Stats -->
+    <div class="port-stats" id="portStats">
+      <div class="port-stat"><div class="port-stat-num" id="statTracks">0</div><div class="port-stat-lbl">Треков</div></div>
+      <div class="port-stat"><div class="port-stat-num" id="statReactions">0</div><div class="port-stat-lbl">Реакций</div></div>
+      <div class="port-stat"><div class="port-stat-num" id="statRating">—</div><div class="port-stat-lbl">Средняя оценка</div></div>
+      <div class="port-stat"><div class="port-stat-num" id="statReviews">0</div><div class="port-stat-lbl">Разборов от наставников</div></div>
     </div>
 
     <form class="upload-card" id="uploadForm">
@@ -51,7 +73,14 @@
     </form>
 
     <div>
-      <div class="sec-h">Мои проекты</div>
+      <div class="sec-h with-link">
+        <span id="tracksHeading">Мои проекты</span>
+        <div class="proj-sort" id="projSort">
+          <button type="button" class="sort-btn active" data-sort="new">Новые</button>
+          <button type="button" class="sort-btn" data-sort="top">Топ по оценке</button>
+          <button type="button" class="sort-btn" data-sort="hot">Больше реакций</button>
+        </div>
+      </div>
       <div class="proj-grid" id="projGrid"></div>
     </div>
   </div>

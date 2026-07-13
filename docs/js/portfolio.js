@@ -3,23 +3,58 @@ const SB = supabase.createClient(
   'sb_publishable_m1ImqMRye4s4yrpuBTvWvA_yMez-ZhD'
 );
 
+// Пороги XP — должны совпадать с XP_LEVELS в profile.js / get_level_from_xp() в БД
+const XP_LEVELS = [
+  { name:'Beginner',     min:0 },
+  { name:'Intermediate', min:500 },
+  { name:'Advanced',     min:2000 },
+  { name:'Professional', min:5000 },
+  { name:'Master',       min:12000 },
+  { name:'Legend',       min:25000 },
+];
+function levelName(xp){
+  let current = XP_LEVELS[0];
+  for (const l of XP_LEVELS) if ((xp || 0) >= l.min) current = l;
+  return current.name;
+}
+
 let currentUid = null;
 let currentRole = null;
+let viewedUid = null;
+let isOwn = true;
+let allProjects = [];
+let projectStats = null; // { byProject: Map, totalReactions, avgRating, totalReviews }
+let currentSort = 'new';
+
+function ratingBadge(id){
+  const s = projectStats && projectStats.byProject.get(id);
+  if (!s || !s.ratingCount) return '';
+  const avg = (s.ratingSum / s.ratingCount).toFixed(1);
+  return `<span class="proj-badge rating"><svg viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>${avg}</span>`;
+}
+function reviewedBadge(id){
+  const s = projectStats && projectStats.byProject.get(id);
+  if (!s || !s.reviewed) return '';
+  return `<span class="proj-badge reviewed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/></svg>Разбор</span>`;
+}
 
 function projectCard(p){
   const card = document.createElement('div');
   card.className = 'proj-card';
   card.dataset.id = p.id;
   const date = new Date(p.created_at).toLocaleDateString('ru-RU');
+  const badges = ratingBadge(p.id) + reviewedBadge(p.id);
   card.innerHTML = `
     <div class="proj-top">
       <div class="proj-title">${p.title}</div>
       <div class="proj-date">${date}</div>
     </div>
+    ${badges ? `<div class="proj-badges">${badges}</div>` : ''}
     <div class="wp-mount"></div>
     <div class="pf-mount"></div>
-    <button class="proj-del" data-id="${p.id}">Удалить</button>`;
-  card.querySelector('.proj-del').addEventListener('click', () => deleteProject(p));
+    ${isOwn ? '<button class="proj-del" data-id="' + p.id + '">Удалить</button>' : ''}`;
+
+  if (isOwn) card.querySelector('.proj-del').addEventListener('click', () => deleteProject(p));
 
   createWavePlayer(p.file_url, card.querySelector('.wp-mount'));
   mountProjectFeedback(SB, p, card.querySelector('.pf-mount'), { currentUid, currentRole });
@@ -27,18 +62,76 @@ function projectCard(p){
   return card;
 }
 
+function sortedProjects(){
+  const list = allProjects.slice();
+  if (currentSort === 'top') {
+    list.sort((a, b) => {
+      const sa = projectStats.byProject.get(a.id), sb = projectStats.byProject.get(b.id);
+      const ra = sa && sa.ratingCount ? sa.ratingSum / sa.ratingCount : -1;
+      const rb = sb && sb.ratingCount ? sb.ratingSum / sb.ratingCount : -1;
+      return rb - ra;
+    });
+  } else if (currentSort === 'hot') {
+    list.sort((a, b) => {
+      const sa = projectStats.byProject.get(a.id), sb = projectStats.byProject.get(b.id);
+      return (sb ? sb.reactions : 0) - (sa ? sa.reactions : 0);
+    });
+  }
+  return list;
+}
+
+function renderGrid(){
+  const grid = document.getElementById('projGrid');
+  grid.innerHTML = '';
+  sortedProjects().forEach(p => grid.appendChild(projectCard(p)));
+  if (window.animateChildren) animateChildren(grid);
+}
+
+async function computeStats(projectIds){
+  const byProject = new Map();
+  projectIds.forEach(id => byProject.set(id, { reactions: 0, ratingSum: 0, ratingCount: 0, reviewed: false }));
+  if (!projectIds.length) return { byProject, totalReactions: 0, avgRating: null, totalReviews: 0 };
+
+  const [{ data: reactions }, { data: ratings }, { data: reviews }] = await Promise.all([
+    SB.from('project_reactions').select('project_id').in('project_id', projectIds),
+    SB.from('project_ratings').select('project_id, stars').in('project_id', projectIds),
+    SB.from('project_reviews').select('project_id').in('project_id', projectIds),
+  ]);
+  (reactions || []).forEach(r => byProject.get(r.project_id).reactions++);
+  (ratings || []).forEach(r => { const e = byProject.get(r.project_id); e.ratingSum += r.stars; e.ratingCount++; });
+  (reviews || []).forEach(r => { byProject.get(r.project_id).reviewed = true; });
+
+  const allStars = (ratings || []).map(r => r.stars);
+  return {
+    byProject,
+    totalReactions: (reactions || []).length,
+    avgRating: allStars.length ? allStars.reduce((a, b) => a + b, 0) / allStars.length : null,
+    totalReviews: (reviews || []).length,
+  };
+}
+
+function renderStats(){
+  document.getElementById('statTracks').textContent = allProjects.length;
+  document.getElementById('statReactions').textContent = projectStats.totalReactions;
+  document.getElementById('statRating').textContent = projectStats.avgRating ? projectStats.avgRating.toFixed(1) : '—';
+  document.getElementById('statReviews').textContent = projectStats.totalReviews;
+}
+
 async function renderProjects(){
   const grid = document.getElementById('projGrid');
   const { data, error } = await SB.from('projects')
-    .select('*').eq('user_id', currentUid).order('created_at', { ascending: false });
+    .select('*').eq('user_id', viewedUid).order('created_at', { ascending: false });
 
-  if (error || !data || data.length === 0) {
-    grid.innerHTML = '<div class="empty">Пока нет загруженных проектов — залей первый микс выше</div>';
+  allProjects = data || [];
+  if (error || allProjects.length === 0) {
+    document.getElementById('portStats').style.display = 'none';
+    document.getElementById('projSort').style.display = 'none';
+    grid.innerHTML = `<div class="empty">${isOwn ? 'Пока нет загруженных проектов — залей первый микс выше' : 'Здесь пока нет загруженных работ'}</div>`;
     return;
   }
-  grid.innerHTML = '';
-  data.forEach(p => grid.appendChild(projectCard(p)));
-  if (window.animateChildren) animateChildren(grid);
+  projectStats = await computeStats(allProjects.map(p => p.id));
+  renderStats();
+  renderGrid();
 }
 
 async function deleteProject(p){
@@ -46,9 +139,16 @@ async function deleteProject(p){
   const storagePath = p.metadata && p.metadata.storage_path;
   if (storagePath) await SB.storage.from('portfolio').remove([storagePath]);
   await SB.from('projects').delete().eq('id', p.id);
-  document.querySelector(`.proj-card[data-id="${p.id}"]`)?.remove();
-  const grid = document.getElementById('projGrid');
-  if (!grid.children.length) grid.innerHTML = '<div class="empty">Пока нет загруженных проектов — залей первый микс выше</div>';
+  allProjects = allProjects.filter(x => x.id !== p.id);
+  if (!allProjects.length) {
+    document.getElementById('projGrid').innerHTML = '<div class="empty">Пока нет загруженных проектов — залей первый микс выше</div>';
+    document.getElementById('portStats').style.display = 'none';
+    document.getElementById('projSort').style.display = 'none';
+  } else {
+    projectStats = await computeStats(allProjects.map(x => x.id));
+    renderStats();
+    renderGrid();
+  }
 }
 
 function setStatus(text, kind){
@@ -95,6 +195,8 @@ async function handleUpload(e){
 
   setStatus('Готово!', 'ok');
   document.getElementById('uploadForm').reset();
+  document.getElementById('portStats').style.display = '';
+  document.getElementById('projSort').style.display = '';
   renderProjects();
 }
 
@@ -107,14 +209,56 @@ async function init() {
   const { data: { session } } = await SB.auth.getSession();
   if (!session) { location.href = 'auth.html'; return; }
   currentUid = session.user.id;
+  viewedUid = new URLSearchParams(location.search).get('user') || currentUid;
+  isOwn = viewedUid === currentUid;
 
-  const { data: profile } = await SB.from('profiles').select('role').eq('id', currentUid).single();
-  currentRole = profile ? profile.role : null;
+  const { data: myProfile } = await SB.from('profiles').select('role').eq('id', currentUid).single();
+  currentRole = myProfile ? myProfile.role : null;
   if (['VERIFIED_PRO', 'MENTOR', 'ADMIN'].includes(currentRole)) {
     document.getElementById('adminLink').style.display = '';
   }
 
-  document.getElementById('uploadForm').addEventListener('submit', handleUpload);
+  const { data: viewedProfile } = await SB.from('profiles').select('*').eq('id', viewedUid).single();
+  if (!viewedProfile) { location.href = 'auth.html'; return; }
+
+  document.getElementById('portAvatar').style.background = viewedProfile.avatar_color || '#4ade80';
+  document.getElementById('portAvatar').textContent = viewedProfile.username.slice(0, 2).toUpperCase();
+  document.getElementById('portName').textContent = viewedProfile.username;
+  document.getElementById('portTagline').textContent = 'Sound Engineer · ' + levelName(viewedProfile.xp);
+  if (['VERIFIED_PRO', 'MENTOR', 'ADMIN'].includes(viewedProfile.role)) {
+    document.getElementById('portProBadge').style.display = '';
+  }
+  document.title = isOwn ? 'MIXPRO — Портфолио' : 'MIXPRO — Портфолио · ' + viewedProfile.username;
+
+  if (!isOwn) {
+    document.getElementById('uploadForm').style.display = 'none';
+    document.getElementById('tracksHeading').textContent = 'Работы';
+  } else {
+    document.getElementById('uploadForm').addEventListener('submit', handleUpload);
+  }
+
+  document.getElementById('shareBtn').addEventListener('click', async () => {
+    const url = location.origin + location.pathname + '?user=' + viewedUid;
+    const btn = document.getElementById('shareBtn');
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch (e) {
+      prompt('Скопируй ссылку:', url);
+    }
+    const label = btn.querySelector('span');
+    const prevLabel = label.textContent;
+    btn.classList.add('copied');
+    label.textContent = 'Ссылка скопирована!';
+    setTimeout(() => { btn.classList.remove('copied'); label.textContent = prevLabel; }, 1800);
+  });
+
+  document.querySelectorAll('.sort-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentSort = btn.dataset.sort;
+      document.querySelectorAll('.sort-btn').forEach(b => b.classList.toggle('active', b === btn));
+      renderGrid();
+    });
+  });
 
   await renderProjects();
 

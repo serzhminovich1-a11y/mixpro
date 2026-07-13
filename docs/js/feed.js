@@ -486,6 +486,37 @@ async function refreshReactions(postId, pillWrap){
   });
 }
 
+async function toggleCommentReaction(commentId, emoji, pillWrap){
+  const { data: mine } = await SB.from('comment_reactions').select('id')
+    .eq('comment_id', commentId).eq('user_id', currentUid).eq('emoji', emoji);
+  if (mine && mine.length) {
+    await SB.from('comment_reactions').delete().eq('comment_id', commentId).eq('user_id', currentUid).eq('emoji', emoji);
+  } else {
+    await SB.from('comment_reactions').insert({ comment_id: commentId, user_id: currentUid, emoji });
+  }
+  await refreshCommentReactions(commentId, pillWrap);
+}
+
+async function refreshCommentReactions(commentId, pillWrap){
+  const { data } = await SB.from('comment_reactions').select('emoji, user_id').eq('comment_id', commentId);
+  const counts = new Map();
+  (data || []).forEach(r => {
+    const cur = counts.get(r.emoji) || { count: 0, mine: false };
+    cur.count++;
+    if (r.user_id === currentUid) cur.mine = true;
+    counts.set(r.emoji, cur);
+  });
+  pillWrap.innerHTML = '';
+  counts.forEach((v, emoji) => {
+    const pill = document.createElement('button');
+    pill.type = 'button';
+    pill.className = 'emoji-pill' + (v.mine ? ' mine' : '');
+    pill.textContent = `${emoji} ${v.count}`;
+    pill.addEventListener('click', () => toggleCommentReaction(commentId, emoji, pillWrap));
+    pillWrap.appendChild(pill);
+  });
+}
+
 function commentStoragePath(url){
   const idx = url.indexOf('/posts/');
   return idx === -1 ? null : decodeURIComponent(url.slice(idx + '/posts/'.length));
@@ -514,16 +545,16 @@ function startEditComment(c, row, postId, container, countEl){
       <button type="button" class="c-edit-cancel" style="font-family:var(--mono);font-size:10.5px;padding:5px 10px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted2);cursor:pointer">Отмена</button>
     </div>`;
   const ctext = body.querySelector('.ctext');
-  const actionsRow = body.querySelector('.comment-row-actions');
+  const actionsWrap = body.querySelector('.comment-actions-row');
   ctext.style.display = 'none';
-  actionsRow.style.display = 'none';
-  body.insertBefore(editWrap, actionsRow);
+  actionsWrap.style.display = 'none';
+  body.insertBefore(editWrap, actionsWrap);
   editWrap.querySelector('.c-edit-input').focus();
 
   editWrap.querySelector('.c-edit-cancel').addEventListener('click', () => {
     editWrap.remove();
     ctext.style.display = '';
-    actionsRow.style.display = '';
+    actionsWrap.style.display = '';
   });
   editWrap.querySelector('.c-edit-save').addEventListener('click', async () => {
     const raw = editWrap.querySelector('.c-edit-input').value.trim();
@@ -551,12 +582,35 @@ function commentRow(c, postId, container, countEl){
     <div class="comment-body">
       <div class="cname">${escapeHtml(username)}${c.updated_at ? ' <span style="font-weight:400;color:var(--muted);font-size:10px">· изменено</span>' : ''}</div>
       ${body}
-      ${(canEdit || canDelete || !isOwn) ? `<div class="comment-row-actions" style="display:flex;gap:10px;margin-top:3px">
-        ${canEdit ? '<button type="button" class="comment-edit-btn">Изменить</button>' : ''}
-        ${canDelete ? '<button type="button" class="comment-del-btn">Удалить</button>' : ''}
-        ${!isOwn ? '<button type="button" class="comment-report-btn" title="Пожаловаться">🚩</button>' : ''}
-      </div>` : ''}
+      <div class="comment-actions-row">
+        <div class="comment-reactions">
+          <div class="emoji-pills"></div>
+          <div class="emoji-add">
+            <button type="button" class="emoji-add-btn">+</button>
+            <div class="emoji-picker">${EMOJI_SET.map(e => `<button type="button" data-e="${e}">${e}</button>`).join('')}</div>
+          </div>
+        </div>
+        ${(canEdit || canDelete || !isOwn) ? `<div class="comment-row-actions">
+          ${canEdit ? '<button type="button" class="comment-edit-btn">Изменить</button>' : ''}
+          ${canDelete ? '<button type="button" class="comment-del-btn">Удалить</button>' : ''}
+          ${!isOwn ? '<button type="button" class="comment-report-btn" title="Пожаловаться">🚩</button>' : ''}
+        </div>` : ''}
+      </div>
     </div>`;
+
+  const commentPillWrap = div.querySelector('.emoji-pills');
+  refreshCommentReactions(c.id, commentPillWrap);
+  const commentEmojiBtn = div.querySelector('.emoji-add-btn');
+  const commentPicker = div.querySelector('.emoji-picker');
+  commentEmojiBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const willOpen = !commentPicker.classList.contains('open');
+    closeAllEmojiPickers();
+    if (willOpen) commentPicker.classList.add('open');
+  });
+  commentPicker.querySelectorAll('button').forEach(b => {
+    b.addEventListener('click', () => { toggleCommentReaction(c.id, b.dataset.e, commentPillWrap); commentPicker.classList.remove('open'); });
+  });
 
   const editBtn = div.querySelector('.comment-edit-btn');
   if (editBtn) editBtn.addEventListener('click', () => startEditComment(c, div, postId, container, countEl));

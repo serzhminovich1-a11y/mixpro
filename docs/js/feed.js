@@ -550,6 +550,7 @@ async function renderFeed(){
 
   list.innerHTML = '';
   posts.forEach(p => list.appendChild(postCard(p, commentCounts)));
+  if (window.animateChildren) animateChildren(list);
 }
 
 async function logout() {

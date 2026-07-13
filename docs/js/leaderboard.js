@@ -90,6 +90,7 @@ async function load() {
       <td><span class="diff-badge diff-${r.difficulty}">${DIFF_MAP[r.difficulty]||r.difficulty}</span> · ${gameLabel}</td>`;
     tbody.appendChild(tr);
   });
+  if (window.animateChildren) animateChildren(tbody);
 }
 
 function setGame(g, btn) {

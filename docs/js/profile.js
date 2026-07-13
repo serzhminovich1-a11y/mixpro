@@ -55,6 +55,7 @@ async function renderAchievements(uid){
       <div class="achv-status">${earnedAt ? '✓ Получено ' + dateStr : '🔒 +' + a.xp_reward + ' XP'}</div>`;
     grid.appendChild(card);
   });
+  if (window.animateChildren) animateChildren(grid);
 }
 
 function workCard(p){
@@ -97,6 +98,7 @@ async function renderWorksWall(uid){
   }
   wall.innerHTML = '';
   data.forEach(p => wall.appendChild(workCard(p)));
+  if (window.animateChildren) animateChildren(wall);
 }
 
 async function init() {
@@ -139,10 +141,17 @@ async function init() {
     const rvBest = Math.max(...scores.filter(s => s.game === 'reverb_wizard').map(s => s.score), 0);
     const dcBest = Math.max(...scores.filter(s => s.game === 'dr_compressor').map(s => s.score), 0);
 
-    document.getElementById('sBestScore').textContent = best.toLocaleString('ru');
-    document.getElementById('sGames').textContent = scores.length;
-    document.getElementById('sAccuracy').textContent = avgAcc + '%';
-    document.getElementById('sBestStreak').textContent = bestStreak;
+    if (window.animateNumber) {
+      animateNumber(document.getElementById('sBestScore'), best);
+      animateNumber(document.getElementById('sGames'), scores.length, { format: n => Math.round(n) });
+      animateNumber(document.getElementById('sAccuracy'), avgAcc, { format: n => Math.round(n) + '%' });
+      animateNumber(document.getElementById('sBestStreak'), bestStreak, { format: n => Math.round(n) });
+    } else {
+      document.getElementById('sBestScore').textContent = best.toLocaleString('ru');
+      document.getElementById('sGames').textContent = scores.length;
+      document.getElementById('sAccuracy').textContent = avgAcc + '%';
+      document.getElementById('sBestStreak').textContent = bestStreak;
+    }
     document.getElementById('pmScore').textContent = pmBest.toLocaleString('ru');
     document.getElementById('ptScore').textContent = ptBest.toLocaleString('ru');
     document.getElementById('dbScore').textContent = dbBest.toLocaleString('ru');

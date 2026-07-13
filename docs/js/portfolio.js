@@ -40,6 +40,7 @@ async function renderProjects(){
   }
   grid.innerHTML = '';
   data.forEach(p => grid.appendChild(projectCard(p)));
+  if (window.animateChildren) animateChildren(grid);
 }
 
 async function deleteProject(p){

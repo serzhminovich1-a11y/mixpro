@@ -25,6 +25,7 @@ async function renderCourseList(){
   }
   grid.innerHTML = '';
   data.forEach(c => grid.appendChild(courseCard(c)));
+  if (window.animateChildren) animateChildren(grid);
 }
 
 function lessonRow(l, idx, status){
@@ -60,6 +61,7 @@ async function renderCourseView(courseId){
 
     list.innerHTML = '';
     lessons.forEach((l, idx) => list.appendChild(lessonRow(l, idx, progressMap.get(l.id))));
+    if (window.animateChildren) animateChildren(list);
   }
 
   await renderAssignments(courseId);

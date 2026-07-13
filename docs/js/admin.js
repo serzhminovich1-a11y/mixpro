@@ -73,7 +73,14 @@ async function renderOverview(){
     boxes.push(`<button type="button" class="stat-box" onclick="switchSection('users')" style="text-align:left;cursor:pointer;border:1px solid var(--border);width:100%"><div class="n">${usersCount ?? 0}</div><div class="l">Пользователей</div></button>`);
   }
 
+  grid.classList.add('reveal-group');
   grid.innerHTML = boxes.join('');
+  grid.querySelectorAll('.stat-box').forEach(box => {
+    const n = box.querySelector('.n');
+    const target = parseInt(n.textContent, 10) || 0;
+    if (window.animateIn) animateIn(box);
+    if (window.animateNumber) animateNumber(n, target, { format: v => Math.round(v) });
+  });
   updateSidebarBadges();
 }
 

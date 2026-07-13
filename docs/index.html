@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400..900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/index.css">
+<link rel="stylesheet" href="css/animations.css">
 </head>
 <body>
 
@@ -39,10 +40,10 @@
       <button class="btn btn-primary" onclick="tab('lessons',document.querySelectorAll('.nav-tab')[1])">Начать бесплатно</button>
     </div>
     <div class="vu" id="vuEl"></div>
-    <div class="hero-stats">
-      <div class="stat"><div class="stat-n">10</div><div class="stat-l">уроков в курсе</div></div>
-      <div class="stat"><div class="stat-n">3</div><div class="stat-l">бесплатно</div></div>
-      <div class="stat"><div class="stat-n">6</div><div class="stat-l">инструментов</div></div>
+    <div class="hero-stats reveal-group">
+      <div class="stat reveal"><div class="stat-n">10</div><div class="stat-l">уроков в курсе</div></div>
+      <div class="stat reveal"><div class="stat-n">3</div><div class="stat-l">бесплатно</div></div>
+      <div class="stat reveal"><div class="stat-n">6</div><div class="stat-l">инструментов</div></div>
     </div>
   </div>
 </div>
@@ -77,9 +78,9 @@
   <div class="trainers-wrap">
     <div class="sec-header"><h2 class="sec-title">Тренажёры</h2></div>
     <p style="font-size:14px;color:var(--muted);margin-bottom:0">Прокачивай слух каждый день. Каждый тренажёр — отдельный навык.</p>
-    <div class="trainer-cards">
+    <div class="trainer-cards reveal-group">
 
-      <a href="pages/peak_master.html" class="trainer-card">
+      <a href="pages/peak_master.html" class="trainer-card reveal">
         <div class="trainer-glow"></div>
         <div class="trainer-name">Peak Master</div>
         <div class="trainer-desc">Слышишь EQ буст — угадай частоту. Три режима, спектр в реальном времени, советы по жанрам.</div>
@@ -89,7 +90,7 @@
         </div>
       </a>
 
-      <a href="pages/pan_trainer.html" class="trainer-card">
+      <a href="pages/pan_trainer.html" class="trainer-card reveal">
         <div class="trainer-glow" style="background:var(--amber)"></div>
         <div class="trainer-name">Pan Trainer</div>
         <div class="trainer-desc">Определи где сидит звук в стерео. VU-метр, 13 позиций на сложном уровне, советы по панорамированию.</div>
@@ -99,28 +100,28 @@
         </div>
       </a>
 
-      <div class="trainer-card coming">
+      <div class="trainer-card coming reveal">
         <div class="trainer-glow" style="background:var(--amber-dim)"></div>
         <div class="trainer-name">dB King</div>
         <div class="trainer-desc">Угадай на сколько децибел один звук громче другого. Развивает точность gain staging.</div>
         <div class="trainer-meta"><span class="trainer-badge badge-soon">Скоро</span></div>
       </div>
 
-      <div class="trainer-card coming">
+      <div class="trainer-card coming reveal">
         <div class="trainer-glow" style="background:var(--amber-dim)"></div>
         <div class="trainer-name">Reverb Wizard</div>
         <div class="trainer-desc">Комната, зал, пластина или пружина? Определи тип реверберации на слух.</div>
         <div class="trainer-meta"><span class="trainer-badge badge-soon">Скоро</span></div>
       </div>
 
-      <div class="trainer-card coming">
+      <div class="trainer-card coming reveal">
         <div class="trainer-glow" style="background:var(--amber)"></div>
         <div class="trainer-name">Dr. Compressor</div>
         <div class="trainer-desc">Два звука — один скомпрессирован сильнее. Угадай какой. Тренируй слух на динамику.</div>
         <div class="trainer-meta"><span class="trainer-badge badge-soon">Скоро</span></div>
       </div>
 
-      <div class="trainer-card coming">
+      <div class="trainer-card coming reveal">
         <div class="trainer-name">Delay Control</div>
         <div class="trainer-desc">Услышь дилей — угадай время задержки в ms. Критично для ритмической обработки.</div>
         <div class="trainer-meta"><span class="trainer-badge badge-soon">Скоро</span></div>
@@ -134,10 +135,10 @@
 <div id="tools" class="section">
   <div class="tools-wrap">
     <div class="sec-header"><h2 class="sec-title">Инструменты</h2></div>
-    <div class="tools-grid">
+    <div class="tools-grid reveal-group">
 
       <!-- BPM -->
-      <div class="tool-card">
+      <div class="tool-card reveal">
         <div class="tool-name">BPM / Tap Tempo</div>
         <div class="fg"><label class="flabel">BPM вручную</label>
           <input type="number" id="bpmIn" min="40" max="300" value="120" oninput="syncBpm(this.value)"></div>
@@ -147,7 +148,7 @@
       </div>
 
       <!-- DELAY -->
-      <div class="tool-card">
+      <div class="tool-card reveal">
         <div class="tool-name">Delay Calculator</div>
         <div class="fg"><label class="flabel">BPM</label>
           <input type="number" id="delBpm" min="40" max="300" value="120" oninput="syncBpm(this.value);calcDelay()"></div>
@@ -155,7 +156,7 @@
       </div>
 
       <!-- REVERB -->
-      <div class="tool-card">
+      <div class="tool-card reveal">
         <div class="tool-name">Reverb / Pre-delay</div>
         <div class="frow">
           <div><label class="flabel">BPM</label>
@@ -171,7 +172,7 @@
       </div>
 
       <!-- COMPRESSOR -->
-      <div class="tool-card">
+      <div class="tool-card reveal">
         <div class="tool-name">Compressor Settings</div>
         <div class="fg"><label class="flabel">Тип материала</label>
           <div class="comp-types" id="compTypes"></div></div>
@@ -189,7 +190,7 @@
       </div>
 
       <!-- FREQ MAP -->
-      <div class="tool-card">
+      <div class="tool-card reveal">
         <div class="tool-name">Частотная карта</div>
         <div class="rg">
           <div class="rr"><span class="rl">Sub bass</span><span class="rv">20 – 60 Hz</span></div>
@@ -207,7 +208,7 @@
       </div>
 
       <!-- NOTE TO HZ -->
-      <div class="tool-card">
+      <div class="tool-card reveal">
         <div class="tool-name">Конвертер нот в Hz</div>
         <div class="fg"><label class="flabel">Нота</label>
           <select id="noteSelect" onchange="calcNoteHz()">
@@ -226,7 +227,7 @@
       </div>
 
       <!-- LOUDNESS / LUFS -->
-      <div class="tool-card">
+      <div class="tool-card reveal">
         <div class="tool-name">Loudness / LUFS</div>
         <div class="fg"><label class="flabel">Куда публикуешь</label>
           <select id="lufsPlatform" onchange="calcLufs()">
@@ -240,7 +241,7 @@
       </div>
 
       <!-- ROOM ACOUSTICS -->
-      <div class="tool-card">
+      <div class="tool-card reveal">
         <div class="tool-name">Акустика комнаты</div>
         <div class="frow">
           <div><label class="flabel">Длина (м)</label>
@@ -254,7 +255,7 @@
       </div>
 
       <!-- ATTACK/RELEASE VISUALIZER -->
-      <div class="tool-card wide">
+      <div class="tool-card wide reveal">
         <div class="tool-name">Attack / Release визуализатор</div>
         <div class="frow">
           <div><label class="flabel">Attack (мс)</label>
@@ -303,6 +304,7 @@
 
 <footer>MIXPRO © 2026 &nbsp;·&nbsp; Telegram: @yourtelegram &nbsp;·&nbsp; По вопросам: mixpro@mail.ru</footer>
 
+<script src="js/animations.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

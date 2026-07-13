@@ -82,6 +82,28 @@ function censorText(text){
 }
 
 /* ══════════════════════════════════════
+   ГАРД НА ПОЛИТИКУ — в отличие от мата, тут не подменяем слова звёздочками
+   (пост из одних звёздочек выглядит как баг, не как решение), а просто
+   не даём отправить, с понятным сообщением — можно отредактировать
+   и отправить снова. Список — только однозначно политические имена/
+   термины: специально не включили голое "война" — это ещё и обычный
+   термин в сведении ("война громкости"/"война миксов"), было бы много
+   ложных срабатываний именно на этой площадке.
+   ══════════════════════════════════════ */
+const POLITICAL_KEYWORDS = [
+  'путин', 'зеленск', 'байден', 'трамп', 'лукашенко', 'порошенко', 'макрон',
+  'кремл', 'госдум', 'минобороны', 'спецоперац', 'мобилизац',
+  'нато', 'донбасс', 'вторжени', 'госпереворот', 'референдум',
+  'санкци', 'оппозици',
+];
+function containsPoliticalContent(text){
+  if (!text) return false;
+  const core = normalizeForFilter(text);
+  return POLITICAL_KEYWORDS.some(kw => core.includes(kw));
+}
+const POLITICAL_GUARD_MESSAGE = 'Здесь не обсуждаем политику — только про звук и музыку 🎧. Отредактируй текст.';
+
+/* ══════════════════════════════════════
    ФОРМАТИРОВАННЫЙ ТЕКСТ (жирный/курсив/подчёркнутый/зачёркнутый/шрифт/размер)
    ══════════════════════════════════════ */
 const RICH_ALLOWED_TAGS = new Set(['B', 'STRONG', 'I', 'EM', 'U', 'S', 'STRIKE', 'SPAN', 'BR', 'DIV', 'P']);
@@ -287,6 +309,13 @@ async function handlePublish(e){
 
   const btn = document.getElementById('postBtn');
   const status = document.getElementById('composerStatus');
+
+  if (containsPoliticalContent(textEl.textContent)) {
+    status.textContent = POLITICAL_GUARD_MESSAGE;
+    status.className = 'composer-status error';
+    return;
+  }
+
   btn.disabled = true;
   status.textContent = pendingFile ? 'Загружаем вложение...' : 'Публикуем...';
   status.className = 'composer-status';
@@ -416,6 +445,7 @@ function startEditPost(post, card){
   editWrap.querySelector('.post-edit-cancel').addEventListener('click', () => renderFeed());
   editWrap.querySelector('.post-edit-save').addEventListener('click', async () => {
     const hasText = !!editableEl.textContent.trim();
+    if (containsPoliticalContent(editableEl.textContent)) { alert(POLITICAL_GUARD_MESSAGE); return; }
     const newContent = hasText ? sanitizeRichHtml(editableEl.innerHTML) : '';
     const saveBtn = editWrap.querySelector('.post-edit-save');
     saveBtn.disabled = true;
@@ -496,8 +526,10 @@ function startEditComment(c, row, postId, container, countEl){
     actionsRow.style.display = '';
   });
   editWrap.querySelector('.c-edit-save').addEventListener('click', async () => {
-    const val = censorText(editWrap.querySelector('.c-edit-input').value.trim());
-    if (!val) return;
+    const raw = editWrap.querySelector('.c-edit-input').value.trim();
+    if (!raw) return;
+    if (containsPoliticalContent(raw)) { alert(POLITICAL_GUARD_MESSAGE); return; }
+    const val = censorText(raw);
     const { error } = await SB.from('post_comments').update({ content: val, updated_at: new Date().toISOString() }).eq('id', c.id);
     if (error) { alert('Ошибка: ' + error.message); return; }
     await loadComments(postId, container, countEl);
@@ -564,8 +596,10 @@ async function refreshCommentCount(postId, countEl){
 }
 
 async function handleAddComment(postId, input, container, countEl){
-  const text = censorText(input.value.trim());
-  if (!text) return;
+  const raw = input.value.trim();
+  if (!raw) return;
+  if (containsPoliticalContent(raw)) { alert(POLITICAL_GUARD_MESSAGE); return; }
+  const text = censorText(raw);
   const { error } = await SB.from('post_comments').insert({ post_id: postId, user_id: currentUid, content: text });
   if (error) { alert('Ошибка: ' + error.message); return; }
   input.value = '';

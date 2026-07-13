@@ -172,14 +172,14 @@ body{background:#0a0b12;color:#eef0fb;font-family:'Golos Text',sans-serif;-webki
 /* Прямое угадывание на графике: тронул/провёл/отпустил */
 .pm-graph-touch{position:absolute;inset:0;cursor:grab;touch-action:none}
 .pm-graph-touch:active{cursor:grabbing}
-.pm-guess-gate{position:absolute;top:4px;bottom:4px;width:30px;transform:translateX(-50%);pointer-events:none;opacity:.45;transition:opacity .15s}
-.pm-guess-gate.active{opacity:1}
+.pm-guess-gate{position:absolute;top:4px;bottom:4px;width:30px;transform:translateX(-50%);pointer-events:none;opacity:.45;transition:opacity .15s,left .08s ease}
+.pm-guess-gate.active{opacity:1;transition:opacity .15s}
 .pm-gate-arm{position:absolute;top:0;bottom:0;width:9px;border:3px solid #fb923c;border-radius:5px;box-shadow:0 0 10px rgba(251,146,60,.65)}
 .pm-gate-arm.left{left:0;border-right:none;border-top-right-radius:0;border-bottom-right-radius:0}
 .pm-gate-arm.right{right:0;border-left:none;border-top-left-radius:0;border-bottom-left-radius:0}
 .pm-guess-tag{
   position:absolute;top:0;display:flex;align-items:center;gap:4px;
-  transition:opacity .2s;pointer-events:none;transform:translateX(-50%);
+  transition:opacity .2s,left .08s ease;pointer-events:none;transform:translateX(-50%);
 }
 .pm-guess-tag span{
   font-family:'Golos Text',sans-serif;font-size:12px;font-weight:700;color:#0a0b16;

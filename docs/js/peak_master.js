@@ -518,6 +518,16 @@ function graphPointerUp(e){
   submitGuess();
 }
 
+function graphHoverMove(e){
+  if(dragging||answered||qStart===0)return;
+  setGuessFraction(graphFracFromEvent(e));
+}
+function graphHoverLeave(){
+  if(dragging||answered)return;
+  const tag=document.getElementById('guessTag');
+  if(tag)tag.style.opacity='0';
+}
+
 function submitGuess(){
   if(answered)return;
   picked=sliderToFreq(guessFrac);
@@ -1258,6 +1268,8 @@ loadTrackManifest();
 const graphTouchEl=document.getElementById('graphTouch');
 graphTouchEl.addEventListener('mousedown',graphPointerDown);
 graphTouchEl.addEventListener('touchstart',graphPointerDown,{passive:false});
+graphTouchEl.addEventListener('mousemove',graphHoverMove);
+graphTouchEl.addEventListener('mouseleave',graphHoverLeave);
 window.addEventListener('mousemove',graphPointerMove);
 window.addEventListener('touchmove',graphPointerMove,{passive:false});
 window.addEventListener('mouseup',graphPointerUp);

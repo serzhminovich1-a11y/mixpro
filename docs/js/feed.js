@@ -39,6 +39,49 @@ function timeAgo(iso){
 }
 
 /* ══════════════════════════════════════
+   ФИЛЬТР МАТА — автоматически заменяет найденные слова звёздочками
+   до того, как текст попадёт в базу. Ловит основные формы через корни
+   слов и частые способы обхода (英/лат буквы-омоглифы, "х.у.й" через
+   точки/дефисы внутри одного "слова"). Не ловит намеренно разбитые
+   пробелами буквы ("х у й") — это отдельная, гораздо более сложная
+   задача, для нее лучше жалобы + модератор.
+   ══════════════════════════════════════ */
+const PROFANITY_ROOTS = [
+  'хуй', 'хуя', 'хуе', 'хуё', 'хуи', 'хую',
+  'пизд',
+  'еба', 'ёба', 'ебу', 'ебё', 'ебы', 'ебл',
+  'бляд', 'блят',
+  'муда', 'мудо',
+  'пидор', 'пидар', 'пидр',
+  'гондон',
+  'залуп',
+];
+// Короткие корни небезопасно матчить как подстроку (например "бля" входит
+// в безобидное "бляха-муха") — эти проверяем только на точное совпадение
+// со всем словом.
+const PROFANITY_EXACT_WORDS = ['бля', 'ебн'];
+const PROFANITY_HOMOGLYPHS = { a: 'а', e: 'е', o: 'о', p: 'р', c: 'с', x: 'х', y: 'у', k: 'к', m: 'м', t: 'т', h: 'н', b: 'в' };
+
+function normalizeForFilter(chunk){
+  let s = '';
+  for (const ch of chunk.toLowerCase()) s += PROFANITY_HOMOGLYPHS[ch] || ch;
+  return s.replace(/[^a-zа-яё]/gi, '');
+}
+// Заменяет найденные "плохие" слова звёздочками той же длины, что и оригинал.
+// Работает на обычном тексте (используется и для комментариев, и как шаг
+// внутри sanitizeRichHtml — там применяется к каждому текстовому узлу,
+// так что HTML-теги форматирования никогда не задеваются).
+function censorText(text){
+  if (!text) return text;
+  return text.split(/(\s+)/).map(chunk => {
+    if (!chunk || /^\s+$/.test(chunk)) return chunk;
+    const core = normalizeForFilter(chunk);
+    const isBad = PROFANITY_EXACT_WORDS.includes(core) || PROFANITY_ROOTS.some(root => core.includes(root));
+    return isBad ? '*'.repeat(chunk.length) : chunk;
+  }).join('');
+}
+
+/* ══════════════════════════════════════
    ФОРМАТИРОВАННЫЙ ТЕКСТ (жирный/курсив/подчёркнутый/зачёркнутый/шрифт/размер)
    ══════════════════════════════════════ */
 const RICH_ALLOWED_TAGS = new Set(['B', 'STRONG', 'I', 'EM', 'U', 'S', 'STRIKE', 'SPAN', 'BR', 'DIV', 'P']);
@@ -69,7 +112,7 @@ function sanitizeRichHtml(html){
 function sanitizeRichNode(node){
   const out = document.createElement('div');
   Array.from(node.childNodes).forEach(child => {
-    if (child.nodeType === Node.TEXT_NODE) { out.appendChild(document.createTextNode(child.textContent)); return; }
+    if (child.nodeType === Node.TEXT_NODE) { out.appendChild(document.createTextNode(censorText(child.textContent))); return; }
     if (child.nodeType !== Node.ELEMENT_NODE) return;
     const tag = child.tagName;
     if (tag === 'FONT') {
@@ -453,7 +496,7 @@ function startEditComment(c, row, postId, container, countEl){
     actionsRow.style.display = '';
   });
   editWrap.querySelector('.c-edit-save').addEventListener('click', async () => {
-    const val = editWrap.querySelector('.c-edit-input').value.trim();
+    const val = censorText(editWrap.querySelector('.c-edit-input').value.trim());
     if (!val) return;
     const { error } = await SB.from('post_comments').update({ content: val, updated_at: new Date().toISOString() }).eq('id', c.id);
     if (error) { alert('Ошибка: ' + error.message); return; }
@@ -470,15 +513,16 @@ function commentRow(c, postId, container, countEl){
   const canEdit = isOwn && !c.audio_url;
   const body = c.audio_url
     ? `<audio controls src="${c.audio_url}"></audio>`
-    : `<div class="ctext">${escapeHtml(c.content)}</div>`;
+    : `<div class="ctext">${escapeHtml(censorText(c.content))}</div>`;
   div.innerHTML = `
     <div class="comment-avatar">${initialsOf(username)}</div>
     <div class="comment-body">
       <div class="cname">${escapeHtml(username)}${c.updated_at ? ' <span style="font-weight:400;color:var(--muted);font-size:10px">· изменено</span>' : ''}</div>
       ${body}
-      ${(canEdit || canDelete) ? `<div class="comment-row-actions" style="display:flex;gap:10px;margin-top:3px">
+      ${(canEdit || canDelete || !isOwn) ? `<div class="comment-row-actions" style="display:flex;gap:10px;margin-top:3px">
         ${canEdit ? '<button type="button" class="comment-edit-btn">Изменить</button>' : ''}
         ${canDelete ? '<button type="button" class="comment-del-btn">Удалить</button>' : ''}
+        ${!isOwn ? '<button type="button" class="comment-report-btn" title="Пожаловаться">🚩</button>' : ''}
       </div>` : ''}
     </div>`;
 
@@ -486,8 +530,25 @@ function commentRow(c, postId, container, countEl){
   if (editBtn) editBtn.addEventListener('click', () => startEditComment(c, div, postId, container, countEl));
   const delBtn = div.querySelector('.comment-del-btn');
   if (delBtn) delBtn.addEventListener('click', () => handleDeleteComment(c, postId, container, countEl));
+  const reportBtn = div.querySelector('.comment-report-btn');
+  if (reportBtn) reportBtn.addEventListener('click', () => handleReportContent('comment', c.id, reportBtn));
 
   return div;
+}
+
+async function handleReportContent(type, id, btn){
+  const reason = prompt('Почему жалуешься? (необязательно, можно оставить пустым)');
+  if (reason === null) return;
+  btn.disabled = true;
+  const { error } = await SB.from('content_reports').insert({ reporter_id: currentUid, content_type: type, content_id: id, reason: reason.trim() || null });
+  if (error) {
+    btn.disabled = false;
+    if (error.code === '23505') { alert('Ты уже жаловался на это.'); return; }
+    alert('Не удалось отправить жалобу: ' + error.message);
+    return;
+  }
+  btn.textContent = '✅';
+  btn.title = 'Жалоба отправлена';
 }
 
 async function loadComments(postId, container, countEl){
@@ -503,7 +564,7 @@ async function refreshCommentCount(postId, countEl){
 }
 
 async function handleAddComment(postId, input, container, countEl){
-  const text = input.value.trim();
+  const text = censorText(input.value.trim());
   if (!text) return;
   const { error } = await SB.from('post_comments').insert({ post_id: postId, user_id: currentUid, content: text });
   if (error) { alert('Ошибка: ' + error.message); return; }
@@ -540,6 +601,7 @@ function postCard(p, commentCounts){
       ${!isOwn ? `<button type="button" class="follow-btn ${followingSet.has(p.user_id) ? 'following' : ''}">${followingSet.has(p.user_id) ? 'Вы подписаны' : 'Подписаться'}</button>` : ''}
       ${isOwn ? '<button type="button" class="post-edit-btn" title="Редактировать">✏️</button>' : ''}
       ${(isOwn || currentRole === 'ADMIN') ? '<button type="button" class="post-del" title="Удалить">🗑</button>' : ''}
+      ${!isOwn ? '<button type="button" class="post-report-btn" title="Пожаловаться">🚩</button>' : ''}
     </div>
     ${p.content ? `<div class="post-body">${p.is_rich ? sanitizeRichHtml(p.content) : escapeHtml(p.content)}</div>` : ''}
     ${attachmentHtml(p)}
@@ -572,6 +634,9 @@ function postCard(p, commentCounts){
 
   const editBtn = card.querySelector('.post-edit-btn');
   if (editBtn) editBtn.addEventListener('click', () => startEditPost(p, card));
+
+  const reportBtn = card.querySelector('.post-report-btn');
+  if (reportBtn) reportBtn.addEventListener('click', () => handleReportContent('post', p.id, reportBtn));
 
   const pillWrap = card.querySelector('.emoji-pills');
   refreshReactions(p.id, pillWrap);

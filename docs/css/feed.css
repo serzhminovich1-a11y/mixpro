@@ -67,9 +67,15 @@ nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-con
 .post-del:hover{color:var(--red)}
 .post-edit-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;flex-shrink:0}
 .post-edit-btn:hover{color:var(--cyan)}
-.comment-edit-btn,.comment-del-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:10px;flex-shrink:0}
+.post-report-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;flex-shrink:0;opacity:.6}
+.post-report-btn:hover{opacity:1;color:var(--gold)}
+.post-report-btn:disabled{opacity:.4;cursor:default}
+.comment-edit-btn,.comment-del-btn,.comment-report-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:10px;flex-shrink:0}
 .comment-edit-btn:hover{color:var(--cyan)}
 .comment-del-btn:hover{color:var(--red)}
+.comment-report-btn{opacity:.6}
+.comment-report-btn:hover{opacity:1;color:var(--gold)}
+.comment-report-btn:disabled{opacity:.4;cursor:default}
 .post-body{font-size:14px;line-height:1.6;color:var(--text);white-space:pre-wrap;word-break:break-word}
 .post-attachment audio{width:100%;height:34px}
 .post-attachment video{width:100%;border-radius:10px;max-height:360px;background:#000}

@@ -47,6 +47,7 @@ async function loadSection(name){
   if (name === 'courses') await renderCoursesAdmin();
   if (name === 'assignments') await renderAssignmentQueue();
   if (name === 'verify') await renderVerifyQueue();
+  if (name === 'reports') await renderReportsQueue();
   if (name === 'users') await renderUsers(null);
 }
 
@@ -66,6 +67,9 @@ async function renderOverview(){
   if (['MENTOR', 'ADMIN'].includes(currentRole)) {
     const { count: pendingVerify } = await SB.from('verification_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending');
     boxes.push(`<button type="button" class="stat-box ${pendingVerify ? 'warn' : ''}" onclick="switchSection('verify')" style="text-align:left;cursor:pointer;border:1px solid var(--border);width:100%"><div class="n">${pendingVerify ?? 0}</div><div class="l">Заявок на верификацию</div></button>`);
+
+    const { count: pendingReports } = await SB.from('content_reports').select('id', { count: 'exact', head: true }).eq('status', 'pending');
+    boxes.push(`<button type="button" class="stat-box ${pendingReports ? 'warn' : ''}" onclick="switchSection('reports')" style="text-align:left;cursor:pointer;border:1px solid var(--border);width:100%"><div class="n">${pendingReports ?? 0}</div><div class="l">Жалоб на рассмотрении</div></button>`);
   }
 
   if (currentRole === 'ADMIN') {
@@ -93,6 +97,10 @@ async function updateSidebarBadges(){
     const { count: pendingVerify } = await SB.from('verification_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending');
     const badgeV = document.getElementById('badgeVerify');
     if (pendingVerify) { badgeV.textContent = pendingVerify; badgeV.style.display = ''; } else { badgeV.style.display = 'none'; }
+
+    const { count: pendingReports } = await SB.from('content_reports').select('id', { count: 'exact', head: true }).eq('status', 'pending');
+    const badgeR = document.getElementById('badgeReports');
+    if (pendingReports) { badgeR.textContent = pendingReports; badgeR.style.display = ''; } else { badgeR.style.display = 'none'; }
   }
 }
 
@@ -604,6 +612,89 @@ async function renderVerifyQueue(){
 }
 
 /* ══════════════════════════════════════
+   ЖАЛОБЫ
+   ══════════════════════════════════════ */
+async function renderReportsQueue(){
+  const queue = document.getElementById('reportsQueue');
+  const { data: reports, error } = await SB.from('content_reports')
+    .select('*')
+    .eq('status', 'pending')
+    .order('created_at', { ascending: true });
+
+  if (error || !reports || reports.length === 0) {
+    queue.innerHTML = '<div class="empty">Жалоб на рассмотрении нет</div>';
+    return;
+  }
+
+  const reporterIds = [...new Set(reports.map(r => r.reporter_id))];
+  const postIds = [...new Set(reports.filter(r => r.content_type === 'post').map(r => r.content_id))];
+  const commentIds = [...new Set(reports.filter(r => r.content_type === 'comment').map(r => r.content_id))];
+
+  const [{ data: reporters }, { data: posts }, { data: comments }] = await Promise.all([
+    reporterIds.length ? SB.from('profiles').select('id, username').in('id', reporterIds) : Promise.resolve({ data: [] }),
+    postIds.length ? SB.from('posts').select('id, content, user_id').in('id', postIds) : Promise.resolve({ data: [] }),
+    commentIds.length ? SB.from('post_comments').select('id, content, audio_url, user_id').in('id', commentIds) : Promise.resolve({ data: [] }),
+  ]);
+  const reporterMap = new Map((reporters || []).map(u => [u.id, u.username]));
+  const postMap = new Map((posts || []).map(p => [p.id, p]));
+  const commentMap = new Map((comments || []).map(c => [c.id, c]));
+
+  queue.innerHTML = '';
+  reports.forEach(r => {
+    const content = r.content_type === 'post' ? postMap.get(r.content_id) : commentMap.get(r.content_id);
+    queue.appendChild(reportCard(r, content, reporterMap.get(r.reporter_id)));
+  });
+}
+
+function reportCard(r, content, reporterName){
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.style.cssText = 'padding:20px 22px;display:flex;flex-direction:column;gap:10px';
+  const date = new Date(r.created_at).toLocaleDateString('ru-RU');
+  const typeLabel = r.content_type === 'post' ? 'Пост' : 'Комментарий';
+  let preview;
+  if (!content) {
+    preview = '<span style="color:var(--muted)">Контент уже удалён</span>';
+  } else if (content.audio_url) {
+    preview = `<audio controls src="${content.audio_url}" style="width:100%;height:32px"></audio>`;
+  } else {
+    preview = `<div style="white-space:pre-wrap">${escapeHtml(content.content || '(пусто)')}</div>`;
+  }
+  card.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+      <div style="font-family:var(--mono);font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:.06em">${typeLabel} · пожаловался ${escapeHtml(reporterName || '?')}</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--muted2)">${date}</div>
+    </div>
+    <div style="font-size:13px;color:var(--text);background:var(--s2);border-radius:8px;padding:10px 14px">${preview}</div>
+    ${r.reason ? `<div style="font-size:12.5px;color:var(--muted2)"><b style="color:var(--text)">Причина:</b> ${escapeHtml(r.reason)}</div>` : ''}
+    <div style="display:flex;gap:8px">
+      <button type="button" class="nav-btn danger deleteContentBtn" ${!content ? 'disabled' : ''}>Удалить контент</button>
+      <button type="button" class="nav-btn dismissBtn">Отклонить жалобу</button>
+    </div>`;
+
+  card.querySelector('.deleteContentBtn').addEventListener('click', () => handleResolveReport(r, card, 'delete'));
+  card.querySelector('.dismissBtn').addEventListener('click', () => handleResolveReport(r, card, 'dismiss'));
+  return card;
+}
+
+async function handleResolveReport(r, card, action){
+  card.querySelectorAll('button').forEach(b => b.disabled = true);
+  if (action === 'delete') {
+    const table = r.content_type === 'post' ? 'posts' : 'post_comments';
+    const { error: delErr } = await SB.from(table).delete().eq('id', r.content_id);
+    if (delErr) { alert('Не удалось удалить: ' + delErr.message); card.querySelectorAll('button').forEach(b => b.disabled = false); return; }
+  }
+  const { error } = await SB.from('content_reports').update({
+    status: action === 'delete' ? 'resolved' : 'dismissed',
+    reviewed_by: currentUid,
+    reviewed_at: new Date().toISOString(),
+  }).eq('id', r.id);
+  if (error) { alert('Ошибка: ' + error.message); card.querySelectorAll('button').forEach(b => b.disabled = false); return; }
+  card.remove();
+  updateSidebarBadges();
+}
+
+/* ══════════════════════════════════════
    ПОЛЬЗОВАТЕЛИ
    ══════════════════════════════════════ */
 const ROLES = ['STUDENT', 'ENGINEER', 'MENTOR', 'VERIFIED_PRO', 'ADMIN'];
@@ -726,6 +817,7 @@ async function init() {
 
   if (!['MENTOR', 'ADMIN'].includes(currentRole)) {
     document.getElementById('navVerify').style.display = 'none';
+    document.getElementById('navReports').style.display = 'none';
   }
   if (currentRole !== 'ADMIN') {
     document.getElementById('navUsers').style.display = 'none';

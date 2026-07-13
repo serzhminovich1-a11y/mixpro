@@ -735,6 +735,12 @@ function nextRound(){
 const FREEZE_COST=300;
 const FREEZE_MAX=2;
 
+const FLAME_PATH='M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z';
+const FLAME_UNLIT=`<svg viewBox="0 0 24 24"><path fill="rgba(255,255,255,.22)" d="${FLAME_PATH}"/></svg>`;
+const FLAME_LIT=`<svg viewBox="0 0 24 24"><defs><linearGradient id="flameGradLit" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#fb923c"/><stop offset="1" stop-color="#facc15"/></linearGradient></defs><path fill="url(#flameGradLit)" d="${FLAME_PATH}"/></svg>`;
+const FLAME_HOT=`<svg viewBox="0 0 24 24"><defs><linearGradient id="flameGradHot" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#f87171"/><stop offset=".5" stop-color="#fb923c"/><stop offset="1" stop-color="#facc15"/></linearGradient></defs><path fill="url(#flameGradHot)" d="${FLAME_PATH}"/></svg>`;
+const FLAME_POPUP=`<svg viewBox="0 0 24 24"><defs><linearGradient id="flameGradPopup" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#fb923c"/><stop offset="1" stop-color="#facc15"/></linearGradient></defs><path fill="url(#flameGradPopup)" d="${FLAME_PATH}"/></svg>`;
+
 function initStreak(){
   const d=loadSD();
   const yest=dateStr(-1), twoAgo=dateStr(-2);
@@ -767,9 +773,9 @@ function updateStreakUI(d){
   const n=d.streak||0;
   document.getElementById('streakNum').textContent=n;
   const icon=document.getElementById('streakIcon');
-  if(n<=0){icon.textContent='🕯️';icon.className='pm-streak-icon';}
-  else if(n<7){icon.textContent='🔥';icon.className='pm-streak-icon lit';}
-  else{icon.textContent='🔥';icon.className='pm-streak-icon lit hot';}
+  if(n<=0){icon.innerHTML=FLAME_UNLIT;icon.className='pm-streak-icon';}
+  else if(n<7){icon.innerHTML=FLAME_LIT;icon.className='pm-streak-icon lit';}
+  else{icon.innerHTML=FLAME_HOT;icon.className='pm-streak-icon lit hot';}
 
   const freezes=d.freezes||0;
   document.getElementById('freezeCount').textContent=freezes;
@@ -821,7 +827,7 @@ function startChallenge(){
 
 function showStreakPopup(n,type){
   const ov=document.getElementById('streakOverlay');
-  document.getElementById('streakEmoji').textContent=type==='lost'?'💔':type==='freeze'?'🧊':'🔥';
+  document.getElementById('streakEmoji').innerHTML=type==='lost'?'💔':type==='freeze'?'🧊':FLAME_POPUP;
   document.getElementById('streakN').textContent=n;
   document.getElementById('streakN').style.color=type==='lost'?'var(--red)':type==='freeze'?'#7dd3fc':'var(--gold)';
   const msgs={3:['3 дня подряд!','Хорошее начало — не останавливайся!'],7:['Неделя!','7 дней ежедневной практики. Ты молодец.'],14:['Две недели!','Привычка формируется за 21 день — ты на пути.'],30:['30 дней! 🏆','Месяц. Это уже серьёзно.'],60:['60 дней! 👑','Два месяца без перерыва. Профессиональная дисциплина.'],100:['100 ДНЕЙ! 🌟','Легендарный стрик. Ты звезда.']};

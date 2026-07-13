@@ -39,6 +39,104 @@ function timeAgo(iso){
 }
 
 /* ══════════════════════════════════════
+   ФОРМАТИРОВАННЫЙ ТЕКСТ (жирный/курсив/подчёркнутый/зачёркнутый/шрифт/размер)
+   ══════════════════════════════════════ */
+const RICH_ALLOWED_TAGS = new Set(['B', 'STRONG', 'I', 'EM', 'U', 'S', 'STRIKE', 'SPAN', 'BR', 'DIV', 'P']);
+const RICH_ALLOWED_STYLE_PROPS = ['font-family', 'font-size', 'text-decoration'];
+const RICH_FONT_SIZE_MAP = { '1': '10px', '2': '12px', '3': '15px', '4': '17px', '5': '19px', '6': '24px', '7': '30px' };
+
+function extractSafeStyle(style){
+  return (style || '').split(';').map(s => s.trim()).filter(Boolean).map(part => {
+    const idx = part.indexOf(':');
+    if (idx < 0) return null;
+    const prop = part.slice(0, idx).trim().toLowerCase();
+    const val = part.slice(idx + 1).trim();
+    if (!RICH_ALLOWED_STYLE_PROPS.includes(prop) || !val) return null;
+    if (/expression|url\(|javascript:/i.test(val)) return null;
+    return prop + ':' + val.replace(/[<>"]/g, '');
+  }).filter(Boolean).join(';');
+}
+
+// Разбирает произвольный HTML из contenteditable и пересобирает только из
+// разрешённых тегов/атрибутов — так вложенный <script>/onclick/ссылки не
+// попадут в чужие ленты. Легаси <font size/face> (их создаёт execCommand)
+// превращаем в безопасный <span style="...">.
+function sanitizeRichHtml(html){
+  const doc = new DOMParser().parseFromString('<div>' + String(html || '') + '</div>', 'text/html');
+  const root = doc.body.firstChild;
+  return root ? sanitizeRichNode(root).innerHTML : '';
+}
+function sanitizeRichNode(node){
+  const out = document.createElement('div');
+  Array.from(node.childNodes).forEach(child => {
+    if (child.nodeType === Node.TEXT_NODE) { out.appendChild(document.createTextNode(child.textContent)); return; }
+    if (child.nodeType !== Node.ELEMENT_NODE) return;
+    const tag = child.tagName;
+    if (tag === 'FONT') {
+      const span = document.createElement('span');
+      const size = child.getAttribute('size');
+      const face = child.getAttribute('face');
+      let style = '';
+      if (size && RICH_FONT_SIZE_MAP[size]) style += 'font-size:' + RICH_FONT_SIZE_MAP[size] + ';';
+      if (face) style += 'font-family:' + face.replace(/[^a-zA-Z0-9 ,'"-]/g, '') + ';';
+      if (style) span.setAttribute('style', style);
+      appendSanitizedChildren(child, span);
+      out.appendChild(span);
+      return;
+    }
+    if (!RICH_ALLOWED_TAGS.has(tag)) { appendSanitizedChildren(child, out); return; }
+    const el = document.createElement(tag.toLowerCase());
+    if (tag === 'SPAN') {
+      const safeStyle = extractSafeStyle(child.getAttribute('style'));
+      if (safeStyle) el.setAttribute('style', safeStyle);
+    }
+    appendSanitizedChildren(child, el);
+    out.appendChild(el);
+  });
+  return out;
+}
+function appendSanitizedChildren(src, dest){
+  const sanitized = sanitizeRichNode(src);
+  Array.from(sanitized.childNodes).forEach(n => dest.appendChild(n));
+}
+
+// Подключает панель форматирования (.rt-toolbar) к соседнему полю
+// (.rt-editable) внутри контейнера. Выделение сохраняем сами, потому что
+// клик по кнопке/селекту тулбара обычно сбивает его в contenteditable.
+function makeRichEditor(container){
+  const toolbar = container.querySelector('.rt-toolbar');
+  const editable = container.querySelector('.rt-editable');
+  if (!toolbar || !editable) return editable;
+  let savedRange = null;
+  function saveSelection(){
+    const sel = window.getSelection();
+    if (sel.rangeCount > 0 && editable.contains(sel.anchorNode)) savedRange = sel.getRangeAt(0).cloneRange();
+  }
+  function restoreSelection(){
+    if (!savedRange) return;
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(savedRange);
+  }
+  function applyCmd(cmd, value){
+    editable.focus();
+    restoreSelection();
+    document.execCommand(cmd, false, value || null);
+    saveSelection();
+  }
+  editable.addEventListener('mouseup', saveSelection);
+  editable.addEventListener('keyup', saveSelection);
+  toolbar.querySelectorAll('.rt-btn').forEach(btn => {
+    btn.addEventListener('click', () => applyCmd(btn.dataset.cmd));
+  });
+  const fontSel = toolbar.querySelector('.rt-font');
+  if (fontSel) fontSel.addEventListener('change', () => { if (fontSel.value) applyCmd('fontName', fontSel.value); fontSel.value = ''; });
+  const sizeSel = toolbar.querySelector('.rt-size');
+  if (sizeSel) sizeSel.addEventListener('change', () => { if (sizeSel.value) applyCmd('fontSize', sizeSel.value); sizeSel.value = ''; });
+  return editable;
+}
+
+/* ══════════════════════════════════════
    ЗАПИСЬ ГОЛОСА (MediaRecorder) — общий помощник
    ══════════════════════════════════════ */
 function pickMimeType(){
@@ -79,6 +177,7 @@ function blobToFile(blob, prefix){
 function pickAttachmentType(file){
   if (file.type.startsWith('audio/')) return 'audio';
   if (file.type.startsWith('video/')) return 'video';
+  if (file.type.startsWith('image/')) return 'image';
   return 'file';
 }
 
@@ -115,6 +214,7 @@ async function handleMicClick(){
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  makeRichEditor(document.getElementById('composerForm'));
   document.getElementById('micBtn').addEventListener('click', handleMicClick);
   document.getElementById('attachBtn').addEventListener('click', () => document.getElementById('attachInput').click());
   document.getElementById('attachInput').addEventListener('change', (e) => {
@@ -138,8 +238,9 @@ document.addEventListener('DOMContentLoaded', () => {
 async function handlePublish(e){
   e.preventDefault();
   const textEl = document.getElementById('postContent');
-  const content = textEl.value.trim();
-  if (!content && !pendingFile) return;
+  const hasText = !!textEl.textContent.trim();
+  const content = hasText ? sanitizeRichHtml(textEl.innerHTML) : '';
+  if (!hasText && !pendingFile) return;
 
   const btn = document.getElementById('postBtn');
   const status = document.getElementById('composerStatus');
@@ -167,6 +268,7 @@ async function handlePublish(e){
   const { error } = await SB.from('posts').insert({
     user_id: currentUid,
     content: content || null,
+    is_rich: true,
     attachment_type, attachment_url, attachment_name,
   });
 
@@ -177,7 +279,7 @@ async function handlePublish(e){
     return;
   }
   status.textContent = '';
-  textEl.value = '';
+  textEl.innerHTML = '';
   pendingFile = null;
   document.getElementById('attachInput').value = '';
   document.getElementById('attachPreview').classList.remove('show');
@@ -191,6 +293,7 @@ function attachmentHtml(p){
   if (!p.attachment_url) return '';
   if (p.attachment_type === 'audio') return `<div class="post-attachment"><audio controls src="${p.attachment_url}"></audio></div>`;
   if (p.attachment_type === 'video') return `<div class="post-attachment"><video controls src="${p.attachment_url}"></video></div>`;
+  if (p.attachment_type === 'image') return `<div class="post-attachment"><a href="${p.attachment_url}" target="_blank" rel="noopener"><img src="${p.attachment_url}" alt="" loading="lazy"></a></div>`;
   return `<div class="post-attachment"><a class="post-file-link" href="${p.attachment_url}" target="_blank" rel="noopener">📎 ${escapeHtml(p.attachment_name || 'Файл')}</a></div>`;
 }
 
@@ -231,7 +334,27 @@ function startEditPost(post, card){
   editWrap.className = 'post-edit';
   editWrap.style.cssText = 'display:flex;flex-direction:column;gap:8px';
   editWrap.innerHTML = `
-    <textarea class="post-edit-text" rows="2" style="width:100%;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:var(--ox);font-size:14px;resize:vertical">${escapeHtml(post.content || '')}</textarea>
+    <div class="rt-toolbar">
+      <button type="button" class="rt-btn" data-cmd="bold" title="Жирный"><b>Ж</b></button>
+      <button type="button" class="rt-btn" data-cmd="italic" title="Курсив"><i>К</i></button>
+      <button type="button" class="rt-btn" data-cmd="underline" title="Подчёркнутый"><u>Ч</u></button>
+      <button type="button" class="rt-btn" data-cmd="strikeThrough" title="Зачёркнутый"><s>З</s></button>
+      <span class="rt-sep"></span>
+      <select class="rt-select rt-font" title="Шрифт">
+        <option value="">Шрифт</option>
+        <option value="Golos Text">Обычный</option>
+        <option value="JetBrains Mono">Моно</option>
+        <option value="Georgia">С засечками</option>
+      </select>
+      <select class="rt-select rt-size" title="Размер">
+        <option value="">Размер</option>
+        <option value="2">Мелкий</option>
+        <option value="3">Обычный</option>
+        <option value="5">Крупный</option>
+        <option value="7">Огромный</option>
+      </select>
+    </div>
+    <div class="rt-editable post-edit-text" contenteditable="true" style="width:100%;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:8px 12px" data-placeholder="Текст поста"></div>
     <div style="display:flex;gap:8px">
       <button type="button" class="btn-primary post-edit-save">Сохранить</button>
       <button type="button" class="nav-btn post-edit-cancel">Отмена</button>
@@ -242,14 +365,18 @@ function startEditPost(post, card){
   } else {
     bodyEl.replaceWith(editWrap);
   }
-  editWrap.querySelector('.post-edit-text').focus();
+  const editableEl = editWrap.querySelector('.post-edit-text');
+  editableEl.innerHTML = post.is_rich ? sanitizeRichHtml(post.content || '') : escapeHtml(post.content || '');
+  makeRichEditor(editWrap);
+  editableEl.focus();
 
   editWrap.querySelector('.post-edit-cancel').addEventListener('click', () => renderFeed());
   editWrap.querySelector('.post-edit-save').addEventListener('click', async () => {
-    const newContent = editWrap.querySelector('.post-edit-text').value.trim();
+    const hasText = !!editableEl.textContent.trim();
+    const newContent = hasText ? sanitizeRichHtml(editableEl.innerHTML) : '';
     const saveBtn = editWrap.querySelector('.post-edit-save');
     saveBtn.disabled = true;
-    const { error } = await SB.from('posts').update({ content: newContent || null, updated_at: new Date().toISOString() }).eq('id', post.id);
+    const { error } = await SB.from('posts').update({ content: newContent || null, is_rich: true, updated_at: new Date().toISOString() }).eq('id', post.id);
     if (error) { alert('Ошибка: ' + error.message); saveBtn.disabled = false; return; }
     renderFeed();
   });
@@ -414,7 +541,7 @@ function postCard(p, commentCounts){
       ${isOwn ? '<button type="button" class="post-edit-btn" title="Редактировать">✏️</button>' : ''}
       ${(isOwn || currentRole === 'ADMIN') ? '<button type="button" class="post-del" title="Удалить">🗑</button>' : ''}
     </div>
-    ${p.content ? `<div class="post-body">${escapeHtml(p.content)}</div>` : ''}
+    ${p.content ? `<div class="post-body">${p.is_rich ? sanitizeRichHtml(p.content) : escapeHtml(p.content)}</div>` : ''}
     ${attachmentHtml(p)}
     <div class="post-actions">
       <div class="emoji-pills"></div>

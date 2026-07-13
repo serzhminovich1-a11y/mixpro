@@ -24,7 +24,27 @@
 
   <div id="content" style="display:none">
     <form class="card composer" id="composerForm">
-      <textarea id="postContent" rows="2" placeholder="Поделись мыслями о миксе, спроси совета…"></textarea>
+      <div class="rt-toolbar">
+        <button type="button" class="rt-btn" data-cmd="bold" title="Жирный"><b>Ж</b></button>
+        <button type="button" class="rt-btn" data-cmd="italic" title="Курсив"><i>К</i></button>
+        <button type="button" class="rt-btn" data-cmd="underline" title="Подчёркнутый"><u>Ч</u></button>
+        <button type="button" class="rt-btn" data-cmd="strikeThrough" title="Зачёркнутый"><s>З</s></button>
+        <span class="rt-sep"></span>
+        <select class="rt-select rt-font" title="Шрифт">
+          <option value="">Шрифт</option>
+          <option value="Golos Text">Обычный</option>
+          <option value="JetBrains Mono">Моно</option>
+          <option value="Georgia">С засечками</option>
+        </select>
+        <select class="rt-select rt-size" title="Размер">
+          <option value="">Размер</option>
+          <option value="2">Мелкий</option>
+          <option value="3">Обычный</option>
+          <option value="5">Крупный</option>
+          <option value="7">Огромный</option>
+        </select>
+      </div>
+      <div id="postContent" class="rt-editable" contenteditable="true" data-placeholder="Поделись мыслями о миксе, спроси совета…"></div>
       <div class="attach-preview" id="attachPreview">
         <span id="attachName"></span>
         <button type="button" id="attachRemove">✕</button>

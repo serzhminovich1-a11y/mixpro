@@ -26,6 +26,18 @@ nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-con
 .composer textarea{width:100%;background:transparent;border:none;color:var(--text);font-family:var(--ox);font-size:14.5px;resize:none;min-height:44px}
 .composer textarea:focus{outline:none}
 .composer textarea::placeholder{color:var(--muted)}
+
+/* Rich-text toolbar */
+.rt-toolbar{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.rt-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--s2);color:var(--muted2);font-family:var(--ox);font-size:13px;cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center}
+.rt-btn:hover{color:var(--text);border-color:rgba(74,222,128,.35)}
+.rt-btn.active{color:var(--cyan);border-color:var(--cyan);background:rgba(74,222,128,.1)}
+.rt-sep{width:1px;height:18px;background:var(--border);margin:0 4px}
+.rt-select{background:var(--s2);border:1px solid var(--border);border-radius:6px;color:var(--muted2);font-family:var(--ox);font-size:12px;padding:5px 6px;cursor:pointer;max-width:110px}
+.rt-select:hover{color:var(--text)}
+.rt-editable{width:100%;min-height:44px;color:var(--text);font-family:var(--ox);font-size:14.5px;line-height:1.55;outline:none;word-break:break-word}
+.rt-editable:empty:before{content:attr(data-placeholder);color:var(--muted)}
+.rt-editable b,.rt-editable strong{font-weight:700}
 .attach-preview{display:none;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;background:var(--s2);border:1px solid var(--border);font-family:var(--mono);font-size:12px;color:var(--muted2)}
 .attach-preview.show{display:flex}
 .attach-preview button{margin-left:auto;background:none;border:none;color:var(--muted2);cursor:pointer;font-size:14px}
@@ -61,6 +73,7 @@ nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-con
 .post-body{font-size:14px;line-height:1.6;color:var(--text);white-space:pre-wrap;word-break:break-word}
 .post-attachment audio{width:100%;height:34px}
 .post-attachment video{width:100%;border-radius:10px;max-height:360px;background:#000}
+.post-attachment img{width:100%;max-height:480px;object-fit:cover;border-radius:10px;display:block;cursor:zoom-in}
 .post-file-link{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;background:var(--s2);border:1px solid var(--border);font-size:13px;color:var(--cyan);text-decoration:none}
 
 .post-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-top:2px}

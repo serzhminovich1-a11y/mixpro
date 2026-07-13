@@ -98,10 +98,15 @@ tr:hover td{background:var(--s2)}
 .works-wall{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
 .work-card{border-radius:11px;overflow:hidden;display:flex;flex-direction:column}
 .work-card:hover{border-color:rgba(74,222,128,.28);box-shadow:var(--shadow-lift-hover);transform:translateY(-1px)}
-.work-body{padding:12px 14px 4px}
+.work-top{display:flex;align-items:center;gap:10px;padding:14px 14px 0}
+.work-cover{width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0;background:var(--s2)}
+.work-cover-placeholder{display:flex;align-items:center;justify-content:center;color:var(--muted);background:linear-gradient(135deg,rgba(74,222,128,.13),rgba(167,139,250,.13))}
+.work-cover-placeholder svg{width:16px;height:16px}
+.work-body{min-width:0}
 .work-title{font-family:var(--ox);font-size:13px;font-weight:700}
 .work-meta{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:4px}
 .work-card .wave-player{border:none;background:transparent;padding:8px 14px 14px}
+.work-card .pf{padding:0 14px 14px}
 
 /* Пресеты / Мерч — витрина, оплата будет отдельным этапом */
 .shop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}

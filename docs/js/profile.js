@@ -70,12 +70,20 @@ async function renderAchievements(uid){
   if (window.animateChildren) animateChildren(grid);
 }
 
+const ICON_COVER_PLACEHOLDER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>';
+
 function workCard(p, viewerCtx){
   const card = document.createElement('div');
   card.className = 'work-card';
   const date = new Date(p.created_at).toLocaleDateString('ru-RU');
+  const cover = p.cover_url
+    ? `<img class="work-cover" src="${p.cover_url}" alt="">`
+    : `<div class="work-cover work-cover-placeholder">${ICON_COVER_PLACEHOLDER}</div>`;
   card.innerHTML = `
-    <div class="work-body"><div class="work-title">${p.title}</div><div class="work-meta">${date}</div></div>
+    <div class="work-top">
+      ${cover}
+      <div class="work-body"><div class="work-title">${p.title}</div><div class="work-meta">${date}</div></div>
+    </div>
     <div class="wp-mount"></div>
     <div class="pf-mount"></div>`;
 

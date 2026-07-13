@@ -68,6 +68,16 @@
         <label for="fFile">Аудиофайл (MP3, WAV)</label>
         <input type="file" id="fFile" accept="audio/*" required>
       </div>
+      <div class="field">
+        <label for="fCover">Обложка (необязательно)</label>
+        <div class="cover-pick">
+          <div class="cover-pick-preview" id="coverPreview"></div>
+          <div class="cover-pick-body">
+            <input type="file" id="fCover" accept="image/*">
+            <div class="cover-pick-hint">Квадратная картинка смотрится лучше всего</div>
+          </div>
+        </div>
+      </div>
       <button type="submit" class="upload-btn" id="uploadBtn">Загрузить</button>
       <div class="upload-status" id="uploadStatus"></div>
     </form>

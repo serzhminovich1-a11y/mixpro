@@ -26,6 +26,13 @@ let allProjects = [];
 let projectStats = null; // { byProject: Map, totalReactions, avgRating, totalReviews }
 let currentSort = 'new';
 
+const ICON_COVER_PLACEHOLDER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>';
+function coverHtml(p){
+  return p.cover_url
+    ? `<img class="proj-cover" src="${p.cover_url}" alt="">`
+    : `<div class="proj-cover proj-cover-placeholder">${ICON_COVER_PLACEHOLDER}</div>`;
+}
+
 function ratingBadge(id){
   const s = projectStats && projectStats.byProject.get(id);
   if (!s || !s.ratingCount) return '';
@@ -46,8 +53,11 @@ function projectCard(p){
   const badges = ratingBadge(p.id) + reviewedBadge(p.id);
   card.innerHTML = `
     <div class="proj-top">
-      <div class="proj-title">${p.title}</div>
-      <div class="proj-date">${date}</div>
+      ${coverHtml(p)}
+      <div class="proj-top-text">
+        <div class="proj-title">${p.title}</div>
+        <div class="proj-date">${date}</div>
+      </div>
     </div>
     ${badges ? `<div class="proj-badges">${badges}</div>` : ''}
     <div class="wp-mount"></div>
@@ -137,7 +147,9 @@ async function renderProjects(){
 async function deleteProject(p){
   if (!confirm('Удалить "' + p.title + '"?')) return;
   const storagePath = p.metadata && p.metadata.storage_path;
+  const coverStoragePath = p.metadata && p.metadata.cover_storage_path;
   if (storagePath) await SB.storage.from('portfolio').remove([storagePath]);
+  if (coverStoragePath) await SB.storage.from('portfolio').remove([coverStoragePath]);
   await SB.from('projects').delete().eq('id', p.id);
   allProjects = allProjects.filter(x => x.id !== p.id);
   if (!allProjects.length) {
@@ -161,6 +173,7 @@ async function handleUpload(e){
   e.preventDefault();
   const title = document.getElementById('fTitle').value.trim();
   const file = document.getElementById('fFile').files[0];
+  const coverFile = document.getElementById('fCover').files[0];
   if (!title || !file) return;
 
   const btn = document.getElementById('uploadBtn');
@@ -176,15 +189,29 @@ async function handleUpload(e){
     btn.disabled = false;
     return;
   }
-
   const { data: pub } = SB.storage.from('portfolio').getPublicUrl(storagePath);
+
+  let coverUrl = null, coverStoragePath = null;
+  if (coverFile) {
+    setStatus('Загружаем обложку...');
+    const safeCoverName = coverFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    coverStoragePath = `${currentUid}/covers/${Date.now()}_${safeCoverName}`;
+    const { error: coverErr } = await SB.storage.from('portfolio').upload(coverStoragePath, coverFile);
+    if (coverErr) {
+      setStatus('Файл загружен, но обложка — нет: ' + coverErr.message, 'error');
+      coverStoragePath = null;
+    } else {
+      coverUrl = SB.storage.from('portfolio').getPublicUrl(coverStoragePath).data.publicUrl;
+    }
+  }
 
   const { error: insErr } = await SB.from('projects').insert({
     user_id: currentUid,
     title,
     file_url: pub.publicUrl,
     file_type: file.type,
-    metadata: { storage_path: storagePath },
+    cover_url: coverUrl,
+    metadata: { storage_path: storagePath, cover_storage_path: coverStoragePath },
   });
 
   btn.disabled = false;
@@ -195,6 +222,7 @@ async function handleUpload(e){
 
   setStatus('Готово!', 'ok');
   document.getElementById('uploadForm').reset();
+  document.getElementById('coverPreview').innerHTML = '';
   document.getElementById('portStats').style.display = '';
   document.getElementById('projSort').style.display = '';
   renderProjects();
@@ -235,6 +263,11 @@ async function init() {
     document.getElementById('tracksHeading').textContent = 'Работы';
   } else {
     document.getElementById('uploadForm').addEventListener('submit', handleUpload);
+    document.getElementById('fCover').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      const preview = document.getElementById('coverPreview');
+      preview.innerHTML = file ? `<img src="${URL.createObjectURL(file)}" alt="">` : '';
+    });
   }
 
   document.getElementById('shareBtn').addEventListener('click', async () => {

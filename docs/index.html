@@ -95,7 +95,7 @@
     <div class="vip-cta-row" id="vipCtaRow">
       <div>
         <h3>Открой все 10 уроков</h3>
-        <p>Полный доступ навсегда — один платёж. Введи код после оплаты.</p>
+        <p>Полный доступ навсегда — один платёж.</p>
       </div>
       <button class="btn btn-primary" onclick="openVip()">Получить VIP — 990 ₽</button>
     </div>
@@ -318,21 +318,21 @@
       <li>Закрытый чат со звукарями</li>
       <li>Разборы реальных миксов каждый месяц</li>
     </ul>
-    <div id="vipPayBlock">
-      <button class="btn btn-primary" style="width:100%;margin-bottom:14px" onclick="showCodeInput()">Оплатить 990 ₽ → ЮKassa</button>
-      <div style="text-align:center;font-family:var(--mono);font-size:12px;color:var(--muted);margin-bottom:12px">— или введи код если уже оплатил —</div>
+    <div id="vipLoginBlock" style="display:none">
+      <p style="font-size:13px;color:var(--muted);text-align:center;margin-bottom:14px;line-height:1.6">VIP привязан к аккаунту, не к этому браузеру — сначала войди или зарегистрируйся.</p>
+      <a href="pages/auth.html" class="btn btn-primary" style="width:100%;text-align:center;display:block;text-decoration:none;box-sizing:border-box">Войти или зарегистрироваться</a>
     </div>
-    <div class="code-input-wrap">
-      <input class="code-input" id="vipCodeIn" type="text" placeholder="MIXPRO-XXXX" maxlength="12" oninput="this.value=this.value.toUpperCase()">
-      <div class="code-error" id="codeErr"></div>
+    <div id="vipContactBlock">
+      <p style="font-size:13px;color:var(--muted);text-align:center;margin-bottom:14px;line-height:1.6">Онлайн-оплата пока в разработке — доступ выдаём вручную. Напиши нам, договоримся об оплате, и включим VIP на твоём аккаунте.</p>
+      <a href="mailto:mixpro@mail.ru?subject=VIP%20доступ" class="btn btn-primary" style="width:100%;text-align:center;display:block;text-decoration:none;box-sizing:border-box">Написать на mixpro@mail.ru</a>
     </div>
-    <button class="btn btn-primary" style="width:100%" onclick="activateCode()">Активировать код</button>
     <button class="modal-close" onclick="closeVip()">Закрыть</button>
   </div>
 </div>
 
 <footer>MIXPRO © 2026 &nbsp;·&nbsp; Telegram: @yourtelegram &nbsp;·&nbsp; По вопросам: mixpro@mail.ru</footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="js/animations.js"></script>
 <script src="js/main.js"></script>
 <script src="js/hero_wave.js"></script>

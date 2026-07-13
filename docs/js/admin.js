@@ -657,6 +657,7 @@ function userRow(u){
     <td><select class="au-role role-${u.role}">${roleOptions}</select><span class="au-saved"></span></td>
     <td><input type="number" class="au-xp" value="${u.xp || 0}" min="0"><span class="au-saved"></span></td>
     <td><select class="au-vstatus">${vOptions}</select><span class="au-saved"></span></td>
+    <td><label class="au-vip-toggle"><input type="checkbox" class="au-vip" ${u.is_vip ? 'checked' : ''}><span class="au-saved"></span></label></td>
     <td class="au-date">${date}</td>
     <td>${isSelf ? '' : '<button type="button" class="icon-btn au-del" title="Удалить аккаунт">🗑</button>'}</td>`;
 
@@ -672,6 +673,9 @@ function userRow(u){
   });
   tr.querySelector('.au-vstatus').addEventListener('change', (e) => {
     saveField(u.id, 'verification_status', e.target.value, e.target);
+  });
+  tr.querySelector('.au-vip').addEventListener('change', (e) => {
+    saveField(u.id, 'is_vip', e.target.checked, e.target);
   });
   const delBtn = tr.querySelector('.au-del');
   if (delBtn) delBtn.addEventListener('click', () => handleDeleteUser(u, tr));

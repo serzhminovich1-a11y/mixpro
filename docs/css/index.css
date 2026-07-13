@@ -214,10 +214,6 @@ select option{background:#1C1C22}
 .feat-list{list-style:none;margin:18px 0 24px}
 .feat-list li{font-size:13px;color:var(--text);padding:7px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
 .feat-list li::before{content:'—';color:var(--amber);font-family:var(--mono);flex-shrink:0}
-.code-input-wrap{margin:16px 0}
-.code-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--mono);font-size:16px;padding:12px 16px;outline:none;letter-spacing:.15em;text-align:center;transition:.15s}
-.code-input:focus{border-color:var(--amber-dim)}
-.code-error{font-family:var(--mono);font-size:12px;color:var(--red);text-align:center;margin-top:6px;min-height:18px}
 .modal-close{font-family:var(--mono);font-size:12px;color:var(--muted);background:none;border:none;cursor:pointer;margin-top:12px;width:100%;text-align:center;letter-spacing:.06em}
 .modal-close:hover{color:var(--text)}
 

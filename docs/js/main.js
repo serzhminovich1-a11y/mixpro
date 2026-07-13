@@ -1,8 +1,6 @@
 // ══════════════════════════════════════
 //   DATA
 // ══════════════════════════════════════
-const VIP_CODE = 'MIXPRO-2025';
-
 const LESSONS = [
  {
   num:'01', free:true,
@@ -422,7 +420,7 @@ const LEVELS=[{min:0,l:'Новичок'},{min:300,l:'Junior'},{min:800,l:'Mid En
 const BSETS={easy:['bass','lowmid','mid','uppermid'],medium:FREQ_BANDS.map(b=>b.name),hard:FREQ_BANDS.map(b=>b.name)};
 const BOOST={easy:14,medium:10,hard:7};const QVAL={easy:1.8,medium:1.4,hard:.9};
 
-let vip=localStorage.getItem('mp_vip')==='1';
+let vip=false;
 let done=JSON.parse(localStorage.getItem('mp_done')||'[]');
 let pts=parseInt(localStorage.getItem('mp_pts')||'0');
 let tr=parseInt(localStorage.getItem('mp_right')||'0');
@@ -440,23 +438,37 @@ function tab(id,btn){
   document.getElementById(id).classList.add('active');btn.classList.add('active');if(id==='tools')setTimeout(drawEnvelope,50);
 }
 
-function openVip(){if(vip)return;document.getElementById('vipOverlay').classList.add('open');}
-function closeVip(){document.getElementById('vipOverlay').classList.remove('open');document.getElementById('codeErr').textContent='';}
+function openVip(){
+  if(vip)return;
+  document.getElementById('vipLoginBlock').style.display=sbUser?'none':'block';
+  document.getElementById('vipContactBlock').style.display=sbUser?'block':'none';
+  document.getElementById('vipOverlay').classList.add('open');
+}
+function closeVip(){document.getElementById('vipOverlay').classList.remove('open');}
 document.getElementById('vipOverlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeVip();});
-function showCodeInput(){
-  document.getElementById('vipPayBlock').style.display='none';
-  document.getElementById('vipCodeIn').focus();
-}
-function activateCode(){
-  const v=document.getElementById('vipCodeIn').value.trim().toUpperCase();
-  if(v===VIP_CODE){vip=true;localStorage.setItem('mp_vip','1');closeVip();applyVip();renderLessons();}
-  else document.getElementById('codeErr').textContent='Неверный код.';
-}
 function applyVip(){
   const nb=document.getElementById('navVipBtn');nb.textContent='✅ VIP';nb.classList.add('unlocked');nb.onclick=null;
   const r=document.getElementById('vipCtaRow');if(r)r.style.display='none';
   document.getElementById('freeTag').textContent='10 уроков';
   const vt=document.getElementById('vipTag');if(vt)vt.style.display='none';
+}
+
+// ══════════════════════════════════════
+//   SUPABASE — VIP теперь привязан к аккаунту, не к коду в браузере
+// ══════════════════════════════════════
+const SB=supabase.createClient('https://mwzskffecoedpvyflswg.supabase.co','sb_publishable_m1ImqMRye4s4yrpuBTvWvA_yMez-ZhD');
+let sbUser=null,sbProfile=null;
+async function sbInit(){
+  const{data:{session}}=await SB.auth.getSession();
+  if(!session)return;
+  sbUser=session.user;
+  const{data:p}=await SB.from('profiles').select('*').eq('id',sbUser.id).single();
+  sbProfile=p;
+  if(p&&p.is_vip){
+    vip=true;
+    applyVip();
+    renderLessons();
+  }
 }
 
 function renderLessons(){
@@ -649,4 +661,4 @@ buildVU();renderLessons();buildCompTypes();
 calcDelay();calcReverb();calcComp();
 calcNoteHz();calcLufs();calcRoom();
 setTimeout(drawEnvelope,50);
-if(vip) applyVip();
+sbInit();

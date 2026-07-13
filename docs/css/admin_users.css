@@ -24,3 +24,9 @@
 .au-saved.show{opacity:1}
 .au-del:hover{color:var(--red);border-color:var(--red)}
 .au-del:disabled{opacity:.4;cursor:default}
+
+.au-vip-toggle{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.au-vip{appearance:none;-webkit-appearance:none;width:34px;height:19px;border-radius:20px;background:var(--s2);border:1px solid var(--border);position:relative;cursor:pointer;flex-shrink:0;transition:background .15s,border-color .15s}
+.au-vip::after{content:'';position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:var(--muted2);transition:transform .15s,background .15s}
+.au-vip:checked{background:rgba(250,204,21,.15);border-color:var(--gold)}
+.au-vip:checked::after{transform:translateX(15px);background:var(--gold)}

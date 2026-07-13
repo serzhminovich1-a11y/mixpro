@@ -5,6 +5,20 @@ const SB = supabase.createClient(
 
 const EMOJI_SET = ['🔥', '👏', '❤️', '😂', '💡', '👎'];
 
+// Контурные SVG-иконки вместо эмодзи для служебных кнопок (запись,
+// вложение, закрыть, редактировать, удалить, пожаловаться и т.п.) —
+// сами реакции (EMOJI_SET выше) остаются настоящими эмодзи, это разное.
+function feedIcon(path){ return `<svg class="feed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`; }
+const ICON_MIC = feedIcon('<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/>');
+const ICON_STOP = feedIcon('<rect x="6" y="6" width="12" height="12" rx="1.5"/>');
+const ICON_PAPERCLIP = feedIcon('<path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/>');
+const ICON_X = feedIcon('<path d="M18 6 6 18"/><path d="m6 6 12 12"/>');
+const ICON_FLAG = feedIcon('<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/>');
+const ICON_CHECK = feedIcon('<path d="M20 6 9 17l-5-5"/>');
+const ICON_MESSAGE = feedIcon('<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>');
+const ICON_PENCIL = feedIcon('<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/>');
+const ICON_TRASH = feedIcon('<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/>');
+
 let currentUid = null;
 let currentUsername = null;
 let currentRole = null;
@@ -260,18 +274,18 @@ async function handleMicClick(){
     composerRecorder = createRecorder((blob) => {
       clearInterval(composerRecTimer);
       micBtn.classList.remove('recording');
-      micBtn.textContent = '🎙️';
+      micBtn.innerHTML = ICON_MIC;
       pendingFile = blobToFile(blob, 'voice');
-      document.getElementById('attachName').textContent = `🎙️ Голосовое сообщение · ${formatDuration(composerRecSeconds)}`;
+      document.getElementById('attachName').innerHTML = ICON_MIC + ' Голосовое сообщение · ' + formatDuration(composerRecSeconds);
       document.getElementById('attachPreview').classList.add('show');
     });
     await composerRecorder.start();
     micBtn.classList.add('recording');
     composerRecSeconds = 0;
-    micBtn.textContent = '⏹ 0:00';
+    micBtn.innerHTML = ICON_STOP + ' 0:00';
     composerRecTimer = setInterval(() => {
       composerRecSeconds++;
-      micBtn.textContent = '⏹ ' + formatDuration(composerRecSeconds);
+      micBtn.innerHTML = ICON_STOP + ' ' + formatDuration(composerRecSeconds);
     }, 1000);
   } catch (err) {
     alert('Не удалось получить доступ к микрофону: ' + (err && err.message ? err.message : err));
@@ -286,7 +300,7 @@ document.addEventListener('DOMContentLoaded', () => {
     pendingFile = e.target.files[0] || null;
     const preview = document.getElementById('attachPreview');
     if (pendingFile) {
-      document.getElementById('attachName').textContent = '📎 ' + pendingFile.name;
+      document.getElementById('attachName').innerHTML = ICON_PAPERCLIP + ' ' + escapeHtml(pendingFile.name);
       preview.classList.add('show');
     } else {
       preview.classList.remove('show');
@@ -366,7 +380,7 @@ function attachmentHtml(p){
   if (p.attachment_type === 'audio') return `<div class="post-attachment"><audio controls src="${p.attachment_url}"></audio></div>`;
   if (p.attachment_type === 'video') return `<div class="post-attachment"><video controls src="${p.attachment_url}"></video></div>`;
   if (p.attachment_type === 'image') return `<div class="post-attachment"><a href="${p.attachment_url}" target="_blank" rel="noopener"><img src="${p.attachment_url}" alt="" loading="lazy"></a></div>`;
-  return `<div class="post-attachment"><a class="post-file-link" href="${p.attachment_url}" target="_blank" rel="noopener">📎 ${escapeHtml(p.attachment_name || 'Файл')}</a></div>`;
+  return `<div class="post-attachment"><a class="post-file-link" href="${p.attachment_url}" target="_blank" rel="noopener">${ICON_PAPERCLIP} ${escapeHtml(p.attachment_name || 'Файл')}</a></div>`;
 }
 
 async function handleFollowToggle(authorId, btn){
@@ -593,7 +607,7 @@ function commentRow(c, postId, container, countEl){
         ${(canEdit || canDelete || !isOwn) ? `<div class="comment-row-actions">
           ${canEdit ? '<button type="button" class="comment-edit-btn">Изменить</button>' : ''}
           ${canDelete ? '<button type="button" class="comment-del-btn">Удалить</button>' : ''}
-          ${!isOwn ? '<button type="button" class="comment-report-btn" title="Пожаловаться">🚩</button>' : ''}
+          ${!isOwn ? '<button type="button" class="comment-report-btn" title="Пожаловаться">' + ICON_FLAG + '</button>' : ''}
         </div>` : ''}
       </div>
     </div>`;
@@ -633,7 +647,7 @@ async function handleReportContent(type, id, btn){
     alert('Не удалось отправить жалобу: ' + error.message);
     return;
   }
-  btn.textContent = '✅';
+  btn.innerHTML = ICON_CHECK;
   btn.title = 'Жалоба отправлена';
 }
 
@@ -646,7 +660,7 @@ async function loadComments(postId, container, countEl){
 
 async function refreshCommentCount(postId, countEl){
   const { count } = await SB.from('post_comments').select('id', { count: 'exact', head: true }).eq('post_id', postId);
-  countEl.textContent = '💬 ' + (count || 0);
+  countEl.innerHTML = ICON_MESSAGE + ' ' + (count || 0);
 }
 
 async function handleAddComment(postId, input, container, countEl){
@@ -687,9 +701,9 @@ function postCard(p, commentCounts){
       <div class="post-avatar" style="background:${author.avatar_color || ''}">${initialsOf(username)}</div>
       <div class="post-meta"><div class="name">${escapeHtml(username)}</div><div class="time">${timeAgo(p.created_at)}${p.updated_at ? ' · изменено' : ''}</div></div>
       ${!isOwn ? `<button type="button" class="follow-btn ${followingSet.has(p.user_id) ? 'following' : ''}">${followingSet.has(p.user_id) ? 'Вы подписаны' : 'Подписаться'}</button>` : ''}
-      ${isOwn ? '<button type="button" class="post-edit-btn" title="Редактировать">✏️</button>' : ''}
-      ${(isOwn || currentRole === 'ADMIN') ? '<button type="button" class="post-del" title="Удалить">🗑</button>' : ''}
-      ${!isOwn ? '<button type="button" class="post-report-btn" title="Пожаловаться">🚩</button>' : ''}
+      ${isOwn ? '<button type="button" class="post-edit-btn" title="Редактировать">' + ICON_PENCIL + '</button>' : ''}
+      ${(isOwn || currentRole === 'ADMIN') ? '<button type="button" class="post-del" title="Удалить">' + ICON_TRASH + '</button>' : ''}
+      ${!isOwn ? '<button type="button" class="post-report-btn" title="Пожаловаться">' + ICON_FLAG + '</button>' : ''}
     </div>
     ${p.content ? `<div class="post-body">${p.is_rich ? sanitizeRichHtml(p.content) : escapeHtml(p.content)}</div>` : ''}
     ${attachmentHtml(p)}
@@ -699,18 +713,18 @@ function postCard(p, commentCounts){
         <button type="button" class="emoji-add-btn">+</button>
         <div class="emoji-picker">${EMOJI_SET.map(e => `<button type="button" data-e="${e}">${e}</button>`).join('')}</div>
       </div>
-      <button type="button" class="comment-toggle">💬 ${commentCount}</button>
+      <button type="button" class="comment-toggle">${ICON_MESSAGE} ${commentCount}</button>
     </div>
     <div class="comments">
       <div class="comment-form">
-        <button type="button" class="comment-mic" title="Голосовой комментарий">🎙️</button>
+        <button type="button" class="comment-mic" title="Голосовой комментарий">${ICON_MIC}</button>
         <input type="text" placeholder="Написать комментарий...">
         <button type="button" class="comment-send">→</button>
       </div>
       <div class="voice-comment-preview">
         <audio controls></audio>
         <button type="button" class="vc-send">Отправить</button>
-        <button type="button" class="vc-cancel">✕</button>
+        <button type="button" class="vc-cancel">${ICON_X}</button>
       </div>
     </div>`;
 
@@ -777,7 +791,7 @@ function postCard(p, commentCounts){
       commentRecorder = createRecorder((blob) => {
         clearInterval(commentRecTimer);
         micBtn.classList.remove('recording');
-        micBtn.textContent = '🎙️';
+        micBtn.innerHTML = ICON_MIC;
         recordedBlob = blob;
         voiceAudio.src = URL.createObjectURL(blob);
         voicePreview.classList.add('show');
@@ -785,10 +799,10 @@ function postCard(p, commentCounts){
       await commentRecorder.start();
       micBtn.classList.add('recording');
       commentRecSeconds = 0;
-      micBtn.textContent = '⏹ 0:00';
+      micBtn.innerHTML = ICON_STOP + ' 0:00';
       commentRecTimer = setInterval(() => {
         commentRecSeconds++;
-        micBtn.textContent = '⏹ ' + formatDuration(commentRecSeconds);
+        micBtn.innerHTML = ICON_STOP + ' ' + formatDuration(commentRecSeconds);
       }, 1000);
     } catch (err) {
       alert('Не удалось получить доступ к микрофону: ' + (err && err.message ? err.message : err));

@@ -169,6 +169,49 @@ function setStatus(text, kind){
   el.className = 'upload-status' + (kind ? ' ' + kind : '');
 }
 
+// Supabase JS не отдаёт реальный процент загрузки байт (это ограничение
+// fetch, на котором построен клиент) — поэтому полоска "подкрадывается"
+// к промежуточным отметкам, замедляясь по пути (как в большинстве
+// современных лоадеров), и рывком идёт до 100%, когда шаг реально
+// завершился. Так пользователь всегда видит, что что-то происходит,
+// а не гадает, зависла страница или нет.
+let progressTimer = null;
+function startProgress(){
+  const bar = document.getElementById('uploadProgress');
+  const fill = document.getElementById('uploadProgressFill');
+  bar.style.display = '';
+  bar.classList.remove('error');
+  fill.style.width = '0%';
+  let pct = 0;
+  clearInterval(progressTimer);
+  progressTimer = setInterval(() => {
+    pct += (80 - pct) * 0.1 + 0.4;
+    if (pct > 80) pct = 80;
+    fill.style.width = pct + '%';
+  }, 200);
+}
+function setProgress(pct){
+  clearInterval(progressTimer);
+  document.getElementById('uploadProgressFill').style.width = pct + '%';
+}
+function finishProgress(){
+  clearInterval(progressTimer);
+  document.getElementById('uploadProgressFill').style.width = '100%';
+  setTimeout(() => {
+    document.getElementById('uploadProgress').style.display = 'none';
+    document.getElementById('uploadProgressFill').style.width = '0%';
+  }, 600);
+}
+function failProgress(){
+  clearInterval(progressTimer);
+  document.getElementById('uploadProgress').classList.add('error');
+  setTimeout(() => {
+    document.getElementById('uploadProgress').style.display = 'none';
+    document.getElementById('uploadProgress').classList.remove('error');
+    document.getElementById('uploadProgressFill').style.width = '0%';
+  }, 1200);
+}
+
 async function handleUpload(e){
   e.preventDefault();
   const title = document.getElementById('fTitle').value.trim();
@@ -179,6 +222,7 @@ async function handleUpload(e){
   const btn = document.getElementById('uploadBtn');
   btn.disabled = true;
   setStatus('Загружаем файл...');
+  startProgress();
 
   const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
   const storagePath = `${currentUid}/${Date.now()}_${safeName}`;
@@ -186,9 +230,11 @@ async function handleUpload(e){
   const { error: upErr } = await SB.storage.from('portfolio').upload(storagePath, file);
   if (upErr) {
     setStatus('Не удалось загрузить файл: ' + upErr.message, 'error');
+    failProgress();
     btn.disabled = false;
     return;
   }
+  setProgress(coverFile ? 55 : 80);
   const { data: pub } = SB.storage.from('portfolio').getPublicUrl(storagePath);
 
   let coverUrl = null, coverStoragePath = null;
@@ -203,8 +249,10 @@ async function handleUpload(e){
     } else {
       coverUrl = SB.storage.from('portfolio').getPublicUrl(coverStoragePath).data.publicUrl;
     }
+    setProgress(80);
   }
 
+  setStatus('Сохраняем запись...');
   const { error: insErr } = await SB.from('projects').insert({
     user_id: currentUid,
     title,
@@ -217,9 +265,11 @@ async function handleUpload(e){
   btn.disabled = false;
   if (insErr) {
     setStatus('Файл загружен, но не удалось сохранить запись: ' + insErr.message, 'error');
+    failProgress();
     return;
   }
 
+  finishProgress();
   setStatus('Готово!', 'ok');
   document.getElementById('uploadForm').reset();
   document.getElementById('coverPreview').innerHTML = '';

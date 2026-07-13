@@ -8,9 +8,11 @@
 (function () {
   const ICON_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
   const ICON_PAUSE = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>';
+  const ICON_STOP = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg>';
   const BAR_COUNT = 56;
   const COLOR_PLAYED = '#4ade80';
   const COLOR_UNPLAYED = 'rgba(255,255,255,.18)';
+  const COLOR_PLAYHEAD = '#eef0fb';
 
   function fmtTime(s) {
     if (!isFinite(s) || s < 0) return '0:00';
@@ -53,6 +55,7 @@
     mount.classList.add('wave-player');
     mount.innerHTML = `
       <button type="button" class="wp-play" aria-label="Воспроизвести">${ICON_PLAY}</button>
+      <button type="button" class="wp-stop" aria-label="Стоп">${ICON_STOP}</button>
       <div class="wp-body">
         <div class="wp-wave"><canvas></canvas></div>
         <div class="wp-time"><span class="wp-cur">0:00</span><span class="wp-dur">--:--</span></div>
@@ -63,6 +66,7 @@
     audio.src = url;
 
     const playBtn = mount.querySelector('.wp-play');
+    const stopBtn = mount.querySelector('.wp-stop');
     const waveEl = mount.querySelector('.wp-wave');
     const canvas = waveEl.querySelector('canvas');
     const curEl = mount.querySelector('.wp-cur');
@@ -89,6 +93,16 @@
         ctx2d.fillStyle = (i / data.length) <= progress ? COLOR_PLAYED : COLOR_UNPLAYED;
         ctx2d.fillRect(x, (h - barH) / 2, Math.max(1, barW - 2), barH);
       }
+      // Явный маркер позиции — чтобы было однозначно видно, что по волне
+      // можно тащить и перематывать, а не просто смотреть на цвет столбиков.
+      if (audio.duration) {
+        const px = progress * w;
+        ctx2d.fillStyle = COLOR_PLAYHEAD;
+        ctx2d.fillRect(Math.max(0, px - 1), 0, 2, h);
+        ctx2d.beginPath();
+        ctx2d.arc(px, h / 2, 4.5, 0, Math.PI * 2);
+        ctx2d.fill();
+      }
     }
 
     function seekFromEvent(e) {
@@ -100,21 +114,26 @@
       draw();
     }
 
-    waveEl.addEventListener('pointerdown', (e) => { dragging = true; seekFromEvent(e); });
+    waveEl.addEventListener('pointerdown', (e) => { dragging = true; waveEl.classList.add('dragging'); seekFromEvent(e); });
     window.addEventListener('pointermove', (e) => { if (dragging) seekFromEvent(e); });
-    window.addEventListener('pointerup', () => { dragging = false; });
+    window.addEventListener('pointerup', () => { dragging = false; waveEl.classList.remove('dragging'); });
+
+    function startPlayback() {
+      // Останавливаем как другие плееры с волной (через событие), так и
+      // обычные <audio>/<video> на странице (голосовые комментарии,
+      // видео-вложения) — они не в DOM-дереве этого плеера и событие их не достанет.
+      document.dispatchEvent(new CustomEvent('mixpro:pauseOtherPlayers', { detail: audio }));
+      document.querySelectorAll('audio, video').forEach(el => el.pause());
+      audio.play().catch(() => {});
+    }
 
     playBtn.addEventListener('click', () => {
-      if (audio.paused) {
-        // Останавливаем как другие плееры с волной (через событие), так и
-        // обычные <audio>/<video> на странице (голосовые комментарии,
-        // видео-вложения) — они не в DOM-дереве этого плеера и событие их не достанет.
-        document.dispatchEvent(new CustomEvent('mixpro:pauseOtherPlayers', { detail: audio }));
-        document.querySelectorAll('audio, video').forEach(el => el.pause());
-        audio.play().catch(() => {});
-      } else {
-        audio.pause();
-      }
+      if (audio.paused) startPlayback(); else audio.pause();
+    });
+    stopBtn.addEventListener('click', () => {
+      audio.pause();
+      audio.currentTime = 0;
+      draw();
     });
     document.addEventListener('mixpro:pauseOtherPlayers', (e) => { if (e.detail !== audio) audio.pause(); });
 

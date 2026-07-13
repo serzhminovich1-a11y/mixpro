@@ -4,13 +4,17 @@
    Портфолио, Профиль. Использует общие токены темы (--border, --s1 и т.д.),
    которые определены одинаково в feed.css / portfolio.css / profile.css.
    ══════════════════════════════════════ */
-.wave-player{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:12px;border:1px solid var(--border);background:var(--s1)}
+.wave-player{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;border:1px solid var(--border);background:var(--s1)}
 .wp-play{width:34px;height:34px;border-radius:50%;border:none;background:var(--green);color:#0a0b16;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:.15s}
 .wp-play:hover{opacity:.85;transform:scale(1.05)}
 .wp-play:disabled{opacity:.4;cursor:default;transform:none}
 .wp-play svg{width:15px;height:15px}
+.wp-stop{width:26px;height:26px;border-radius:50%;border:1px solid var(--border);background:transparent;color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:.15s}
+.wp-stop:hover{color:var(--text);border-color:var(--border-hi)}
+.wp-stop svg{width:10px;height:10px}
 .wp-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
-.wp-wave{height:38px;cursor:pointer;touch-action:none}
+.wp-wave{height:38px;cursor:grab;touch-action:none}
+.wp-wave.dragging{cursor:grabbing}
 .wp-wave canvas{display:block;width:100%;height:100%}
 .wp-time{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10.5px;color:var(--muted);letter-spacing:.02em}
 .wp-error .wp-time{color:var(--red)}

@@ -66,7 +66,9 @@ async function sbInit(){
     sbProfile=p;
     if(p){
       const nb=document.getElementById('navProfile');
-      if(nb) nb.textContent='👤 '+p.username;
+      if(nb){ nb.innerHTML=ICON_USER; nb.appendChild(document.createTextNode(p.username)); }
+      const ab=document.getElementById('navAdmin');
+      if(ab&&['VERIFIED_PRO','MENTOR','ADMIN'].includes(p.role)) ab.style.display='';
     }
     const{data:best}=await SB.from('scores').select('score').eq('user_id',sbUser.id).eq('game','pan_trainer').order('score',{ascending:false}).limit(1).maybeSingle();
     if(best) bestDbScore=best.score;
@@ -361,6 +363,7 @@ function drawVU(){
 // ══════════════════════════════════════
 //  VOLUME
 // ══════════════════════════════════════
+const ICON_USER='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;vertical-align:-2px;margin-right:4px"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
 const ICON_VOL_HIGH='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>';
 const ICON_VOL_LOW='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>';
 const ICON_VOL_MUTE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="22" x2="16" y1="9" y2="15"/><line x1="16" x2="22" y1="9" y2="15"/></svg>';

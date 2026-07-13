@@ -16,13 +16,21 @@ async function init() {
   const { data: { session } } = await SB.auth.getSession();
   if (session) {
     myUserId = session.user.id;
-    const { data: p } = await SB.from('profiles').select('username').eq('id', myUserId).single();
+    const { data: p } = await SB.from('profiles').select('username, role').eq('id', myUserId).single();
     if (p) {
       myUsername = p.username;
-      document.getElementById('profileLink').style.display = 'block';
+      document.getElementById('accountLinks').style.display = '';
+      if (['VERIFIED_PRO', 'MENTOR', 'ADMIN'].includes(p.role)) {
+        document.getElementById('adminLink').style.display = '';
+      }
     }
   }
   load();
+}
+
+async function logout() {
+  await SB.auth.signOut();
+  location.href = 'auth.html';
 }
 
 async function load() {

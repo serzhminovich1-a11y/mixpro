@@ -16,19 +16,24 @@ nav{position:sticky;top:0;z-index:100;background:rgba(10,11,22,.85);backdrop-fil
 .nav-logo{font-family:var(--display);font-weight:700;font-size:18px;color:var(--text);text-decoration:none;letter-spacing:-0.5px;display:flex;align-items:center;gap:9px}
 .nav-logo span{color:var(--amber)}
 .nav-logo-badge{width:26px;height:26px;border-radius:50%;background:var(--amber);color:#0C0C10;font-family:var(--display);font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.nav-tabs{display:flex;gap:3px}
-.nav-tab{font-family:var(--display);font-size:13px;font-weight:500;padding:6px 16px;border-radius:6px;border:none;background:transparent;color:var(--muted);cursor:pointer;transition:.15s}
-.nav-tab:hover{color:var(--text);background:var(--card)}
-.nav-tab.active{color:var(--amber);background:var(--amber-glow)}
-.nav-right{display:flex;align-items:center;gap:18px}
+.nav-tabs{display:flex;gap:2px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:3px}
+.nav-tab{font-family:var(--display);font-size:13px;font-weight:500;padding:6px 14px;border-radius:7px;border:none;background:transparent;color:var(--muted);cursor:pointer;transition:.15s}
+.nav-tab:hover{color:var(--text)}
+.nav-tab.active{color:#0C0C10;background:var(--amber);font-weight:700}
+.nav-right{display:flex;align-items:center;gap:16px}
+.nav-links{display:flex;align-items:center;gap:18px}
+.nav-divider{width:1px;height:22px;background:var(--border)}
+.nav-account{display:flex;align-items:center;gap:10px}
 .nav-link-btn{font-family:var(--display);font-size:13px;font-weight:500;padding:4px 2px;border:none;background:transparent;color:var(--muted);text-decoration:none;transition:.15s}
 .nav-link-btn:hover{color:var(--text)}
-.nav-link-btn.soon{opacity:.4;cursor:default;pointer-events:none}
-.nav-link-btn-primary{font-family:var(--display);font-size:13px;font-weight:700;padding:8px 22px;border-radius:999px;border:none;background:var(--amber);color:#0C0C10;text-decoration:none;transition:.15s;margin-left:2px}
+.nav-link-btn-primary{font-family:var(--display);font-size:13px;font-weight:700;padding:8px 22px;border-radius:999px;border:none;background:var(--amber);color:#0C0C10;text-decoration:none;transition:.15s}
 .nav-link-btn-primary:hover{opacity:.88;transform:translateY(-1px)}
 .nav-vip-btn{font-family:var(--display);font-size:12px;font-weight:700;padding:7px 16px;border-radius:999px;border:1px solid var(--amber);background:transparent;color:var(--amber);cursor:pointer;transition:.15s;letter-spacing:.03em}
 .nav-vip-btn:hover{background:var(--amber-glow)}
 .nav-vip-btn.unlocked{border-color:var(--green);color:var(--green);background:rgba(61,220,132,.08)}
+.nav-admin-btn{font-family:var(--display);font-size:12px;font-weight:700;padding:7px 14px 7px 12px;border-radius:999px;border:1px solid transparent;background:rgba(167,139,250,.15);color:var(--amber-dim);text-decoration:none;transition:.15s;letter-spacing:.03em;display:inline-flex;align-items:center;gap:6px}
+.nav-admin-btn svg{width:14px;height:14px;flex-shrink:0}
+.nav-admin-btn:hover{background:rgba(167,139,250,.25);color:#fff}
 
 /* ── SECTIONS ── */
 .section{display:none}.section.active{display:block}
@@ -232,6 +237,8 @@ footer{border-top:1px solid var(--border);padding:22px 32px;text-align:center;fo
 
 @media(max-width:640px){
   nav{padding:0 14px}.nav-tab{padding:5px 10px;font-size:12px}
+  .nav-links,.nav-divider{display:none}
+  .nav-admin-btn span{display:none}
   .hero,.lessons-wrap,.tools-wrap{padding-left:16px;padding-right:16px}
   .tools-grid{grid-template-columns:1fr}
   .bpm-master{flex-direction:column;align-items:stretch}

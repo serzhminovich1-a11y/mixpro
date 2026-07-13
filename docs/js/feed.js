@@ -860,6 +860,9 @@ async function init() {
   const { data: profile } = await SB.from('profiles').select('username, role').eq('id', currentUid).single();
   currentUsername = profile ? profile.username : null;
   currentRole = profile ? profile.role : null;
+  if (['VERIFIED_PRO', 'MENTOR', 'ADMIN'].includes(currentRole)) {
+    document.getElementById('adminLink').style.display = '';
+  }
 
   const { data: myFollows } = await SB.from('follows').select('following_id').eq('follower_id', currentUid);
   followingSet = new Set((myFollows || []).map(f => f.following_id));

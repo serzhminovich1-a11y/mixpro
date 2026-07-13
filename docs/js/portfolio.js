@@ -110,6 +110,11 @@ async function init() {
   if (!session) { location.href = 'auth.html'; return; }
   currentUid = session.user.id;
 
+  const { data: profile } = await SB.from('profiles').select('role').eq('id', currentUid).single();
+  if (profile && ['VERIFIED_PRO', 'MENTOR', 'ADMIN'].includes(profile.role)) {
+    document.getElementById('adminLink').style.display = '';
+  }
+
   document.getElementById('uploadForm').addEventListener('submit', handleUpload);
 
   await renderProjects();

@@ -49,10 +49,14 @@ async function init() {
 
   const [{ data: lesson }, { data: profile }] = await Promise.all([
     SB.from('lessons').select('*').eq('id', currentLessonId).single(),
-    SB.from('profiles').select('username').eq('id', currentUid).single(),
+    SB.from('profiles').select('username, role').eq('id', currentUid).single(),
   ]);
 
   if (!lesson) { location.href = 'courses.html'; return; }
+
+  if (profile && ['VERIFIED_PRO', 'MENTOR', 'ADMIN'].includes(profile.role)) {
+    document.getElementById('adminLink').style.display = '';
+  }
 
   const { data: course } = await SB.from('courses').select('id, title').eq('id', lesson.course_id).single();
 

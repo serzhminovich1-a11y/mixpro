@@ -469,6 +469,10 @@ async function sbInit(){
     applyVip();
     renderLessons();
   }
+  if(p&&['VERIFIED_PRO','MENTOR','ADMIN'].includes(p.role)){
+    const adminBtn=document.getElementById('navAdminBtn');
+    if(adminBtn)adminBtn.style.display='';
+  }
 }
 
 function renderLessons(){

@@ -13,6 +13,15 @@ const loadedSections = new Set();
 function escapeAttr(s){ return String(s == null ? '' : s).replace(/"/g, '&quot;'); }
 function escapeHtml(s){ return String(s == null ? '' : s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
 
+// Контурные SVG-иконки вместо эмодзи
+function aIcon(path){ return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`; }
+const ICON_PENCIL_A = aIcon('<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/>');
+const ICON_TRASH_A = aIcon('<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/>');
+const ICON_VIDEO_A = aIcon('<path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/>');
+const ICON_HEADPHONES_A = aIcon('<path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H4a1 1 0 0 1-1-1v-6a9 9 0 0 1 18 0v6a1 1 0 0 1-1 1h-2a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/>');
+const ICON_CHECK_A = aIcon('<path d="M20 6 9 17l-5-5"/>');
+const ICON_CLIPBOARD_A = aIcon('<rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>');
+
 async function logout() {
   await SB.auth.signOut();
   location.href = 'auth.html';
@@ -197,9 +206,9 @@ function lessonAdminRow(l){
   row.innerHTML = `
     <span>${l.order_index + 1}. ${escapeHtml(l.title)}</span>
     <span style="display:flex;align-items:center;gap:8px">
-      <span>${l.content_url ? '🎬 видео есть' : '— без видео'}</span>
-      <button type="button" class="icon-btn" title="Переименовать">✏️</button>
-      <button type="button" class="icon-btn" title="Удалить урок">🗑</button>
+      <span>${l.content_url ? ICON_VIDEO_A + ' видео есть' : '— без видео'}</span>
+      <button type="button" class="icon-btn" title="Переименовать">${ICON_PENCIL_A}</button>
+      <button type="button" class="icon-btn" title="Удалить урок">${ICON_TRASH_A}</button>
     </span>`;
   const [renameBtn, delBtn] = row.querySelectorAll('.icon-btn');
   renameBtn.addEventListener('click', () => handleRenameLesson(l));
@@ -286,10 +295,10 @@ function assignmentAdminRow(a){
   const row = document.createElement('div');
   row.className = 'admin-lesson-row';
   row.innerHTML = `
-    <span>📝 ${escapeHtml(a.title)}</span>
+    <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:13px;height:13px;display:inline-flex">${ICON_CLIPBOARD_A}</span>${escapeHtml(a.title)}</span>
     <span style="display:flex;align-items:center;gap:8px">
       <span>макс. ${a.max_score} баллов</span>
-      <button type="button" class="icon-btn" title="Удалить задание">🗑</button>
+      <button type="button" class="icon-btn" title="Удалить задание">${ICON_TRASH_A}</button>
     </span>`;
   row.querySelector('.icon-btn').addEventListener('click', () => handleDeleteAssignment(a));
   return row;
@@ -342,8 +351,8 @@ function courseAdminBlock(course, lessons, assignments){
       <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
         <span>${escapeHtml(course.title)}</span>
         <span style="display:flex;gap:6px">
-          <button type="button" class="icon-btn cEditBtn" title="Редактировать курс">✏️</button>
-          <button type="button" class="icon-btn cDelBtn" title="Удалить курс">🗑</button>
+          <button type="button" class="icon-btn cEditBtn" title="Редактировать курс">${ICON_PENCIL_A}</button>
+          <button type="button" class="icon-btn cDelBtn" title="Удалить курс">${ICON_TRASH_A}</button>
         </span>
       </div>`;
     head.querySelector('.cEditBtn').addEventListener('click', renderHeadEdit);
@@ -483,7 +492,7 @@ function submissionCard(s){
       </div>
       <div style="font-family:var(--mono);font-size:11px;color:var(--muted2)">${date}</div>
     </div>
-    ${projectUrl ? `<div><div style="font-family:var(--ox);font-size:13px;margin-bottom:6px">🎧 ${projectTitle}</div><audio controls src="${projectUrl}" style="width:100%;height:34px"></audio></div>` : '<div class="empty">Работа не прикреплена</div>'}
+    ${projectUrl ? `<div><div style="font-family:var(--ox);font-size:13px;margin-bottom:6px;display:flex;align-items:center;gap:6px"><span style="width:15px;height:15px;display:inline-flex">${ICON_HEADPHONES_A}</span>${projectTitle}</div><audio controls src="${projectUrl}" style="width:100%;height:34px"></audio></div>` : '<div class="empty">Работа не прикреплена</div>'}
     <div class="form-row">
       <div class="field"><label>Оценка (из ${maxScore})</label><input type="number" class="rScore" min="0" max="${maxScore}" value="${maxScore}"></div>
     </div>
@@ -531,7 +540,7 @@ async function handleReviewSubmission(submission, card, approve, maxScore){
   }
 
   card.style.opacity = '.4';
-  statusEl.textContent = approve ? '✓ Принято' : 'Отклонено';
+  statusEl.innerHTML = approve ? ICON_CHECK_A + ' Принято' : 'Отклонено';
   statusEl.className = 'form-status ' + (approve ? 'ok' : 'error');
   updateSidebarBadges();
 }
@@ -591,7 +600,7 @@ async function handleVerifyReview(requestId, approve, card){
     return;
   }
   card.style.opacity = '.4';
-  statusEl.textContent = approve ? '✓ Подтверждено' : 'Отклонено';
+  statusEl.innerHTML = approve ? ICON_CHECK_A + ' Подтверждено' : 'Отклонено';
   statusEl.className = 'form-status ' + (approve ? 'ok' : 'error');
   updateSidebarBadges();
 }
@@ -750,7 +759,7 @@ function userRow(u){
     <td><select class="au-vstatus">${vOptions}</select><span class="au-saved"></span></td>
     <td><label class="au-vip-toggle"><input type="checkbox" class="au-vip" ${u.is_vip ? 'checked' : ''}><span class="au-saved"></span></label></td>
     <td class="au-date">${date}</td>
-    <td>${isSelf ? '' : '<button type="button" class="icon-btn au-del" title="Удалить аккаунт">🗑</button>'}</td>`;
+    <td>${isSelf ? '' : '<button type="button" class="icon-btn au-del" title="Удалить аккаунт">${ICON_TRASH_A}</button>'}</td>`;
 
   const roleSel = tr.querySelector('.au-role');
   roleSel.addEventListener('change', () => {

@@ -5,6 +5,20 @@ const SB = supabase.createClient(
 
 const GAME_NAMES = { peak_master:'Peak Master', pan_trainer:'Pan Trainer', db_king:'dB King', reverb_wizard:'Reverb Wizard', dr_compressor:'Dr. Compressor' };
 
+// Контурные SVG-иконки вместо эмодзи для достижений и служебных значков
+function pIcon(path){ return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`; }
+const ACHV_ICONS = {
+  '🎚️': pIcon('<line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/>'),
+  '📚': pIcon('<path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>'),
+  '✅': pIcon('<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>'),
+  '🏆': pIcon('<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>'),
+};
+const ACHV_ICON_DEFAULT = pIcon('<path d="m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526"/><circle cx="12" cy="8" r="6"/>');
+const ICON_LOCK = pIcon('<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>');
+const ICON_CHECK_SM = pIcon('<path d="M20 6 9 17l-5-5"/>');
+const ICON_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+const ICON_PAUSE = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>';
+
 // Пороги XP — должны совпадать с get_level_from_xp() в docs/supabase/migrations/001_lms_schema.sql
 const XP_LEVELS = [
   { name:'Beginner',     min:0 },
@@ -49,10 +63,10 @@ async function renderAchievements(uid){
     card.className = 'achv-card' + (earnedAt ? ' unlocked' : ' locked');
     const dateStr = earnedAt ? new Date(earnedAt).toLocaleDateString('ru-RU') : null;
     card.innerHTML = `
-      <div class="achv-icon">${a.icon || '🏅'}</div>
+      <div class="achv-icon">${ACHV_ICONS[a.icon] || ACHV_ICON_DEFAULT}</div>
       <div class="achv-title">${a.title}</div>
       <div class="achv-desc">${a.description || ''}</div>
-      <div class="achv-status">${earnedAt ? '✓ Получено ' + dateStr : '🔒 +' + a.xp_reward + ' XP'}</div>`;
+      <div class="achv-status">${earnedAt ? ICON_CHECK_SM + ' Получено ' + dateStr : ICON_LOCK + ' +' + a.xp_reward + ' XP'}</div>`;
     grid.appendChild(card);
   });
   if (window.animateChildren) animateChildren(grid);
@@ -65,7 +79,7 @@ function workCard(p){
   const bars = Array.from({ length: 22 }, () => Math.round(3 + Math.random() * 13))
     .map(h => `<i style="height:${h}px"></i>`).join('');
   card.innerHTML = `
-    <div class="work-thumb">${bars}<div class="work-play">▶</div></div>
+    <div class="work-thumb">${bars}<div class="work-play">${ICON_PLAY}</div></div>
     <div class="work-body"><div class="work-title">${p.title}</div><div class="work-meta">${date}</div></div>`;
 
   const audio = new Audio(p.file_url);
@@ -73,17 +87,17 @@ function workCard(p){
   playBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     if (audio.paused) {
-      document.querySelectorAll('#worksWall .work-play').forEach(b => { if (b !== playBtn) b.textContent = '▶'; });
+      document.querySelectorAll('#worksWall .work-play').forEach(b => { if (b !== playBtn) b.innerHTML = ICON_PLAY; });
       document.dispatchEvent(new CustomEvent('pauseOtherWorks', { detail: audio }));
       audio.play();
-      playBtn.textContent = '⏸';
+      playBtn.innerHTML = ICON_PAUSE;
     } else {
       audio.pause();
-      playBtn.textContent = '▶';
+      playBtn.innerHTML = ICON_PLAY;
     }
   });
   document.addEventListener('pauseOtherWorks', (e) => { if (e.detail !== audio) audio.pause(); });
-  audio.addEventListener('ended', () => { playBtn.textContent = '▶'; });
+  audio.addEventListener('ended', () => { playBtn.innerHTML = ICON_PLAY; });
   return card;
 }
 

@@ -2,6 +2,7 @@ const SB = supabase.createClient(
   'https://mwzskffecoedpvyflswg.supabase.co',
   'sb_publishable_m1ImqMRye4s4yrpuBTvWvA_yMez-ZhD'
 );
+const ICON_CHECK_SM = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;vertical-align:-1.5px"><path d="M20 6 9 17l-5-5"/></svg>';
 
 let currentUid = null;
 let currentLessonId = null;
@@ -29,7 +30,7 @@ async function markComplete(){
     status: 'completed',
     completed_at: new Date().toISOString(),
   }, { onConflict: 'user_id,lesson_id' });
-  btn.textContent = '✓ Урок пройден';
+  btn.innerHTML = ICON_CHECK_SM + ' Урок пройден';
   btn.classList.add('done');
 }
 
@@ -77,7 +78,7 @@ async function init() {
     .select('status').eq('user_id', currentUid).eq('lesson_id', currentLessonId).maybeSingle();
   if (existingProgress && existingProgress.status === 'completed') {
     const btn = document.getElementById('completeBtn');
-    btn.textContent = '✓ Урок пройден';
+    btn.innerHTML = ICON_CHECK_SM + ' Урок пройден';
     btn.classList.add('done');
   }
 

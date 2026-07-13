@@ -2,6 +2,7 @@ const SB = supabase.createClient(
   'https://mwzskffecoedpvyflswg.supabase.co',
   'sb_publishable_m1ImqMRye4s4yrpuBTvWvA_yMez-ZhD'
 );
+const ICON_CHECK_SM = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;vertical-align:-1.5px"><path d="M20 6 9 17l-5-5"/></svg>';
 
 let currentUid = null;
 
@@ -36,7 +37,7 @@ function lessonRow(l, idx, status){
   a.innerHTML = `
     <div class="lesson-idx">${idx + 1}</div>
     <div class="lesson-title">${l.title}</div>
-    <div class="lesson-status ${done ? 'done' : ''}">${done ? '✓ Пройдено' : 'Не пройдено'}</div>`;
+    <div class="lesson-status ${done ? 'done' : ''}">${done ? ICON_CHECK_SM + ' Пройдено' : 'Не пройдено'}</div>`;
   return a;
 }
 

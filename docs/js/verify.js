@@ -2,6 +2,7 @@ const SB = supabase.createClient(
   'https://mwzskffecoedpvyflswg.supabase.co',
   'sb_publishable_m1ImqMRye4s4yrpuBTvWvA_yMez-ZhD'
 );
+const ICON_CHECK_SM = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;vertical-align:-1.5px"><path d="M20 6 9 17l-5-5"/></svg>';
 
 let currentUid = null;
 
@@ -40,7 +41,7 @@ async function renderStatus(){
   const form = document.getElementById('verifyForm');
 
   if (['VERIFIED_PRO', 'MENTOR', 'ADMIN'].includes(profile.role)) {
-    statusBox.innerHTML = box('✅ <b>Твой опыт подтверждён</b> — можешь создавать курсы.<br><a href="admin.html" style="color:var(--cyan)">Перейти в панель управления →</a>');
+    statusBox.innerHTML = box(ICON_CHECK_SM + ' <b>Твой опыт подтверждён</b> — можешь создавать курсы.<br><a href="admin.html" style="color:var(--cyan)">Перейти в панель управления →</a>');
     form.style.display = 'none';
     return;
   }

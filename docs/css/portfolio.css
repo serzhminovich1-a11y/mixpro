@@ -9,9 +9,11 @@ nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-con
 .logo{font-family:var(--ox);font-size:17px;font-weight:800;color:var(--text);text-decoration:none}
 .logo span{color:var(--cyan)}
 .nav-links{display:flex;gap:8px}
-.nav-btn{font-family:var(--mono);font-size:12px;padding:7px 14px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--muted2);cursor:pointer;text-decoration:none;transition:.15s}
-.nav-btn:hover{color:var(--text);border-color:var(--muted2)}
-.nav-btn.danger:hover{color:var(--red);border-color:var(--red)}
+.nav-btn{font-family:var(--sans);font-weight:600;font-size:12.5px;padding:8px 16px;border-radius:999px;border:1px solid var(--border);background:transparent;color:var(--muted2);cursor:pointer;text-decoration:none;transition:.15s;display:inline-flex;align-items:center}
+.nav-btn:hover{color:var(--text);background:var(--s2);border-color:var(--border-hi)}
+.nav-btn.accent{color:#0a0b16;background:var(--gold);border-color:transparent;font-weight:700}
+.nav-btn.accent:hover{opacity:.88;background:var(--gold);color:#0a0b16}
+.nav-btn.danger:hover{color:var(--red);border-color:var(--red);background:rgba(248,113,113,.08)}
 .wrap{max-width:900px;margin:0 auto;padding:40px 20px 80px;display:flex;flex-direction:column;gap:24px}
 
 .sec-h{font-family:var(--ox);font-size:15px;font-weight:700;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:10px}

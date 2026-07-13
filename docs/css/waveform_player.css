@@ -4,7 +4,7 @@
    Портфолио, Профиль. Использует общие токены темы (--border, --s1 и т.д.),
    которые определены одинаково в feed.css / portfolio.css / profile.css.
    ══════════════════════════════════════ */
-.wave-player{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;border:1px solid var(--border);background:var(--s1)}
+.wave-player{display:flex;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-4);border-radius:12px;border:1px solid var(--border);background:var(--s1)}
 .wp-play{width:34px;height:34px;border-radius:50%;border:none;background:var(--green);color:#0a0b16;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:.15s}
 .wp-play:hover{opacity:.85;transform:scale(1.05)}
 .wp-play:disabled{opacity:.4;cursor:default;transform:none}
@@ -12,19 +12,19 @@
 .wp-stop{width:26px;height:26px;border-radius:50%;border:1px solid var(--border);background:transparent;color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:.15s}
 .wp-stop:hover{color:var(--text);border-color:var(--border-hi)}
 .wp-stop svg{width:10px;height:10px}
-.wp-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
+.wp-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:var(--space-1)}
 .wp-wave{height:38px;cursor:grab;touch-action:none}
 .wp-wave.dragging{cursor:grabbing}
 .wp-wave canvas{display:block;width:100%;height:100%}
-.wp-time{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10.5px;color:var(--muted);letter-spacing:.02em}
+.wp-time{display:flex;justify-content:space-between;font-family:var(--mono);font-size:var(--text-caption-2-size);color:var(--muted);letter-spacing:.02em}
 .wp-error .wp-time{color:var(--red)}
 
 /* Крупный вариант — для главной карточки трека (Портфолио/Профиль),
    вдохновлено плеером трека в Spotify: большая кнопка play, волна выше. */
-.wave-player.lg{gap:14px}
+.wave-player.lg{gap:var(--space-4)}
 .wave-player.lg .wp-play{width:52px;height:52px;box-shadow:0 8px 20px -6px rgba(74,222,128,.5)}
 .wave-player.lg .wp-play svg{width:21px;height:21px}
 .wave-player.lg .wp-stop{width:32px;height:32px}
 .wave-player.lg .wp-stop svg{width:13px;height:13px}
 .wave-player.lg .wp-wave{height:56px}
-.wave-player.lg .wp-time{font-size:11.5px}
+.wave-player.lg .wp-time{font-size:var(--text-body-1-size)}

@@ -1,0 +1,58 @@
+/* ══════════════════════════════════════
+   ДИЗАЙН-ТОКЕНЫ — шкала отступов и типографики.
+
+   Взято из открытой дизайн-системы Gravity UI (Яндекс,
+   github.com/gravity-ui/uikit) — но НЕ сама библиотека (она на React
+   и требует сборщик — наш сайт нет), а только числа: шаг отступов
+   4px и парная шкала размер/интерлиньяж текста. Свои цвета
+   (зелёный/золотой) и шрифты (Golos Text / JetBrains Mono) — бренд
+   MIXPRO, не меняли. Вес заголовков оставлен как было на сайте
+   (700/800) — у Gravity UI 600, но это подобрано под их шрифт Inter,
+   для Golos Text 600 выглядит недостаточно жирно.
+
+   Подключается на каждой странице, как animations.css — просто
+   объявляет переменные, ничего не перекрашивает сама по себе, пока
+   её не используют в конкретных .css файлах через var(...).
+   ══════════════════════════════════════ */
+:root{
+  /* Отступы — шаг 4px, как в Gravity UI */
+  --space-0:0;
+  --space-half:2px;
+  --space-1:4px;
+  --space-2:8px;
+  --space-3:12px;
+  --space-4:16px;
+  --space-5:20px;
+  --space-6:24px;
+  --space-7:28px;
+  --space-8:32px;
+  --space-9:36px;
+  --space-10:40px;
+
+  /* Типографика — пары размер/интерлиньяж из Gravity UI, шрифты свои.
+     Готовый шорткат: `font: var(--text-body-1)` — валидный CSS, var()
+     разворачивается прямо внутри font-shorthand. Плюс отдельно размер
+     и интерлиньяж — для мест, где шрифт нужен не тот, что в шортката
+     (например моно-подпись поверх шкалы Gravity UI). */
+  --text-caption-1: 500 9px/12px var(--mono, monospace);
+  --text-caption-2: 500 11px/16px var(--mono, monospace);
+  --text-body-1: 400 13px/18px var(--sans, sans-serif);
+  --text-body-2: 400 15px/20px var(--sans, sans-serif);
+  --text-body-3: 400 17px/24px var(--sans, sans-serif);
+  --text-subheader-1: 700 13px/18px var(--ox, sans-serif);
+  --text-subheader-2: 700 15px/20px var(--ox, sans-serif);
+  --text-subheader-3: 700 17px/24px var(--ox, sans-serif);
+  --text-header-1: 700 20px/24px var(--ox, sans-serif);
+  --text-header-2: 800 24px/28px var(--ox, sans-serif);
+  --text-display-1: 800 28px/36px var(--ox, sans-serif);
+  --text-display-2: 800 32px/40px var(--ox, sans-serif);
+  --text-display-3: 800 40px/48px var(--ox, sans-serif);
+
+  --text-caption-1-size:9px;  --text-caption-1-line:12px;
+  --text-caption-2-size:11px; --text-caption-2-line:16px;
+  --text-body-1-size:13px;    --text-body-1-line:18px;
+  --text-body-2-size:15px;    --text-body-2-line:20px;
+  --text-body-3-size:17px;    --text-body-3-line:24px;
+  --text-header-1-size:20px;  --text-header-1-line:24px;
+  --text-header-2-size:24px;  --text-header-2-line:28px;
+}

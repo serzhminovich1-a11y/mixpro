@@ -494,7 +494,8 @@ function markDone(i,e){e.stopPropagation();if(!done.includes(i))done.push(i);sav
 
 function syncBpm(v){
   bpm=Math.max(40,Math.min(300,parseFloat(v)||120));
-  ['bpmIn','delBpm','revBpm','cmpBpm'].forEach(id=>{const el=document.getElementById(id);if(el&&parseFloat(el.value)!==bpm)el.value=bpm;});
+  const el=document.getElementById('bpmIn');
+  if(el&&parseFloat(el.value)!==bpm)el.value=bpm;
   document.getElementById('bpmDisp').textContent=bpm+' BPM';
   calcDelay();calcReverb();calcComp();
 }
@@ -593,7 +594,7 @@ function drawEnvelope(){
   ctx.lineTo(W,H*0.75);
   ctx.stroke();
 
-  ctx.strokeStyle='#22d3ee';
+  ctx.strokeStyle='#4ade80';
   ctx.lineWidth=2.5*devicePixelRatio;
   ctx.beginPath();
   ctx.moveTo(0,H*0.85);
@@ -647,17 +648,7 @@ function pink(ctx,dur){
 
 
 
-function buildVU(){
-  const el=document.getElementById('vuEl');
-  if(!el)return;
-  [.3,.5,.7,.9,1,.85,.6,.4,.7,.95,.8,.5,.35,.6,.9,.75,.45,.3,.65,.85,.5].forEach((h,i)=>{
-    const b=document.createElement('div');b.className='vu-bar';const c=i<15?'#22d3ee':i<18?'#a78bfa':'#f87171';
-    b.style.cssText='height:'+(h*44)+'px;background:'+c+';animation-delay:'+(i*.07).toFixed(2)+'s;animation-duration:'+(.9+Math.random()*.6).toFixed(2)+'s;';
-    el.appendChild(b);
-  });
-}
-
-buildVU();renderLessons();buildCompTypes();
+renderLessons();buildCompTypes();
 calcDelay();calcReverb();calcComp();
 calcNoteHz();calcLufs();calcRoom();
 setTimeout(drawEnvelope,50);

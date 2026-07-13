@@ -16,6 +16,8 @@
   const ICON_FLAG = pfIcon('<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/>');
   const ICON_CHECK = pfIcon('<path d="M20 6 9 17l-5-5"/>');
   const STAR_FULL = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>';
+  const ICON_PRO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/></svg>';
+  const PRO_ROLES = ['VERIFIED_PRO', 'MENTOR', 'ADMIN'];
 
   function escapeHtml(s){ return String(s == null ? '' : s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
   function initialsOf(name){ return (name || '??').slice(0, 2).toUpperCase(); }
@@ -128,17 +130,20 @@
     /* ── Профессиональный разбор ── */
     const reviewsEl = mount.querySelector('.pf-reviews');
     async function loadReviews(){
-      const { data } = await SB.from('project_reviews').select('*, profiles(username)').eq('project_id', projectId).order('created_at', { ascending: true });
+      const { data } = await SB.from('project_reviews').select('*, profiles(username, avatar_color)').eq('project_id', projectId).order('created_at', { ascending: true });
       const rows = data || [];
       const mine = rows.find(r => r.reviewer_id === currentUid);
-      reviewsEl.innerHTML = rows.map(r => `
+      reviewsEl.innerHTML = rows.map(r => {
+        const rUsername = (r.profiles && r.profiles.username) || 'Наставник';
+        return `
         <div class="pf-review">
           <div class="pf-review-head">
-            <span class="pf-review-badge">${(r.profiles && r.profiles.username) || 'Наставник'} · ${r.score}/10</span>
+            <a class="pf-review-badge" href="profile.html?user=${r.reviewer_id}">${ICON_PRO}${escapeHtml(rUsername)} · ${r.score}/10</a>
             <span class="pf-review-date">${timeAgo(r.created_at)}</span>
           </div>
           <div class="pf-review-text">${escapeHtml(r.feedback)}</div>
-        </div>`).join('');
+        </div>`;
+      }).join('');
       if (canReview) {
         const formWrap = document.createElement('div');
         formWrap.className = 'pf-review-form';
@@ -187,7 +192,7 @@
     });
 
     async function loadComments(){
-      const { data } = await SB.from('project_comments').select('*, profiles(username)').eq('project_id', projectId).order('created_at', { ascending: true });
+      const { data } = await SB.from('project_comments').select('*, profiles(username, avatar_color, role)').eq('project_id', projectId).order('created_at', { ascending: true });
       commentList.innerHTML = '';
       (data || []).forEach(c => commentList.appendChild(commentRow(c)));
     }
@@ -195,13 +200,20 @@
     function commentRow(c){
       const div = document.createElement('div');
       div.className = 'pf-comment-row';
-      const username = (c.profiles && c.profiles.username) || '?';
+      const profile = c.profiles || {};
+      const username = profile.username || '?';
+      const profileUrl = 'profile.html?user=' + c.user_id;
       const isOwn = c.user_id === currentUid;
       const canDelete = isOwn || isAdmin;
+      const isPro = PRO_ROLES.includes(profile.role);
       div.innerHTML = `
-        <div class="pf-comment-avatar">${initialsOf(username)}</div>
+        <a class="pf-comment-avatar" href="${profileUrl}" style="background:${profile.avatar_color || '#4ade80'}">${initialsOf(username)}</a>
         <div class="pf-comment-body">
-          <div class="pf-comment-name">${escapeHtml(username)}${c.updated_at ? ' <span class="pf-comment-edited">· изменено</span>' : ''}</div>
+          <div class="pf-comment-name">
+            <a href="${profileUrl}">${escapeHtml(username)}</a>
+            ${isPro ? `<span class="pf-comment-pro" title="Проверенный специалист">${ICON_PRO}</span>` : ''}
+            ${c.updated_at ? '<span class="pf-comment-edited">· изменено</span>' : ''}
+          </div>
           <div class="pf-comment-text">${escapeHtml(censorText(c.content))}</div>
           <div class="pf-comment-actions">
             <div class="pf-comment-reactions"><div class="emoji-pills"></div></div>

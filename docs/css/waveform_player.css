@@ -18,3 +18,13 @@
 .wp-wave canvas{display:block;width:100%;height:100%}
 .wp-time{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10.5px;color:var(--muted);letter-spacing:.02em}
 .wp-error .wp-time{color:var(--red)}
+
+/* Крупный вариант — для главной карточки трека (Портфолио/Профиль),
+   вдохновлено плеером трека в Spotify: большая кнопка play, волна выше. */
+.wave-player.lg{gap:14px}
+.wave-player.lg .wp-play{width:52px;height:52px;box-shadow:0 8px 20px -6px rgba(74,222,128,.5)}
+.wave-player.lg .wp-play svg{width:21px;height:21px}
+.wave-player.lg .wp-stop{width:32px;height:32px}
+.wave-player.lg .wp-stop svg{width:13px;height:13px}
+.wave-player.lg .wp-wave{height:56px}
+.wave-player.lg .wp-time{font-size:11.5px}

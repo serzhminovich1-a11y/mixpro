@@ -80,14 +80,14 @@ function workCard(p, viewerCtx){
     ? `<img class="work-cover" src="${p.cover_url}" alt="">`
     : `<div class="work-cover work-cover-placeholder">${ICON_COVER_PLACEHOLDER}</div>`;
   card.innerHTML = `
-    <div class="work-top">
-      ${cover}
+    <div class="work-cover-wrap">${cover}</div>
+    <div class="work-body-wrap">
       <div class="work-body"><div class="work-title">${p.title}</div><div class="work-meta">${date}</div></div>
-    </div>
-    <div class="wp-mount"></div>
-    <div class="pf-mount"></div>`;
+      <div class="wp-mount"></div>
+      <div class="pf-mount"></div>
+    </div>`;
 
-  createWavePlayer(p.file_url, card.querySelector('.wp-mount'));
+  createWavePlayer(p.file_url, card.querySelector('.wp-mount'), { size: 'lg' });
   mountProjectFeedback(SB, p, card.querySelector('.pf-mount'), viewerCtx);
   return card;
 }

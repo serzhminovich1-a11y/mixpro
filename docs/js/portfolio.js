@@ -52,21 +52,21 @@ function projectCard(p){
   const date = new Date(p.created_at).toLocaleDateString('ru-RU');
   const badges = ratingBadge(p.id) + reviewedBadge(p.id);
   card.innerHTML = `
-    <div class="proj-top">
-      ${coverHtml(p)}
+    <div class="proj-cover-wrap">${coverHtml(p)}</div>
+    <div class="proj-body">
       <div class="proj-top-text">
         <div class="proj-title">${p.title}</div>
         <div class="proj-date">${date}</div>
       </div>
-    </div>
-    ${badges ? `<div class="proj-badges">${badges}</div>` : ''}
-    <div class="wp-mount"></div>
-    <div class="pf-mount"></div>
-    ${isOwn ? '<button class="proj-del" data-id="' + p.id + '">Удалить</button>' : ''}`;
+      ${badges ? `<div class="proj-badges">${badges}</div>` : ''}
+      <div class="wp-mount"></div>
+      <div class="pf-mount"></div>
+      ${isOwn ? '<button class="proj-del" data-id="' + p.id + '">Удалить</button>' : ''}
+    </div>`;
 
   if (isOwn) card.querySelector('.proj-del').addEventListener('click', () => deleteProject(p));
 
-  createWavePlayer(p.file_url, card.querySelector('.wp-mount'));
+  createWavePlayer(p.file_url, card.querySelector('.wp-mount'), { size: 'lg' });
   mountProjectFeedback(SB, p, card.querySelector('.pf-mount'), { currentUid, currentRole });
 
   return card;

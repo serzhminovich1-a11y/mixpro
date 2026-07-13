@@ -4,20 +4,20 @@
    Использует общие токены темы, определённые одинаково в
    portfolio.css / profile.css / feed.css.
    ══════════════════════════════════════ */
-.pf{display:flex;flex-direction:column;gap:10px;margin-top:2px}
+.pf{display:flex;flex-direction:column;gap:14px;margin-top:2px}
 
 /* Сводная строка: звёзды, реакции, счётчик комментариев */
 .pf-summary{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
 .pf-stars{display:flex;align-items:center;gap:2px}
 .pf-star{background:none;border:none;cursor:pointer;padding:2px;color:rgba(255,255,255,.2);transition:.15s}
-.pf-star svg{width:15px;height:15px;display:block}
+.pf-star svg{width:17px;height:17px;display:block}
 .pf-star:hover,.pf-star.lit{color:var(--gold)}
-.pf-stars-avg{font-family:var(--mono);font-size:11.5px;color:var(--text);margin-left:4px}
-.pf-stars-count{font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+.pf-stars-avg{font-family:var(--mono);font-size:12.5px;color:var(--text);margin-left:4px}
+.pf-stars-count{font-family:var(--mono);font-size:11px;color:var(--muted)}
 .pf-reactions{display:flex;align-items:center;gap:6px}
-.pf-comments-toggle{font-family:var(--mono);font-size:11.5px;color:var(--muted2);background:none;border:none;cursor:pointer;transition:.15s;display:inline-flex;align-items:center;gap:4px;margin-left:auto}
+.pf-comments-toggle{font-family:var(--mono);font-size:12px;color:var(--muted2);background:none;border:none;cursor:pointer;transition:.15s;display:inline-flex;align-items:center;gap:5px;margin-left:auto}
 .pf-comments-toggle:hover{color:var(--text)}
-.pf-comments-toggle svg{width:14px;height:14px}
+.pf-comments-toggle svg{width:15px;height:15px}
 
 /* Переиспользуем разметку emoji-pills/emoji-add/emoji-picker — общий
    визуальный язык с реакциями в Ленте */
@@ -34,10 +34,12 @@
 .pf .emoji-picker button:hover{background:var(--s2)}
 
 /* Профессиональный разбор */
-.pf-reviews{display:flex;flex-direction:column;gap:8px}
-.pf-review{padding:10px 12px;border-radius:10px;background:rgba(250,204,21,.06);border:1px solid rgba(250,204,21,.22)}
-.pf-review-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.pf-review-badge{font-family:var(--ox);font-size:12px;font-weight:700;color:var(--gold)}
+.pf-reviews{display:flex;flex-direction:column;gap:10px}
+.pf-review{padding:14px 16px;border-radius:12px;background:rgba(250,204,21,.06);border:1px solid rgba(250,204,21,.22)}
+.pf-review-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.pf-review-badge{display:inline-flex;align-items:center;gap:6px;font-family:var(--ox);font-size:13px;font-weight:700;color:var(--gold);text-decoration:none}
+.pf-review-badge:hover{text-decoration:underline}
+.pf-review-badge svg{width:14px;height:14px;flex-shrink:0}
 .pf-review-date{font-family:var(--mono);font-size:10px;color:var(--muted)}
 .pf-review-text{font-size:12.5px;color:var(--text);line-height:1.55;margin-top:5px;white-space:pre-wrap;word-break:break-word}
 .pf-review-form{display:flex;flex-direction:column;gap:6px;padding:10px 12px;border-radius:10px;border:1px dashed var(--border-hi)}
@@ -48,14 +50,19 @@
 .pf-review-submit:hover{opacity:.88}
 
 /* Комментарии */
-.pf-comments{display:flex;flex-direction:column;gap:10px;padding-top:10px;border-top:1px solid var(--border)}
-.pf-comment-row{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:12px;background:linear-gradient(180deg,var(--surf-top),var(--surf-bot)),var(--bg);border:1px solid var(--border)}
-.pf-comment-avatar{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--ox);font-weight:800;font-size:9.5px;color:#06131a;background:linear-gradient(135deg,var(--green),#22c55e);flex-shrink:0}
+.pf-comments{display:flex;flex-direction:column;gap:12px;padding-top:12px;border-top:1px solid var(--border)}
+.pf-comment-row{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:12px;background:linear-gradient(180deg,var(--surf-top),var(--surf-bot)),var(--bg);border:1px solid var(--border)}
+.pf-comment-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--ox);font-weight:800;font-size:11px;color:#06131a;background:linear-gradient(135deg,var(--green),#22c55e);flex-shrink:0;text-decoration:none;transition:.15s}
+.pf-comment-avatar:hover{opacity:.85;transform:scale(1.05)}
 .pf-comment-body{flex:1;min-width:0}
-.pf-comment-name{font-family:var(--ox);font-weight:700;font-size:11.5px}
+.pf-comment-name{font-family:var(--ox);font-weight:700;font-size:12.5px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.pf-comment-name a{color:var(--text);text-decoration:none}
+.pf-comment-name a:hover{text-decoration:underline}
+.pf-comment-pro{display:inline-flex;color:var(--gold)}
+.pf-comment-pro svg{width:12px;height:12px;display:block}
 .pf-comment-edited{font-weight:400;color:var(--muted);font-size:10px}
-.pf-comment-text{font-size:12.5px;color:var(--text);line-height:1.55;margin-top:3px;white-space:pre-wrap;word-break:break-word}
-.pf-comment-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:7px;flex-wrap:wrap}
+.pf-comment-text{font-size:13px;color:var(--text);line-height:1.6;margin-top:4px;white-space:pre-wrap;word-break:break-word}
+.pf-comment-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px;flex-wrap:wrap}
 .pf-comment-actions button{font-family:var(--mono);font-size:10.5px;background:none;border:none;color:var(--muted2);cursor:pointer;transition:.15s}
 .pf-comment-actions button:hover{color:var(--text)}
 .pf-comment-report svg{width:13px;height:13px;display:block}
@@ -65,7 +72,7 @@
 .pf-comment-edit-save{border:none;background:var(--green);color:#06131a}
 .pf-comment-edit-cancel{border:1px solid var(--border);background:transparent;color:var(--muted2)}
 
-.pf-comment-form{display:flex;gap:8px;align-items:center}
-.pf-comment-input{flex:1;background:var(--s2);border:1px solid var(--border);border-radius:20px;padding:8px 14px;color:var(--text);font-family:var(--sans);font-size:12.5px}
-.pf-comment-send{width:32px;height:32px;border-radius:50%;border:none;background:var(--green);color:#06131a;font-weight:700;cursor:pointer;flex-shrink:0}
+.pf-comment-form{display:flex;gap:10px;align-items:center}
+.pf-comment-input{flex:1;background:var(--s2);border:1px solid var(--border);border-radius:20px;padding:10px 16px;color:var(--text);font-family:var(--sans);font-size:13px}
+.pf-comment-send{width:36px;height:36px;border-radius:50%;border:none;background:var(--green);color:#06131a;font-weight:700;cursor:pointer;flex-shrink:0}
 .pf-comment-send:hover{opacity:.88}

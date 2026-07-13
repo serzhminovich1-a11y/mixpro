@@ -51,8 +51,10 @@
 
   window.createWavePlayer = function (url, mount, opts) {
     opts = opts || {};
-    const bars = opts.bars || BAR_COUNT;
+    const isLg = opts.size === 'lg';
+    const bars = opts.bars || (isLg ? 84 : BAR_COUNT);
     mount.classList.add('wave-player');
+    if (isLg) mount.classList.add('lg');
     mount.innerHTML = `
       <button type="button" class="wp-play" aria-label="Воспроизвести">${ICON_PLAY}</button>
       <button type="button" class="wp-stop" aria-label="Стоп">${ICON_STOP}</button>
@@ -100,7 +102,7 @@
         ctx2d.fillStyle = COLOR_PLAYHEAD;
         ctx2d.fillRect(Math.max(0, px - 1), 0, 2, h);
         ctx2d.beginPath();
-        ctx2d.arc(px, h / 2, 4.5, 0, Math.PI * 2);
+        ctx2d.arc(px, h / 2, isLg ? 6.5 : 4.5, 0, Math.PI * 2);
         ctx2d.fill();
       }
     }

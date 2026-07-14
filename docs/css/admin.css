@@ -28,6 +28,24 @@ button.stat-box:hover{border-color:rgba(74,222,128,.32);box-shadow:var(--shadow-
 .admin-full-block{text-align:center;padding:80px 20px;color:var(--muted2)}
 .admin-full-block .big{font-size:var(--text-display-3-size);margin-bottom:var(--space-3)}
 
+/* Карточки в очередях "Проверка заданий" / "Верификация" / "Жалобы" —
+   раньше держались на классе .card, а он объявлен только в feed.css,
+   который сюда не подключается, поэтому carточки были совсем без
+   оформления. Свой набор классов на токенах темы. */
+.review-card{background:linear-gradient(180deg,var(--surf-top),var(--surf-bot)),var(--bg);border:1px solid var(--border);border-radius:12px;padding:var(--space-5);display:flex;flex-direction:column;gap:var(--space-3);box-shadow:var(--shadow-lift)}
+.review-card-row{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);flex-wrap:wrap}
+.review-card-name{font-family:var(--ox);font-weight:700;font-size:var(--text-body-1-size);color:var(--text)}
+.review-card-sub{font-family:var(--mono);font-size:var(--text-caption-1-size);color:var(--cyan)}
+.review-card-tag{font-family:var(--mono);font-size:var(--text-caption-1-size);color:var(--muted2);text-transform:uppercase;letter-spacing:.06em}
+.review-card-date{font-family:var(--mono);font-size:var(--text-caption-2-size);color:var(--muted2);white-space:nowrap}
+.review-card-body{font-size:var(--text-body-1-size);color:var(--text);background:var(--s2);border-radius:8px;padding:var(--space-3) var(--space-4);white-space:pre-wrap;line-height:1.55}
+.review-card-summary{font-size:var(--text-body-1-size);color:var(--muted2);line-height:1.6;white-space:pre-wrap}
+.review-card-reason{font-size:var(--text-caption-2-size);color:var(--muted2)}
+.review-card-reason b{color:var(--text)}
+.review-card-attach{display:flex;align-items:center;gap:var(--space-2);font-family:var(--ox);font-size:var(--text-body-1-size);color:var(--text);margin-bottom:var(--space-2)}
+.review-card-attach svg{width:15px;height:15px;flex-shrink:0}
+.review-card-actions{display:flex;gap:var(--space-2);flex-wrap:wrap}
+
 /* Шаги урока — конструктор внутри карточки урока (courses.css) */
 .admin-steps-panel{padding:var(--space-3) var(--space-4);border-top:1px solid var(--border);background:rgba(0,0,0,.15);display:flex;flex-direction:column;gap:var(--space-3)}
 .admin-steps-list{display:flex;flex-direction:column;gap:var(--space-2)}

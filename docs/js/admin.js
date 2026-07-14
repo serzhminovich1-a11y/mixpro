@@ -747,8 +747,7 @@ async function renderCoursesAdmin(){
    ══════════════════════════════════════ */
 function submissionCard(s){
   const card = document.createElement('div');
-  card.className = 'card';
-  card.style.cssText = 'padding:20px 22px;display:flex;flex-direction:column;gap:12px';
+  card.className = 'review-card';
 
   const student = (s.profiles && s.profiles.username) || s.user_id;
   const assignmentTitle = (s.assignments && s.assignments.title) || 'Задание';
@@ -758,19 +757,19 @@ function submissionCard(s){
   const date = new Date(s.submitted_at).toLocaleDateString('ru-RU');
 
   card.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+    <div class="review-card-row">
       <div>
-        <div style="font-family:var(--ox);font-weight:700;font-size:14px">${student}</div>
-        <div style="font-family:var(--mono);font-size:11px;color:var(--cyan)">${assignmentTitle}</div>
+        <div class="review-card-name">${escapeHtml(student)}</div>
+        <div class="review-card-sub">${escapeHtml(assignmentTitle)}</div>
       </div>
-      <div style="font-family:var(--mono);font-size:11px;color:var(--muted2)">${date}</div>
+      <div class="review-card-date">${date}</div>
     </div>
-    ${projectUrl ? `<div><div style="font-family:var(--ox);font-size:13px;margin-bottom:6px;display:flex;align-items:center;gap:6px"><span style="width:15px;height:15px;display:inline-flex">${ICON_HEADPHONES_A}</span>${projectTitle}</div><audio controls src="${projectUrl}" style="width:100%;height:34px"></audio></div>` : '<div class="empty">Работа не прикреплена</div>'}
+    ${projectUrl ? `<div><div class="review-card-attach">${ICON_HEADPHONES_A}${escapeHtml(projectTitle)}</div><audio controls src="${projectUrl}" style="width:100%;height:34px"></audio></div>` : '<div class="empty">Работа не прикреплена</div>'}
     <div class="form-row">
       <div class="field"><label>Оценка (из ${maxScore})</label><input type="number" class="rScore" min="0" max="${maxScore}" value="${maxScore}"></div>
     </div>
     <div class="field"><label>Отзыв</label><textarea class="rFeedback" placeholder="Что получилось хорошо, что доработать..."></textarea></div>
-    <div style="display:flex;gap:8px">
+    <div class="review-card-actions">
       <button type="button" class="submit-btn rApprove" style="background:linear-gradient(90deg,var(--green),#22d3ee)">Принять</button>
       <button type="button" class="nav-btn danger rReject">Отклонить</button>
     </div>
@@ -838,17 +837,16 @@ async function renderAssignmentQueue(){
    ══════════════════════════════════════ */
 function verifyRequestCard(r){
   const card = document.createElement('div');
-  card.className = 'card';
-  card.style.cssText = 'padding:20px 22px;display:flex;flex-direction:column;gap:12px';
+  card.className = 'review-card';
   const date = new Date(r.created_at).toLocaleDateString('ru-RU');
   const username = (r.profiles && r.profiles.username) || r.user_id;
   card.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
-      <div style="font-family:var(--ox);font-weight:700;font-size:14px">${username}</div>
-      <div style="font-family:var(--mono);font-size:11px;color:var(--muted2)">${date}</div>
+    <div class="review-card-row">
+      <div class="review-card-name">${escapeHtml(username)}</div>
+      <div class="review-card-date">${date}</div>
     </div>
-    <div style="font-size:13px;color:var(--muted2);line-height:1.6;white-space:pre-wrap">${r.portfolio_summary || ''}</div>
-    <div style="display:flex;gap:8px">
+    <div class="review-card-summary">${escapeHtml(r.portfolio_summary || '')}</div>
+    <div class="review-card-actions">
       <button type="button" class="submit-btn approveBtn" style="background:linear-gradient(90deg,var(--green),#22d3ee)">Подтвердить</button>
       <button type="button" class="nav-btn danger rejectBtn">Отклонить</button>
     </div>
@@ -935,8 +933,7 @@ async function renderReportsQueue(){
 
 function reportCard(r, content, reporterName){
   const card = document.createElement('div');
-  card.className = 'card';
-  card.style.cssText = 'padding:20px 22px;display:flex;flex-direction:column;gap:10px';
+  card.className = 'review-card';
   const date = new Date(r.created_at).toLocaleDateString('ru-RU');
   const typeLabel = r.content_type === 'post' ? 'Пост' : r.content_type === 'project_comment' ? 'Комментарий (портфолио)' : 'Комментарий';
   let preview;
@@ -948,13 +945,13 @@ function reportCard(r, content, reporterName){
     preview = `<div style="white-space:pre-wrap">${escapeHtml(content.content || '(пусто)')}</div>`;
   }
   card.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
-      <div style="font-family:var(--mono);font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:.06em">${typeLabel} · пожаловался ${escapeHtml(reporterName || '?')}</div>
-      <div style="font-family:var(--mono);font-size:11px;color:var(--muted2)">${date}</div>
+    <div class="review-card-row">
+      <div class="review-card-tag">${typeLabel} · пожаловался ${escapeHtml(reporterName || '?')}</div>
+      <div class="review-card-date">${date}</div>
     </div>
-    <div style="font-size:13px;color:var(--text);background:var(--s2);border-radius:8px;padding:10px 14px">${preview}</div>
-    ${r.reason ? `<div style="font-size:12.5px;color:var(--muted2)"><b style="color:var(--text)">Причина:</b> ${escapeHtml(r.reason)}</div>` : ''}
-    <div style="display:flex;gap:8px">
+    <div class="review-card-body">${preview}</div>
+    ${r.reason ? `<div class="review-card-reason"><b>Причина:</b> ${escapeHtml(r.reason)}</div>` : ''}
+    <div class="review-card-actions">
       <button type="button" class="nav-btn danger deleteContentBtn" ${!content ? 'disabled' : ''}>Удалить контент</button>
       <button type="button" class="nav-btn dismissBtn">Отклонить жалобу</button>
     </div>`;

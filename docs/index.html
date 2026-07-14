@@ -14,7 +14,7 @@
 <body>
 
 <nav>
-  <a class="nav-logo" href="#" data-route="home"><span class="nav-logo-badge">M</span>MIX<span>PRO</span></a>
+  <a class="nav-logo" href="#"><span class="nav-logo-badge">M</span>MIX<span>PRO</span></a>
   <div class="nav-tabs">
     <button class="nav-tab active" data-tab="home" onclick="tab('home',this)">Главная</button>
     <button class="nav-tab" id="tabTrainers" data-tab="trainers" onclick="tab('trainers',this)">Тренажёры</button>
@@ -23,14 +23,14 @@
   </div>
   <div class="nav-right">
     <div class="nav-links">
-      <a href="pages/feed.html" class="nav-link-btn" data-route="feed">Лента</a>
-      <a href="pages/courses.html" class="nav-link-btn" data-route="courses">Курсы</a>
-      <a href="pages/leaderboard.html" class="nav-link-btn" data-route="leaderboard">Рейтинг</a>
-      <a href="pages/portfolio.html" class="nav-link-btn" data-route="portfolio">Портфолио</a>
+      <a href="pages/feed.html" class="nav-link-btn">Лента</a>
+      <a href="pages/courses.html" class="nav-link-btn">Курсы</a>
+      <a href="pages/leaderboard.html" class="nav-link-btn">Рейтинг</a>
+      <a href="pages/portfolio.html" class="nav-link-btn">Портфолио</a>
     </div>
     <div class="nav-divider"></div>
     <div class="nav-account">
-      <a href="pages/admin.html" class="nav-admin-btn" id="adminLink" style="display:none" title="Панель управления"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg><span>Админ</span></a>
+      <a href="pages/admin.html" class="nav-admin-btn" id="navAdminBtn" style="display:none" title="Панель управления"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg><span>Админ</span></a>
       <div id="notifMount"></div>
       <button class="nav-vip-btn" id="navVipBtn" onclick="openVip()">VIP</button>
       <a href="pages/profile.html" class="nav-link-btn-primary">Профиль</a>
@@ -39,7 +39,6 @@
   </div>
 </nav>
 
-<main id="view-root">
 <!-- ══ HOME ══ -->
 <div id="home" class="section active">
   <div class="hero hero-centered">
@@ -333,21 +332,11 @@
 </div>
 
 <footer>MIXPRO © 2026 &nbsp;·&nbsp; Telegram: @yourtelegram &nbsp;·&nbsp; По вопросам: mixpro@mail.ru</footer>
-</main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="js/animations.js"></script>
 <script src="js/notifications.js"></script>
-<!-- Эти четыре ниже этой странице сами по себе не нужны, но она может
-     быть точкой входа SPA-сессии — Лента/Портфолио читают эти общие
-     библиотеки как глобальные функции, а router меняет только контент
-     внутри #view-root, не теги <script> в <head>/<body> исходной
-     страницы. Без этого при переходе на другой экран без полной
-     перезагрузки такие функции были бы не определены. -->
-<script src="js/waveform_player.js"></script>
-<script src="js/content_filter.js"></script>
-<script src="js/rich_text.js"></script>
-<script src="js/project_feedback.js"></script>
-<script type="module" src="js/spa_shell.js"></script>
+<script src="js/main.js"></script>
+<script src="js/hero_wave.js"></script>
 </body>
 </html>

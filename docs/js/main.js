@@ -1,5 +1,6 @@
-import { SB, getSession, getMyProfile } from './sb_client.js';
-import * as heroWave from './hero_wave.js';
+// ══════════════════════════════════════
+//   DATA
+// ══════════════════════════════════════
 
 // ══════════════════════════════════════
 //   СЛОВАРЬ ЗВУКОРЕЖИССЁРА
@@ -93,9 +94,21 @@ function renderGlossary(){
   ).join('');
 }
 
-// ══════════════════════════════════════
-//   ИНСТРУМЕНТЫ
-// ══════════════════════════════════════
+const FREQ_BANDS = [
+  {name:'sub',     label:'Sub Bass',  min:20,   max:80,   desc:'20–80 Hz'},
+  {name:'bass',    label:'Bass',      min:80,   max:250,  desc:'80–250 Hz'},
+  {name:'lowmid',  label:'Low-Mid',   min:250,  max:600,  desc:'250–600 Hz'},
+  {name:'mid',     label:'Mid',       min:600,  max:2000, desc:'600–2k Hz'},
+  {name:'uppermid',label:'Upper-Mid', min:2000, max:5000, desc:'2–5 kHz'},
+  {name:'pres',    label:'Presence',  min:5000, max:8000, desc:'5–8 kHz'},
+  {name:'sib',     label:'Sibilance', min:8000, max:12000,desc:'8–12 kHz'},
+  {name:'air',     label:'Air',       min:12000,max:20000,desc:'12–20 kHz'},
+];
+
+const TRACKS=[
+  {id:'noise',label:'Шум'},{id:'trap',label:'Trap'},
+  {id:'bass',label:'808'},{id:'pad',label:'Пэд'},{id:'mix',label:'Микс'},
+];
 const COMP={
   'Вокал':{a:[15,40],r:[80,150],th:[-20,-12],mk:[4,8],tip:'Средний attack — сохраняет согласные'},
   'Кик':{a:[2,8],r:[40,80],th:[-18,-10],mk:[3,6],tip:'Быстрый A/R — панч и контроль transient'},
@@ -109,36 +122,28 @@ const DDIVS=[
   {l:'Четверть',m:1},{l:'Четв. (трио)',m:2/3},{l:'Восьмая',m:.5},
   {l:'Восьм. (трио)',m:1/3},{l:'Шестнадцатая',m:.25},{l:'Шестн. (трио)',m:1/6},{l:'Тридцать вторая',m:.125},
 ];
+const LEVELS=[{min:0,l:'Новичок'},{min:300,l:'Junior'},{min:800,l:'Mid Engineer'},{min:1800,l:'Senior'},{min:3500,l:'Pro'}];
+const BSETS={easy:['bass','lowmid','mid','uppermid'],medium:FREQ_BANDS.map(b=>b.name),hard:FREQ_BANDS.map(b=>b.name)};
+const BOOST={easy:14,medium:10,hard:7};const QVAL={easy:1.8,medium:1.4,hard:.9};
 
 let vip=false;
-let bpm=120,compType='Вокал';
-let taps=[],lastTap=0;
+let streak=0,bpm=120,curTrack='noise',diff='medium';
+let cBand=null,cFreq=null,answered=false,qStart=0;
+let aCtx=null,aGain=null,pNodes=[];
+let taps=[],lastTap=0,compType='Вокал';
 
 function tab(id,btn){
-  const section=document.getElementById(id);
-  if(!section){
-    // Кликнули по вкладке (Тренажёры/Инструменты/Словарь) не находясь
-    // на Главной — сперва переходим туда через SPA-роутер, потом уже
-    // откроем нужный раздел
-    if(window.__spaGoHome) window.__spaGoHome(id);
-    return;
-  }
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
-  section.classList.add('active');
-  // btn отсутствует, когда SPA-сессия началась не с Главной — тогда в
-  // текущей <nav> вообще нет кнопок .nav-tab (они есть только в разметке
-  // Главной), подсвечивать нечего, но сам раздел всё равно должен открыться
-  if(btn)btn.classList.add('active');
+  document.getElementById(id).classList.add('active');btn.classList.add('active');
   if(id==='tools')setTimeout(drawEnvelope,50);
   if(id==='glossary')renderGlossary();
 }
 
-async function openVip(){
+function openVip(){
   if(vip)return;
-  const session=await getSession();
-  document.getElementById('vipLoginBlock').style.display=session?'none':'block';
-  document.getElementById('vipContactBlock').style.display=session?'block':'none';
+  document.getElementById('vipLoginBlock').style.display=sbUser?'none':'block';
+  document.getElementById('vipContactBlock').style.display=sbUser?'block':'none';
   const ov=document.getElementById('vipOverlay');
   ov.classList.add('open');
   requestAnimationFrame(()=>requestAnimationFrame(()=>ov.classList.add('show')));
@@ -148,26 +153,36 @@ function closeVip(){
   ov.classList.remove('show');
   setTimeout(()=>ov.classList.remove('open'),200);
 }
+document.getElementById('vipOverlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeVip();});
 const ICON_CHECK_VIP='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;vertical-align:-1.5px;margin-right:3px"><path d="M20 6 9 17l-5-5"/></svg>';
 function applyVip(){
   const nb=document.getElementById('navVipBtn');nb.innerHTML=ICON_CHECK_VIP+'VIP';nb.classList.add('unlocked');nb.onclick=null;
 }
 
+// ══════════════════════════════════════
+//   SUPABASE — VIP теперь привязан к аккаунту, не к коду в браузере
+// ══════════════════════════════════════
+const SB=supabase.createClient('https://mwzskffecoedpvyflswg.supabase.co','sb_publishable_m1ImqMRye4s4yrpuBTvWvA_yMez-ZhD');
+let sbUser=null,sbProfile=null;
+async function logout(){await SB.auth.signOut();location.href='pages/auth.html';}
 async function sbInit(){
-  const session=await getSession();
+  const{data:{session}}=await SB.auth.getSession();
   if(!session)return;
-  const p=await getMyProfile();
+  sbUser=session.user;
+  const{data:p}=await SB.from('profiles').select('*').eq('id',sbUser.id).single();
+  sbProfile=p;
   if(p&&p.is_vip){
     vip=true;
     applyVip();
   }
   if(p&&['VERIFIED_PRO','MENTOR','ADMIN'].includes(p.role)){
-    const adminBtn=document.getElementById('adminLink');
+    const adminBtn=document.getElementById('navAdminBtn');
     if(adminBtn)adminBtn.style.display='';
   }
   const notifMount=document.getElementById('notifMount');
-  if(notifMount&&window.mountNotifications)mountNotifications(SB,notifMount,session.user.id);
+  if(notifMount&&window.mountNotifications)mountNotifications(SB,notifMount,sbUser.id);
 }
+
 
 function syncBpm(v){
   bpm=Math.max(40,Math.min(300,parseFloat(v)||120));
@@ -304,44 +319,37 @@ function tapTempo(){
   if(taps.length>1){const avg=taps.slice(1).map((t,i)=>t-taps[i]).reduce((a,b)=>a+b)/(taps.length-1);syncBpm(Math.round(60000/avg));}
 }
 
-// Функции, на которые ссылается разметка через onclick/oninput/onchange
-// (в т.ч. сгенерированную этим же файлом) — должны быть в window,
-// инлайновые обработчики ищут их именно там, а не в области модуля.
-Object.assign(window, {
-  tab, openVip, closeVip, tapTempo,
-  calcComp, calcLufs, calcNoteHz, calcReverb, calcRoom, drawEnvelope,
-  renderGlossary, syncBpm, setComp, setGlossCat,
-});
 
-let vipOverlayCloseHandler=null;
 
-export function mount(root){
-  const vipOverlay=document.getElementById('vipOverlay');
-  vipOverlayCloseHandler=e=>{if(e.target===e.currentTarget)closeVip();};
-  vipOverlay.addEventListener('click',vipOverlayCloseHandler);
+function setDiff(v){diff=v;buildBands();}
 
-  buildCompTypes();
-  calcDelay();calcReverb();calcComp();
-  calcNoteHz();calcLufs();calcRoom();
-  setTimeout(drawEnvelope,50);
-  sbInit();
 
-  // Ссылки с других страниц ведут на index.html#trainers и т.п. —
-  // открываем нужную вкладку сразу, а не всегда «Главную». btn может не
-  // найтись (если текущая <nav> не от Главной — там нет .nav-tab вовсе),
-  // tab() и без него откроет нужный раздел, просто нечего подсвечивать.
+function pink(ctx,dur){
+  const sr=ctx.sampleRate,n=Math.ceil(sr*(dur+.1)),buf=ctx.createBuffer(2,n,sr);
+  for(let ch=0;ch<2;ch++){const d=buf.getChannelData(ch);let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+    for(let i=0;i<n;i++){const w=Math.random()*2-1;b0=.99886*b0+w*.0555179;b1=.99332*b1+w*.0750759;b2=.969*b2+w*.153852;b3=.8665*b3+w*.3104856;b4=.55*b4+w*.5329522;b5=-.7616*b5-w*.016898;d[i]=(b0+b1+b2+b3+b4+b5+b6+w*.5362)*.10;b6=w*.115926;}}
+  return buf;
+}
+
+
+
+
+
+
+
+
+
+
+buildCompTypes();
+calcDelay();calcReverb();calcComp();
+calcNoteHz();calcLufs();calcRoom();
+setTimeout(drawEnvelope,50);
+sbInit();
+
+// Ссылки с других страниц ведут на index.html#trainers и т.п. —
+// открываем нужную вкладку сразу, а не всегда «Главную»
+(function(){
   const initialTab=location.hash.slice(1);
-  if(initialTab&&document.getElementById(initialTab)){
-    const btn=document.querySelector('.nav-tab[data-tab="'+initialTab+'"]');
-    tab(initialTab,btn);
-  }
-
-  heroWave.mount();
-}
-
-export function unmount(){
-  // vipOverlay — часть view-root, узел уничтожается вместе с ней при
-  // подмене содержимого, слушатель уходит вместе с ним автоматически.
-  vipOverlayCloseHandler=null;
-  heroWave.unmount();
-}
+  const btn=document.querySelector('.nav-tab[data-tab="'+initialTab+'"]');
+  if(btn)tab(initialTab,btn);
+})();

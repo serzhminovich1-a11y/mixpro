@@ -1,4 +1,7 @@
-import { SB, getSession, getMyProfile } from './sb_client.js';
+const SB = supabase.createClient(
+  'https://mwzskffecoedpvyflswg.supabase.co',
+  'sb_publishable_m1ImqMRye4s4yrpuBTvWvA_yMez-ZhD'
+);
 
 // Пороги XP — должны совпадать с XP_LEVELS в profile.js / get_level_from_xp() в БД
 const XP_LEVELS = [
@@ -22,10 +25,6 @@ let isOwn = true;
 let allProjects = [];
 let projectStats = null; // { byProject: Map, totalReactions, avgRating, totalReviews }
 let currentSort = 'new';
-// Хендлы createWavePlayer() для треков — destroy() при уходе с экрана,
-// иначе трек тихо продолжит играть после SPA-перехода (это не <audio>
-// в DOM, а отдельный объект Audio(), querySelectorAll его не найдёт).
-let activeWavePlayers = [];
 
 const ICON_COVER_PLACEHOLDER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>';
 function coverHtml(p){
@@ -67,7 +66,7 @@ function projectCard(p){
 
   if (isOwn) card.querySelector('.proj-del').addEventListener('click', () => deleteProject(p));
 
-  activeWavePlayers.push(createWavePlayer(p.file_url, card.querySelector('.wp-mount'), { size: 'lg' }));
+  createWavePlayer(p.file_url, card.querySelector('.wp-mount'), { size: 'lg' });
   mountProjectFeedback(SB, p, card.querySelector('.pf-mount'), { currentUid, currentRole });
 
   return card;
@@ -279,33 +278,28 @@ async function handleUpload(e){
   renderProjects();
 }
 
-export async function mount(root) {
-  // Модуль живёт всю SPA-сессию — без сброса старая сортировка пережила
-  // бы переход на другой экран и обратно, а свежая разметка всегда
-  // показывает "Новые" выбранными.
-  currentSort = 'new';
-  allProjects = [];
-  projectStats = null;
+async function logout() {
+  await SB.auth.signOut();
+  location.href = 'auth.html';
+}
 
-  const session = await getSession();
+async function init() {
+  const { data: { session } } = await SB.auth.getSession();
   if (!session) { location.href = 'auth.html'; return; }
   currentUid = session.user.id;
   viewedUid = new URLSearchParams(location.search).get('user') || currentUid;
   isOwn = viewedUid === currentUid;
 
-  // Если смотрим свой профиль — используем общий кэш из sb_client.js
-  // (он же пригодится бесплатно на других SPA-экранах); если чужой —
-  // его всё равно надо тянуть отдельным запросом, но свою роль (для
-  // прав вроде "Оставить разбор") по-прежнему берём из кэша.
-  const [viewedProfile, myProfile] = await Promise.all([
-    isOwn ? getMyProfile() : SB.from('profiles').select('*').eq('id', viewedUid).single().then(r => r.data),
-    isOwn ? Promise.resolve(null) : getMyProfile(),
+  // Если смотрим свой профиль, viewedProfile и myProfile — одна и та же
+  // строка, второй запрос за ней не нужен
+  const [{ data: viewedProfile }, { data: myProfile }] = await Promise.all([
+    SB.from('profiles').select('*').eq('id', viewedUid).single(),
+    isOwn ? Promise.resolve({ data: null }) : SB.from('profiles').select('role').eq('id', currentUid).single(),
   ]);
   if (!viewedProfile) { location.href = 'auth.html'; return; }
   currentRole = isOwn ? viewedProfile.role : (myProfile ? myProfile.role : null);
   if (['VERIFIED_PRO', 'MENTOR', 'ADMIN'].includes(currentRole)) {
-    const adminLink = document.getElementById('adminLink');
-    if (adminLink) adminLink.style.display = '';
+    document.getElementById('adminLink').style.display = '';
   }
   mountNotifications(SB, document.getElementById('notifMount'), currentUid);
 
@@ -361,10 +355,4 @@ export async function mount(root) {
   document.getElementById('content').style.gap = '24px';
 }
 
-export function unmount() {
-  activeWavePlayers.forEach(p => { try { p.destroy(); } catch (e) {} });
-  activeWavePlayers = [];
-  const root = document.getElementById('view-root');
-  if (root) root.querySelectorAll('audio, video').forEach(el => el.pause());
-  clearInterval(progressTimer);
-}
+init();

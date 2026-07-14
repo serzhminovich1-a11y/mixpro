@@ -1,13 +1,4 @@
-// Волна в герое Главной. Раньше был самозапускающийся IIFE — с этим
-// requestAnimationFrame крутился бы вечно даже после ухода с Главной
-// по SPA-переходу (canvas исчезает из DOM, а цикл отрисовки — нет,
-// пока страницу не перезагрузят). Теперь mount()/unmount() — экран
-// уходит, цикл и слушатели уходят вместе с ним.
-let rafId = null;
-let stopped = true;
-let removeListeners = null;
-
-export function mount(){
+(function(){
   const wrap = document.getElementById('heroWaves');
   const canvas = document.getElementById('heroCanvas');
   if (!wrap || !canvas) return;
@@ -49,32 +40,27 @@ export function mount(){
   }
 
   let mouseX = null, mouseActive = 0;
-  const onMouseMove = e => {
+  wrap.addEventListener('mousemove', e => {
     const rect = wrap.getBoundingClientRect();
     mouseX = e.clientX - rect.left;
-  };
-  const onMouseEnter = () => { mouseActive = 1; };
-  const onMouseLeave = () => { mouseActive = 0; mouseX = null; };
-  wrap.addEventListener('mousemove', onMouseMove);
-  wrap.addEventListener('mouseenter', onMouseEnter);
-  wrap.addEventListener('mouseleave', onMouseLeave);
+  });
+  wrap.addEventListener('mouseenter', () => { mouseActive = 1; });
+  wrap.addEventListener('mouseleave', () => { mouseActive = 0; mouseX = null; });
 
   const pulses = [];
   function spawnPulse(x, y){
     pulses.push({ x, y, t0: performance.now() });
     if (pulses.length > 6) pulses.shift();
   }
-  const onClick = e => {
+  wrap.addEventListener('click', e => {
     const rect = wrap.getBoundingClientRect();
     spawnPulse(e.clientX - rect.left, e.clientY - rect.top);
-  };
-  const onTouchStart = e => {
+  });
+  wrap.addEventListener('touchstart', e => {
     const rect = wrap.getBoundingClientRect();
     const t = e.touches[0];
     if (t) spawnPulse(t.clientX - rect.left, t.clientY - rect.top);
-  };
-  wrap.addEventListener('click', onClick);
-  wrap.addEventListener('touchstart', onTouchStart, { passive: true });
+  }, { passive: true });
 
   const PULSE_LIFE = 1400;
   const PULSE_SPEED = 0.55;
@@ -150,35 +136,16 @@ export function mount(){
   }
 
   function frame(now){
-    if (stopped) return;
     const t = now / 1000;
     ctx.clearRect(0, 0, w, h);
     for (const layer of layers) drawLayer(layer, t);
     drawPulseRings();
-    if (!reduceMotion) rafId = requestAnimationFrame(frame);
+    if (!reduceMotion) requestAnimationFrame(frame);
   }
 
-  stopped = false;
   if (reduceMotion) {
     frame(0);
   } else {
-    rafId = requestAnimationFrame(frame);
+    requestAnimationFrame(frame);
   }
-
-  removeListeners = () => {
-    window.removeEventListener('resize', resize);
-    wrap.removeEventListener('mousemove', onMouseMove);
-    wrap.removeEventListener('mouseenter', onMouseEnter);
-    wrap.removeEventListener('mouseleave', onMouseLeave);
-    wrap.removeEventListener('click', onClick);
-    wrap.removeEventListener('touchstart', onTouchStart);
-  };
-}
-
-export function unmount(){
-  stopped = true;
-  if (rafId) cancelAnimationFrame(rafId);
-  rafId = null;
-  if (removeListeners) removeListeners();
-  removeListeners = null;
-}
+})();

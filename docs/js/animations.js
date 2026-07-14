@@ -28,15 +28,6 @@
     Array.from(container.children).forEach(child => window.animateIn(child));
   };
 
-  // Снимает наблюдение с элементов, которые ещё не успели появиться в
-  // зоне видимости (io иначе держит на них ссылку вечно). Звать перед
-  // удалением контейнера из DOM — например, при SPA-переходе на другой
-  // экран, пока часть карточек ещё не долистали.
-  window.disconnectReveals = function(container){
-    if (!container || !io) return;
-    container.querySelectorAll('.reveal').forEach(el => io.unobserve(el));
-  };
-
   // Анимированный счётчик числа: animateNumber(el, 4831)
   window.animateNumber = function(el, target, opts){
     opts = opts || {};

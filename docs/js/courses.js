@@ -1,4 +1,7 @@
-import { SB, getSession, getMyProfile } from './sb_client.js';
+const SB = supabase.createClient(
+  'https://mwzskffecoedpvyflswg.supabase.co',
+  'sb_publishable_m1ImqMRye4s4yrpuBTvWvA_yMez-ZhD'
+);
 const ICON_CHECK_SM = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;vertical-align:-1.5px"><path d="M20 6 9 17l-5-5"/></svg>';
 const ICON_CERT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 12h-5"/><path d="M15 8h-5"/><path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3"/></svg>';
 const ICON_MANAGE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>';
@@ -32,7 +35,7 @@ function courseCard(c){
 }
 
 async function renderCourseList(profilePromise){
-  const [{ data, error }, profile] = await Promise.all([
+  const [{ data, error }, { data: profile }] = await Promise.all([
     SB.from('courses').select('*').order('created_at', { ascending: true }),
     profilePromise,
   ]);
@@ -192,31 +195,30 @@ async function renderAssignments(courseId){
   });
 }
 
-export async function mount(root) {
-  const session = await getSession();
+async function logout() {
+  await SB.auth.signOut();
+  location.href = 'auth.html';
+}
+
+async function init() {
+  const { data: { session } } = await SB.auth.getSession();
   if (!session) { location.href = 'auth.html'; return; }
   currentUid = session.user.id;
 
   const courseId = new URLSearchParams(location.search).get('course');
   // Профиль (для прав автора курсов) не нужен для самих данных курса —
-  // грузим его параллельно с уроками/списком курсов, а не перед ними.
-  // getMyProfile() уже кэширован в sb_client.js, так что если профиль
-  // только что грузился на другом SPA-экране — тут это вообще бесплатно.
-  const profilePromise = getMyProfile();
+  // грузим его параллельно с уроками/списком курсов, а не перед ними
+  // Promise.resolve() оборачивает builder в обычный промис — иначе
+  // await в двух местах (тут и в renderCourseList) выполнит запрос дважды
+  const profilePromise = Promise.resolve(SB.from('profiles').select('role').eq('id', currentUid).single());
   const viewPromise = courseId ? renderCourseView(courseId) : renderCourseList(profilePromise);
 
-  const profile = await profilePromise;
+  const { data: profile } = await profilePromise;
   const canAuthor = profile && ['VERIFIED_PRO', 'MENTOR', 'ADMIN'].includes(profile.role);
-  // adminLink/verifyLink живут в <nav>, которая теперь может быть от
-  // любой из пяти SPA-страниц — verifyLink специфична для Курсов и
-  // есть не везде, поэтому без null-проверки тут (в отличие от adminLink,
-  // который сейчас есть на всех пяти) будет падать.
   if (canAuthor) {
-    const adminLink = document.getElementById('adminLink');
-    if (adminLink) adminLink.style.display = '';
+    document.getElementById('adminLink').style.display = '';
   } else {
-    const verifyLink = document.getElementById('verifyLink');
-    if (verifyLink) verifyLink.style.display = '';
+    document.getElementById('verifyLink').style.display = '';
   }
   mountNotifications(SB, document.getElementById('notifMount'), currentUid);
 
@@ -234,6 +236,4 @@ export async function mount(root) {
   await viewPromise;
 }
 
-export function unmount() {
-  // Ни таймеров, ни аудио, ни подписок на этом экране нет — подчищать нечего.
-}
+init();

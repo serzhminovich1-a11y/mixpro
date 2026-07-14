@@ -3,28 +3,47 @@
    Подключается вместе с animations.css туда, где есть аудио: Лента,
    Портфолио, Профиль. Использует общие токены темы (--border, --s1 и т.д.),
    которые определены одинаково в feed.css / portfolio.css / profile.css.
+   Волна сверху, под ней время + транспорт (пред./плей/след.) + громкость —
+   так остаётся место для кнопок перехода между треками на любой ширине.
    ══════════════════════════════════════ */
-.wave-player{display:flex;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-4);border-radius:12px;border:1px solid var(--border);background:var(--s1)}
+.wave-player{display:flex;flex-direction:column;gap:var(--space-2);padding:var(--space-3) var(--space-4);border-radius:12px;border:1px solid var(--border);background:var(--s1)}
+.wp-wave{height:38px;cursor:grab;touch-action:none}
+.wp-wave.dragging{cursor:grabbing}
+.wp-wave canvas{display:block;width:100%;height:100%}
+
+.wp-row{display:flex;align-items:center;gap:var(--space-3)}
+.wp-time{display:flex;gap:var(--space-1);font-family:var(--mono);font-size:var(--text-caption-2-size);color:var(--muted);letter-spacing:.02em;min-width:64px}
+.wp-time .wp-cur::after{content:' / '}
+.wp-error .wp-time{color:var(--red)}
+
+.wp-transport{display:flex;align-items:center;gap:var(--space-2);margin:0 auto}
 .wp-play{width:34px;height:34px;border-radius:50%;border:none;background:var(--green);color:#0a0b16;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:.15s}
 .wp-play:hover{opacity:.85;transform:scale(1.05)}
 .wp-play:disabled{opacity:.4;cursor:default;transform:none}
 .wp-play svg{width:15px;height:15px}
-.wp-stop{width:26px;height:26px;border-radius:50%;border:1px solid var(--border);background:transparent;color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:.15s}
-.wp-stop:hover{color:var(--text);border-color:var(--border-hi)}
-.wp-stop svg{width:10px;height:10px}
-.wp-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:var(--space-1)}
-.wp-wave{height:38px;cursor:grab;touch-action:none}
-.wp-wave.dragging{cursor:grabbing}
-.wp-wave canvas{display:block;width:100%;height:100%}
-.wp-time{display:flex;justify-content:space-between;font-family:var(--mono);font-size:var(--text-caption-2-size);color:var(--muted);letter-spacing:.02em}
-.wp-error .wp-time{color:var(--red)}
+.wp-prev,.wp-next{width:24px;height:24px;border:none;background:transparent;color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:.15s}
+.wp-prev:hover,.wp-next:hover{color:var(--text)}
+.wp-prev:disabled,.wp-next:disabled{opacity:.25;cursor:default;pointer-events:none}
+.wp-prev svg,.wp-next svg{width:15px;height:15px}
+
+.wp-volume{display:flex;align-items:center;gap:var(--space-1);min-width:0}
+.wp-vol-icon{width:22px;height:22px;border:none;background:transparent;color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:.15s}
+.wp-vol-icon:hover{color:var(--text)}
+.wp-vol-icon svg{width:15px;height:15px}
+.wp-vol-slider{width:64px;accent-color:var(--green);cursor:pointer}
+
+@media(max-width:480px){
+  .wp-time{display:none}
+  .wp-vol-slider{display:none}
+}
 
 /* Крупный вариант — для главной карточки трека (Портфолио/Профиль),
    вдохновлено плеером трека в Spotify: большая кнопка play, волна выше. */
-.wave-player.lg{gap:var(--space-4)}
-.wave-player.lg .wp-play{width:52px;height:52px;box-shadow:0 8px 20px -6px rgba(74,222,128,.5)}
-.wave-player.lg .wp-play svg{width:21px;height:21px}
-.wave-player.lg .wp-stop{width:32px;height:32px}
-.wave-player.lg .wp-stop svg{width:13px;height:13px}
+.wave-player.lg{padding:var(--space-4);gap:var(--space-3)}
 .wave-player.lg .wp-wave{height:56px}
+.wave-player.lg .wp-play{width:44px;height:44px;box-shadow:0 8px 20px -6px rgba(74,222,128,.5)}
+.wave-player.lg .wp-play svg{width:18px;height:18px}
+.wave-player.lg .wp-prev,.wave-player.lg .wp-next{width:28px;height:28px}
+.wave-player.lg .wp-prev svg,.wave-player.lg .wp-next svg{width:17px;height:17px}
 .wave-player.lg .wp-time{font-size:var(--text-body-1-size)}
+.wave-player.lg .wp-vol-slider{width:84px}

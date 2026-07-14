@@ -44,7 +44,7 @@
 .pf-review-text{font-size:var(--text-body-1-size);color:var(--text);line-height:1.55;margin-top:var(--space-1);white-space:pre-wrap;word-break:break-word}
 .pf-review-form{display:flex;flex-direction:column;gap:var(--space-2);padding:var(--space-3) var(--space-3);border-radius:10px;border:1px dashed var(--border-hi)}
 .pf-review-form-row{display:flex}
-.pf-review-score{width:110px;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:var(--space-2) var(--space-3);color:var(--text);font-family:var(--mono);font-size:var(--text-body-1-size)}
+.pf-review-score{width:140px;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:var(--space-2) var(--space-3);color:var(--text);font-family:var(--mono);font-size:var(--text-body-1-size)}
 .pf-review-feedback{background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:var(--space-2) var(--space-3);color:var(--text);font-family:var(--sans);font-size:var(--text-body-1-size);min-height:56px;resize:vertical}
 .pf-review-submit{align-self:flex-start;font-family:var(--mono);font-size:var(--text-caption-2-size);padding:var(--space-2) var(--space-4);border-radius:20px;border:none;background:var(--gold);color:#241a00;font-weight:700;cursor:pointer}
 .pf-review-submit:hover{opacity:.88}

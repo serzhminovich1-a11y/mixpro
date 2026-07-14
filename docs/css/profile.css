@@ -127,3 +127,12 @@ tr:hover td{background:var(--s2)}
 .shop-foot{display:flex;align-items:center;justify-content:space-between;margin-top:var(--space-3)}
 .shop-price{font-family:var(--mono);font-size:var(--text-body-1-size);font-weight:700;color:var(--gold)}
 .shop-badge{font-family:var(--mono);font-size:var(--text-caption-1-size);letter-spacing:.06em;text-transform:uppercase;color:var(--muted2);padding:var(--space-half) var(--space-2);border-radius:20px;border:1px solid var(--border-hi)}
+
+/* Навигация на узких экранах — иначе шапка вылезает за края и часть
+   ссылок (включая Профиль/Выйти) становится недостижимой */
+@media(max-width:760px){
+  nav{flex-wrap:wrap;height:auto;row-gap:var(--space-2)}
+  .nav-links{width:100%;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .nav-links::-webkit-scrollbar{display:none}
+  .nav-btn{white-space:nowrap;flex-shrink:0}
+}

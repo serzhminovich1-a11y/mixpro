@@ -263,7 +263,10 @@ select option{background:#1C1C22}
 footer{border-top:1px solid var(--border);padding:var(--space-5) var(--space-8);text-align:center;font-family:var(--mono);font-size:var(--text-caption-2-size);color:var(--muted);letter-spacing:.06em}
 
 @media(max-width:640px){
-  nav{padding:var(--space-0) var(--space-3)}.nav-tab{padding:var(--space-1) var(--space-2);font-size:var(--text-caption-2-size)}
+  nav{padding:var(--space-2) var(--space-3);flex-wrap:wrap;height:auto;row-gap:var(--space-2)}
+  .nav-tabs{order:3;width:100%;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .nav-tabs::-webkit-scrollbar{display:none}
+  .nav-tab{padding:var(--space-1) var(--space-2);font-size:var(--text-caption-2-size);white-space:nowrap;flex-shrink:0}
   .nav-links,.nav-divider{display:none}
   .nav-admin-btn span{display:none}
   .hero,.lessons-wrap,.tools-wrap{padding-left:var(--space-4);padding-right:var(--space-4)}

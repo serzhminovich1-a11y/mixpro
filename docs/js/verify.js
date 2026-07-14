@@ -3,6 +3,7 @@ const SB = supabase.createClient(
   'sb_publishable_m1ImqMRye4s4yrpuBTvWvA_yMez-ZhD'
 );
 const ICON_CHECK_SM = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;vertical-align:-1.5px"><path d="M20 6 9 17l-5-5"/></svg>';
+const ICON_CLOCK = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;color:var(--gold)"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
 
 let currentUid = null;
 
@@ -32,7 +33,7 @@ async function handleSubmit(e){
 }
 
 function box(html){
-  return `<div class="card" style="padding:24px;text-align:center;display:flex;flex-direction:column;gap:8px">${html}</div>`;
+  return `<div class="form-card" style="text-align:center"><div>${html}</div></div>`;
 }
 
 async function renderStatus(){
@@ -51,7 +52,7 @@ async function renderStatus(){
   const latest = requests && requests[0];
 
   if (latest && latest.status === 'pending') {
-    statusBox.innerHTML = box('⏳ Заявка на рассмотрении. Мы сообщим, когда её проверят.');
+    statusBox.innerHTML = box(ICON_CLOCK + ' Заявка на рассмотрении. Мы сообщим, когда её проверят.');
     form.style.display = 'none';
     return;
   }

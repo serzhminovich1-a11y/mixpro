@@ -1,7 +1,4 @@
-const SB = supabase.createClient(
-  'https://mwzskffecoedpvyflswg.supabase.co',
-  'sb_publishable_m1ImqMRye4s4yrpuBTvWvA_yMez-ZhD'
-);
+import { SB, getSession, getMyProfile } from './sb_client.js';
 
 // EMOJI_SET / censorText / containsPoliticalContent / POLITICAL_GUARD_MESSAGE —
 // теперь в общем content_filter.js (тот же список фильтров нужен и
@@ -26,6 +23,11 @@ let currentUsername = null;
 let currentRole = null;
 let followingSet = new Set();
 let pendingFile = null;
+// Хендлы createWavePlayer() для вложений постов — их нужно явно
+// destroy() при уходе с экрана, иначе аудио тихо продолжит играть
+// после SPA-перехода (это не настоящий <audio> в DOM, а отдельный
+// объект Audio(), document.querySelectorAll('audio') его не найдёт).
+let activeWavePlayers = [];
 
 // Пауза остальных плееров на странице, когда запускается новый — иначе
 // вложения постов, голосовые комментарии и плеер с волной могут играть
@@ -137,7 +139,10 @@ async function handleMicClick(){
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+// Раньше вешалось один раз на DOMContentLoaded — теперь composerForm
+// пересоздаётся при каждом mount() (это часть #view-root), так что и
+// обработчики нужно перевешивать заново при каждом заходе на Ленту.
+function setupComposer(){
   makeRichEditor(document.getElementById('composerForm'));
   document.getElementById('micBtn').addEventListener('click', handleMicClick);
   document.getElementById('attachBtn').addEventListener('click', () => document.getElementById('attachInput').click());
@@ -157,7 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('attachPreview').classList.remove('show');
   });
   document.getElementById('composerForm').addEventListener('submit', handlePublish);
-});
+}
 
 async function handlePublish(e){
   e.preventDefault();
@@ -590,7 +595,7 @@ function postCard(p, commentCounts, reactionsByPost){
     </div>`;
 
   if (p.attachment_type === 'audio' && p.attachment_url) {
-    createWavePlayer(p.attachment_url, card.querySelector('.wp-mount'));
+    activeWavePlayers.push(createWavePlayer(p.attachment_url, card.querySelector('.wp-mount')));
   }
 
   const followBtn = card.querySelector('.follow-btn');
@@ -724,27 +729,25 @@ async function renderFeed(){
   if (window.animateChildren) animateChildren(list);
 }
 
-async function logout() {
-  await SB.auth.signOut();
-  location.href = 'auth.html';
-}
-
-async function init() {
-  const { data: { session } } = await SB.auth.getSession();
+export async function mount(root) {
+  const session = await getSession();
   if (!session) { location.href = 'auth.html'; return; }
   currentUid = session.user.id;
 
-  const [{ data: profile }, { data: myFollows }] = await Promise.all([
-    SB.from('profiles').select('username, role').eq('id', currentUid).single(),
+  const [profile, { data: myFollows }] = await Promise.all([
+    getMyProfile(),
     SB.from('follows').select('following_id').eq('follower_id', currentUid),
   ]);
   currentUsername = profile ? profile.username : null;
   currentRole = profile ? profile.role : null;
   if (['VERIFIED_PRO', 'MENTOR', 'ADMIN'].includes(currentRole)) {
-    document.getElementById('adminLink').style.display = '';
+    const adminLink = document.getElementById('adminLink');
+    if (adminLink) adminLink.style.display = '';
   }
   mountNotifications(SB, document.getElementById('notifMount'), currentUid);
   followingSet = new Set((myFollows || []).map(f => f.following_id));
+
+  setupComposer();
 
   document.getElementById('loading').style.display = 'none';
   document.getElementById('content').style.display = 'flex';
@@ -754,4 +757,12 @@ async function init() {
   await renderFeed();
 }
 
-init();
+export function unmount() {
+  activeWavePlayers.forEach(p => { try { p.destroy(); } catch (e) {} });
+  activeWavePlayers = [];
+  const root = document.getElementById('view-root');
+  if (root) root.querySelectorAll('audio, video').forEach(el => el.pause());
+  if (composerRecorder) { try { composerRecorder.stop(); } catch (e) {} }
+  if (composerRecTimer) clearInterval(composerRecTimer);
+  pendingFile = null;
+}

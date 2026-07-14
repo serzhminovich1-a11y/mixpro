@@ -1,4 +1,13 @@
-(function(){
+// Волна в герое Главной. Раньше был самозапускающийся IIFE — с этим
+// requestAnimationFrame крутился бы вечно даже после ухода с Главной
+// по SPA-переходу (canvas исчезает из DOM, а цикл отрисовки — нет,
+// пока страницу не перезагрузят). Теперь mount()/unmount() — экран
+// уходит, цикл и слушатели уходят вместе с ним.
+let rafId = null;
+let stopped = true;
+let removeListeners = null;
+
+export function mount(){
   const wrap = document.getElementById('heroWaves');
   const canvas = document.getElementById('heroCanvas');
   if (!wrap || !canvas) return;
@@ -40,27 +49,32 @@
   }
 
   let mouseX = null, mouseActive = 0;
-  wrap.addEventListener('mousemove', e => {
+  const onMouseMove = e => {
     const rect = wrap.getBoundingClientRect();
     mouseX = e.clientX - rect.left;
-  });
-  wrap.addEventListener('mouseenter', () => { mouseActive = 1; });
-  wrap.addEventListener('mouseleave', () => { mouseActive = 0; mouseX = null; });
+  };
+  const onMouseEnter = () => { mouseActive = 1; };
+  const onMouseLeave = () => { mouseActive = 0; mouseX = null; };
+  wrap.addEventListener('mousemove', onMouseMove);
+  wrap.addEventListener('mouseenter', onMouseEnter);
+  wrap.addEventListener('mouseleave', onMouseLeave);
 
   const pulses = [];
   function spawnPulse(x, y){
     pulses.push({ x, y, t0: performance.now() });
     if (pulses.length > 6) pulses.shift();
   }
-  wrap.addEventListener('click', e => {
+  const onClick = e => {
     const rect = wrap.getBoundingClientRect();
     spawnPulse(e.clientX - rect.left, e.clientY - rect.top);
-  });
-  wrap.addEventListener('touchstart', e => {
+  };
+  const onTouchStart = e => {
     const rect = wrap.getBoundingClientRect();
     const t = e.touches[0];
     if (t) spawnPulse(t.clientX - rect.left, t.clientY - rect.top);
-  }, { passive: true });
+  };
+  wrap.addEventListener('click', onClick);
+  wrap.addEventListener('touchstart', onTouchStart, { passive: true });
 
   const PULSE_LIFE = 1400;
   const PULSE_SPEED = 0.55;
@@ -136,16 +150,35 @@
   }
 
   function frame(now){
+    if (stopped) return;
     const t = now / 1000;
     ctx.clearRect(0, 0, w, h);
     for (const layer of layers) drawLayer(layer, t);
     drawPulseRings();
-    if (!reduceMotion) requestAnimationFrame(frame);
+    if (!reduceMotion) rafId = requestAnimationFrame(frame);
   }
 
+  stopped = false;
   if (reduceMotion) {
     frame(0);
   } else {
-    requestAnimationFrame(frame);
+    rafId = requestAnimationFrame(frame);
   }
-})();
+
+  removeListeners = () => {
+    window.removeEventListener('resize', resize);
+    wrap.removeEventListener('mousemove', onMouseMove);
+    wrap.removeEventListener('mouseenter', onMouseEnter);
+    wrap.removeEventListener('mouseleave', onMouseLeave);
+    wrap.removeEventListener('click', onClick);
+    wrap.removeEventListener('touchstart', onTouchStart);
+  };
+}
+
+export function unmount(){
+  stopped = true;
+  if (rafId) cancelAnimationFrame(rafId);
+  rafId = null;
+  if (removeListeners) removeListeners();
+  removeListeners = null;
+}

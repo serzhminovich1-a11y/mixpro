@@ -12,14 +12,14 @@
 </head>
 <body>
 <nav>
-  <a href="../index.html" class="logo">MIX<span>PRO</span></a>
+  <a href="../index.html" class="logo" data-route="home">MIX<span>PRO</span></a>
   <div class="nav-links">
-    <a href="../index.html" class="nav-btn">Главная</a>
-    <a href="feed.html" class="nav-btn">Лента</a>
-    <a href="courses.html" class="nav-btn current">Курсы</a>
-    <a href="../index.html#trainers" class="nav-btn">Тренажёры</a>
-    <a href="leaderboard.html" class="nav-btn">Рейтинг</a>
-    <a href="portfolio.html" class="nav-btn">Портфолио</a>
+    <a href="../index.html" class="nav-btn" data-route="home">Главная</a>
+    <a href="feed.html" class="nav-btn" data-route="feed">Лента</a>
+    <a href="courses.html" class="nav-btn current" data-route="courses">Курсы</a>
+    <a href="../index.html#trainers" class="nav-btn" data-route="home">Тренажёры</a>
+    <a href="leaderboard.html" class="nav-btn" data-route="leaderboard">Рейтинг</a>
+    <a href="portfolio.html" class="nav-btn" data-route="portfolio">Портфолио</a>
   </div>
   <div class="nav-links">
     <a href="verify.html" class="nav-btn" id="verifyLink" style="display:none">Стать автором курсов</a>
@@ -30,7 +30,7 @@
   </div>
 </nav>
 
-<div class="wrap">
+<div class="wrap" id="view-root">
   <div id="loading" class="loading">Загружаем курсы...</div>
 
   <!-- Course grid view -->
@@ -62,6 +62,11 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="../js/animations.js"></script>
 <script src="../js/notifications.js"></script>
-<script src="../js/courses.js"></script>
+<!-- см. пояснение в index.html — общие библиотеки для других SPA-экранов -->
+<script src="../js/waveform_player.js"></script>
+<script src="../js/content_filter.js"></script>
+<script src="../js/rich_text.js"></script>
+<script src="../js/project_feedback.js"></script>
+<script type="module" src="../js/spa_shell.js"></script>
 </body>
 </html>

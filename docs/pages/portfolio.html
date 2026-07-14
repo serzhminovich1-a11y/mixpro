@@ -14,14 +14,14 @@
 </head>
 <body>
 <nav>
-  <a href="../index.html" class="logo">MIX<span>PRO</span></a>
+  <a href="../index.html" class="logo" data-route="home">MIX<span>PRO</span></a>
   <div class="nav-links">
-    <a href="../index.html" class="nav-btn">Главная</a>
-    <a href="feed.html" class="nav-btn">Лента</a>
-    <a href="courses.html" class="nav-btn">Курсы</a>
-    <a href="../index.html#trainers" class="nav-btn">Тренажёры</a>
-    <a href="leaderboard.html" class="nav-btn">Рейтинг</a>
-    <a href="portfolio.html" class="nav-btn current">Портфолио</a>
+    <a href="../index.html" class="nav-btn" data-route="home">Главная</a>
+    <a href="feed.html" class="nav-btn" data-route="feed">Лента</a>
+    <a href="courses.html" class="nav-btn" data-route="courses">Курсы</a>
+    <a href="../index.html#trainers" class="nav-btn" data-route="home">Тренажёры</a>
+    <a href="leaderboard.html" class="nav-btn" data-route="leaderboard">Рейтинг</a>
+    <a href="portfolio.html" class="nav-btn current" data-route="portfolio">Портфолио</a>
   </div>
   <div class="nav-links">
     <a href="admin.html" class="nav-btn accent" id="adminLink" style="display:none">Админ</a>
@@ -31,7 +31,7 @@
   </div>
 </nav>
 
-<div class="wrap">
+<div class="wrap" id="view-root">
   <div id="loading" class="loading">Загружаем портфолио...</div>
 
   <div id="content" style="display:none">
@@ -106,6 +106,8 @@
 <script src="../js/content_filter.js"></script>
 <script src="../js/project_feedback.js"></script>
 <script src="../js/notifications.js"></script>
-<script src="../js/portfolio.js"></script>
+<!-- см. пояснение в index.html — общие библиотеки для других SPA-экранов -->
+<script src="../js/rich_text.js"></script>
+<script type="module" src="../js/spa_shell.js"></script>
 </body>
 </html>

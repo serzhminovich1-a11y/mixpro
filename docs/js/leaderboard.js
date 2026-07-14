@@ -1,7 +1,4 @@
-const SB = supabase.createClient(
-  'https://mwzskffecoedpvyflswg.supabase.co',
-  'sb_publishable_m1ImqMRye4s4yrpuBTvWvA_yMez-ZhD'
-);
+import { SB, getSession, getMyProfile } from './sb_client.js';
 
 const DIFF_MAP = { easy:'Легко', medium:'Средне', hard:'Сложно', all:'Все' };
 const GAME_MAP = { peak_master:'Peak Master', pan_trainer:'Pan Trainer', db_king:'dB King', reverb_wizard:'Reverb Wizard', dr_compressor:'Dr. Compressor' };
@@ -12,16 +9,27 @@ let currentGame = 'all';
 let myUserId = null;
 let myUsername = null;
 
-async function init() {
-  const { data: { session } } = await SB.auth.getSession();
+export async function mount(root) {
+  // Модуль живёт всё SPA-сессию — без сброса тут старый выбранный
+  // фильтр пережил бы переход на другой экран и обратно, а свежая
+  // разметка (только что вставленная в DOM) всегда показывает
+  // "Все игры"/"Все режимы" выбранными — без сброса они бы разошлись.
+  currentDiff = 'all';
+  currentGame = 'all';
+  const session = await getSession();
   if (session) {
     myUserId = session.user.id;
-    const { data: p } = await SB.from('profiles').select('username, role').eq('id', myUserId).single();
+    const p = await getMyProfile();
     if (p) {
       myUsername = p.username;
-      document.getElementById('accountLinks').style.display = '';
+      // accountLinks — обёртка, скрытая по умолчанию только в разметке
+      // Рейтинга (это единственная из пяти SPA-страниц, доступная
+      // гостям); если сейчас в DOM чужая <nav> — этого элемента там нет.
+      const accountLinks = document.getElementById('accountLinks');
+      if (accountLinks) accountLinks.style.display = '';
       if (['VERIFIED_PRO', 'MENTOR', 'ADMIN'].includes(p.role)) {
-        document.getElementById('adminLink').style.display = '';
+        const adminLink = document.getElementById('adminLink');
+        if (adminLink) adminLink.style.display = '';
       }
       mountNotifications(SB, document.getElementById('notifMount'), myUserId);
     }
@@ -29,9 +37,8 @@ async function init() {
   load();
 }
 
-async function logout() {
-  await SB.auth.signOut();
-  location.href = 'auth.html';
+export function unmount() {
+  // Ни таймеров, ни аудио на этом экране нет — подчищать нечего.
 }
 
 async function load() {
@@ -124,4 +131,5 @@ function stringToColor(str) {
   return colors[Math.abs(hash) % colors.length];
 }
 
-init();
+window.setGame = setGame;
+window.setDiff = setDiff;

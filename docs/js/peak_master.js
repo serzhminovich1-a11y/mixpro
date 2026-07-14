@@ -409,18 +409,26 @@ function showSessionSummary(){
     [0,'Каждая сессия тренирует слух. Продолжай!'],
   ];
   document.getElementById('summaryMsg').textContent=(msgs.find(m=>pct>=m[0])||msgs[msgs.length-1])[1]+' Точность: '+pct+'%';
-  document.getElementById('summaryOverlay').classList.add('open');
+  const ov=document.getElementById('summaryOverlay');
+  ov.classList.add('open');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>ov.classList.add('show')));
+}
+
+function closeSummaryOverlay(){
+  const ov=document.getElementById('summaryOverlay');
+  ov.classList.remove('show');
+  setTimeout(()=>ov.classList.remove('open'),200);
 }
 
 function continueSession(){
-  document.getElementById('summaryOverlay').classList.remove('open');
+  closeSummaryOverlay();
   sessionRound=0;sessionScore=0;sessionResults=[];
   document.getElementById('scrGame').classList.add('active');
   newRound();
 }
 
 function backToMenuFromSummary(){
-  document.getElementById('summaryOverlay').classList.remove('open');
+  closeSummaryOverlay();
   document.getElementById('scrModeSelect').classList.add('active');
 }
 

@@ -764,7 +764,7 @@ function submissionCard(s){
       </div>
       <div class="review-card-date">${date}</div>
     </div>
-    ${projectUrl ? `<div><div class="review-card-attach">${ICON_HEADPHONES_A}${escapeHtml(projectTitle)}</div><audio controls src="${projectUrl}" style="width:100%;height:34px"></audio></div>` : '<div class="empty">Работа не прикреплена</div>'}
+    ${projectUrl ? `<div><div class="review-card-attach">${ICON_HEADPHONES_A}${escapeHtml(projectTitle)}</div><div class="wp-mount"></div></div>` : '<div class="empty">Работа не прикреплена</div>'}
     <div class="form-row">
       <div class="field"><label>Оценка (из ${maxScore})</label><input type="number" class="rScore" min="0" max="${maxScore}" value="${maxScore}"></div>
     </div>
@@ -775,6 +775,7 @@ function submissionCard(s){
     </div>
     <div class="form-status rStatus"></div>`;
 
+  if (projectUrl) createWavePlayer(projectUrl, card.querySelector('.wp-mount'));
   card.querySelector('.rApprove').addEventListener('click', () => handleReviewSubmission(s, card, true, maxScore));
   card.querySelector('.rReject').addEventListener('click', () => handleReviewSubmission(s, card, false, maxScore));
 
@@ -937,10 +938,11 @@ function reportCard(r, content, reporterName){
   const date = new Date(r.created_at).toLocaleDateString('ru-RU');
   const typeLabel = r.content_type === 'post' ? 'Пост' : r.content_type === 'project_comment' ? 'Комментарий (портфолио)' : 'Комментарий';
   let preview;
+  const hasAudio = content && content.audio_url;
   if (!content) {
     preview = '<span style="color:var(--muted)">Контент уже удалён</span>';
-  } else if (content.audio_url) {
-    preview = `<audio controls src="${content.audio_url}" style="width:100%;height:32px"></audio>`;
+  } else if (hasAudio) {
+    preview = `<div class="wp-mount"></div>`;
   } else {
     preview = `<div style="white-space:pre-wrap">${escapeHtml(content.content || '(пусто)')}</div>`;
   }
@@ -956,6 +958,7 @@ function reportCard(r, content, reporterName){
       <button type="button" class="nav-btn dismissBtn">Отклонить жалобу</button>
     </div>`;
 
+  if (hasAudio) createWavePlayer(content.audio_url, card.querySelector('.wp-mount'));
   card.querySelector('.deleteContentBtn').addEventListener('click', () => handleResolveReport(r, card, 'delete'));
   card.querySelector('.dismissBtn').addEventListener('click', () => handleResolveReport(r, card, 'dismiss'));
   return card;

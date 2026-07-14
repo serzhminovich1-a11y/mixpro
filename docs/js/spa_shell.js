@@ -21,6 +21,13 @@ const routeByPathname = new Map(ROUTES.map(r => [new URL(r.html).pathname, r]));
 
 let currentModule = null;
 let currentRoute = null;
+// Растёт на каждый вызов navigateTo() — если клик по второй ссылке
+// прилетел раньше, чем отработал mount() первой (нетерпеливый двойной
+// клик), первая навигация должна СВЕРНУТЬСЯ, а не мутировать документ,
+// который уже принадлежит второй странице (иначе mount() первого экрана
+// упадёт на document.getElementById(...), которого там больше нет —
+// он ищет по всему document, а не по своему уже отсоединённому корню).
+let navSeq = 0;
 
 function findRouteForUrl(url) {
   return routeByPathname.get(url.pathname) || null;
@@ -75,11 +82,14 @@ function updateNavActiveState(routeKey) {
 }
 
 async function navigateTo(route, url, doPushState) {
+  const mySeq = ++navSeq;
   startProgress();
   try {
     const res = await fetch(route.html);
+    if (mySeq !== navSeq) return; // подменили ссылкой, кликнутой позже
     if (!res.ok) { location.href = url; return; }
     const text = await res.text();
+    if (mySeq !== navSeq) return;
     const doc = new DOMParser().parseFromString(text, 'text/html');
     const newRoot = doc.getElementById('view-root');
     const oldRoot = document.getElementById('view-root');
@@ -97,11 +107,16 @@ async function navigateTo(route, url, doPushState) {
     updateNavActiveState(route.key);
 
     const mod = await import(route.js);
+    // Пока грузился модуль экрана, могла прилететь ещё одна навигация —
+    // тогда #view-root в документе уже принадлежит ЕЙ, и звать mount()
+    // этого (устаревшего) модуля нельзя: он будет искать свои элементы
+    // по всему document и либо упадёт, либо испортит чужой экран.
+    if (mySeq !== navSeq) return;
     currentModule = mod;
     currentRoute = route;
     if (typeof mod.mount === 'function') await mod.mount(newRoot);
   } finally {
-    finishProgress();
+    if (mySeq === navSeq) finishProgress();
   }
 }
 

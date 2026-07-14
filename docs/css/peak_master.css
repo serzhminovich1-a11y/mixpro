@@ -332,4 +332,9 @@ body.tour-lock{overflow:hidden}
   .pm-page{padding:var(--space-4) var(--space-3) var(--space-10)}
   .pm-stats{gap:var(--space-2)}.pm-num{font-size:var(--text-body-2-size)}
   .start-card{padding:var(--space-6) var(--space-4)}
+  /* Ссылок в шапке больше, чем помещается в 390px без переноса —
+     иначе .pm-nav-links раздувает всю страницу по горизонтали */
+  .pm-nav-links{width:100%;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .pm-nav-links::-webkit-scrollbar{display:none}
+  .pm-nav-link{flex-shrink:0}
 }

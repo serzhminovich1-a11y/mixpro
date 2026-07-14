@@ -1037,7 +1037,7 @@ function userRow(u){
     <td><select class="au-vstatus">${vOptions}</select><span class="au-saved"></span></td>
     <td><label class="au-vip-toggle"><input type="checkbox" class="au-vip" ${u.is_vip ? 'checked' : ''}><span class="au-saved"></span></label></td>
     <td class="au-date">${date}</td>
-    <td>${isSelf ? '' : '<button type="button" class="icon-btn au-del" title="Удалить аккаунт">${ICON_TRASH_A}</button>'}</td>`;
+    <td>${isSelf ? '' : `<button type="button" class="icon-btn au-del" title="Удалить аккаунт">${ICON_TRASH_A}</button>`}</td>`;
 
   const roleSel = tr.querySelector('.au-role');
   roleSel.addEventListener('change', () => {

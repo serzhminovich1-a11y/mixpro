@@ -46,8 +46,10 @@ async function renderStatus(prefetched){
     : await SB.from('profiles').select('role, verification_status').eq('id', currentUid).single();
   const statusBox = document.getElementById('statusBox');
   const form = document.getElementById('verifyForm');
+  const sub = document.getElementById('verifySub');
 
   if (['VERIFIED_PRO', 'MENTOR', 'ADMIN'].includes(profile.role)) {
+    sub.textContent = 'Твой опыт уже подтверждён платформой';
     statusBox.innerHTML = box(ICON_CHECK_SM + ' <b>Твой опыт подтверждён</b> — можешь создавать курсы.<br><a href="admin.html" style="color:var(--cyan)">Перейти в панель управления →</a>');
     form.style.display = 'none';
     return;
@@ -58,6 +60,7 @@ async function renderStatus(prefetched){
   const latest = requests && requests[0];
 
   if (latest && latest.status === 'pending') {
+    sub.textContent = 'Заявка уже отправлена и ждёт рассмотрения';
     statusBox.innerHTML = box(ICON_CLOCK + ' Заявка на рассмотрении. Мы сообщим, когда её проверят.');
     form.style.display = 'none';
     return;

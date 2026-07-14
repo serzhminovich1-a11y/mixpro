@@ -221,4 +221,9 @@ body{background:#0a0b12;color:#eef0fb;font-family:'Golos Text',sans-serif;-webki
   .pm-page{padding:var(--space-4) var(--space-3) var(--space-10)}
   .pan-buttons{gap:var(--space-1)}
   .pan-btn{min-width:56px;padding:var(--space-2) var(--space-2)}
+  /* Ссылок в шапке больше, чем помещается в 390px без переноса —
+     иначе .pm-nav-links раздувает всю страницу по горизонтали */
+  .pm-nav-links{width:100%;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .pm-nav-links::-webkit-scrollbar{display:none}
+  .pm-nav-link{flex-shrink:0}
 }

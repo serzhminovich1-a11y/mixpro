@@ -4,10 +4,15 @@ const SB = supabase.createClient(
 );
 const ICON_CHECK_SM = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;vertical-align:-1.5px"><path d="M20 6 9 17l-5-5"/></svg>';
 const ICON_CERT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 12h-5"/><path d="M15 8h-5"/><path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3"/></svg>';
+const ICON_MANAGE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>';
 
 let currentUid = null;
+let canManageCourses = false;
 
 function courseCard(c){
+  const wrap = document.createElement('div');
+  wrap.className = 'course-card-wrap';
+
   const a = document.createElement('a');
   a.className = 'course-card';
   a.href = 'courses.html?course=' + c.id;
@@ -15,7 +20,18 @@ function courseCard(c){
     <div class="course-cat">${c.category || 'курс'} · ${c.difficulty_level || ''}</div>
     <div class="course-title">${c.title}</div>
     <div class="course-desc">${c.description || ''}</div>`;
-  return a;
+  wrap.appendChild(a);
+
+  if (canManageCourses) {
+    const manageBtn = document.createElement('a');
+    manageBtn.className = 'course-manage-btn';
+    manageBtn.href = 'admin.html#courses';
+    manageBtn.title = 'Редактировать или удалить курс — в панели управления';
+    manageBtn.innerHTML = ICON_MANAGE;
+    wrap.appendChild(manageBtn);
+  }
+
+  return wrap;
 }
 
 async function renderCourseList(){
@@ -180,6 +196,7 @@ async function init() {
 
   const { data: profile } = await SB.from('profiles').select('role').eq('id', currentUid).single();
   const canAuthor = profile && ['VERIFIED_PRO', 'MENTOR', 'ADMIN'].includes(profile.role);
+  canManageCourses = canAuthor;
   if (canAuthor) {
     document.getElementById('adminLink').style.display = '';
   } else {

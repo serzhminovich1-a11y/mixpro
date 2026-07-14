@@ -36,8 +36,14 @@ function box(html){
   return `<div class="form-card" style="text-align:center"><div>${html}</div></div>`;
 }
 
-async function renderStatus(){
-  const { data: profile } = await SB.from('profiles').select('role, verification_status').eq('id', currentUid).single();
+// prefetched — необязательный уже загруженный профиль (передаётся из
+// init(), чтобы не запрашивать одну и ту же строку дважды подряд);
+// после отправки заявки (handleSubmit) статус мог измениться, поэтому
+// там вызывается без аргумента и профиль грузится заново
+async function renderStatus(prefetched){
+  const { data: profile } = prefetched
+    ? { data: prefetched }
+    : await SB.from('profiles').select('role, verification_status').eq('id', currentUid).single();
   const statusBox = document.getElementById('statusBox');
   const form = document.getElementById('verifyForm');
 
@@ -75,14 +81,14 @@ async function init() {
   if (!session) { location.href = 'auth.html'; return; }
   currentUid = session.user.id;
 
-  const { data: profile } = await SB.from('profiles').select('role').eq('id', currentUid).single();
+  const { data: profile } = await SB.from('profiles').select('role, verification_status').eq('id', currentUid).single();
   if (profile && ['MENTOR', 'ADMIN'].includes(profile.role)) {
     document.getElementById('reviewLink').style.display = '';
   }
   mountNotifications(SB, document.getElementById('notifMount'), currentUid);
 
   document.getElementById('verifyForm').addEventListener('submit', handleSubmit);
-  await renderStatus();
+  await renderStatus(profile);
 
   document.getElementById('loading').style.display = 'none';
   document.getElementById('content').style.display = 'flex';

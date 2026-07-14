@@ -327,15 +327,18 @@ async function toggleReaction(postId, emoji, pillWrap, authorId){
   await refreshReactions(postId, pillWrap, authorId);
 }
 
-async function refreshReactions(postId, pillWrap, authorId){
-  const { data } = await SB.from('post_reactions').select('emoji, user_id').eq('post_id', postId);
+function reactionCountsFromRows(rows){
   const counts = new Map();
-  (data || []).forEach(r => {
+  (rows || []).forEach(r => {
     const cur = counts.get(r.emoji) || { count: 0, mine: false };
     cur.count++;
     if (r.user_id === currentUid) cur.mine = true;
     counts.set(r.emoji, cur);
   });
+  return counts;
+}
+
+function renderReactionPills(counts, postId, pillWrap, authorId){
   pillWrap.innerHTML = '';
   counts.forEach((v, emoji) => {
     const pill = document.createElement('button');
@@ -345,6 +348,15 @@ async function refreshReactions(postId, pillWrap, authorId){
     pill.addEventListener('click', () => toggleReaction(postId, emoji, pillWrap, authorId));
     pillWrap.appendChild(pill);
   });
+}
+
+// Однократный запрос после лайка/дизлайка — тут это ок, обновляется
+// только один пост. Для первой отрисовки всей ленты см. renderFeed():
+// там реакции всех постов загружаются одним batched-запросом, а не по
+// одному на пост (иначе лента из 50 постов = 50 отдельных запросов).
+async function refreshReactions(postId, pillWrap, authorId){
+  const { data } = await SB.from('post_reactions').select('emoji, user_id').eq('post_id', postId);
+  renderReactionPills(reactionCountsFromRows(data), postId, pillWrap, authorId);
 }
 
 async function toggleCommentReaction(commentId, emoji, pillWrap){
@@ -536,7 +548,7 @@ async function handleAddVoiceComment(postId, blob, container, countEl, authorId)
   await refreshCommentCount(postId, countEl);
 }
 
-function postCard(p, commentCounts){
+function postCard(p, commentCounts, reactionsByPost){
   const card = document.createElement('div');
   card.className = 'card post';
 
@@ -594,7 +606,7 @@ function postCard(p, commentCounts){
   if (reportBtn) reportBtn.addEventListener('click', () => handleReportContent('post', p.id, reportBtn));
 
   const pillWrap = card.querySelector('.emoji-pills');
-  refreshReactions(p.id, pillWrap, p.user_id);
+  renderReactionPills(reactionsByPost.get(p.id) || new Map(), p.id, pillWrap, p.user_id);
 
   const emojiBtn = card.querySelector('.emoji-add-btn');
   const picker = card.querySelector('.emoji-picker');
@@ -691,12 +703,24 @@ async function renderFeed(){
   }
 
   const postIds = posts.map(p => p.id);
-  const { data: comments } = await SB.from('post_comments').select('post_id').in('post_id', postIds);
+  const [{ data: comments }, { data: reactions }] = await Promise.all([
+    SB.from('post_comments').select('post_id').in('post_id', postIds),
+    SB.from('post_reactions').select('post_id, emoji, user_id').in('post_id', postIds),
+  ]);
   const commentCounts = new Map();
   (comments || []).forEach(c => commentCounts.set(c.post_id, (commentCounts.get(c.post_id) || 0) + 1));
+  const reactionsByPost = new Map();
+  (reactions || []).forEach(r => {
+    if (!reactionsByPost.has(r.post_id)) reactionsByPost.set(r.post_id, new Map());
+    const counts = reactionsByPost.get(r.post_id);
+    const cur = counts.get(r.emoji) || { count: 0, mine: false };
+    cur.count++;
+    if (r.user_id === currentUid) cur.mine = true;
+    counts.set(r.emoji, cur);
+  });
 
   list.innerHTML = '';
-  posts.forEach(p => list.appendChild(postCard(p, commentCounts)));
+  posts.forEach(p => list.appendChild(postCard(p, commentCounts, reactionsByPost)));
   if (window.animateChildren) animateChildren(list);
 }
 
@@ -710,15 +734,16 @@ async function init() {
   if (!session) { location.href = 'auth.html'; return; }
   currentUid = session.user.id;
 
-  const { data: profile } = await SB.from('profiles').select('username, role').eq('id', currentUid).single();
+  const [{ data: profile }, { data: myFollows }] = await Promise.all([
+    SB.from('profiles').select('username, role').eq('id', currentUid).single(),
+    SB.from('follows').select('following_id').eq('follower_id', currentUid),
+  ]);
   currentUsername = profile ? profile.username : null;
   currentRole = profile ? profile.role : null;
   if (['VERIFIED_PRO', 'MENTOR', 'ADMIN'].includes(currentRole)) {
     document.getElementById('adminLink').style.display = '';
   }
   mountNotifications(SB, document.getElementById('notifMount'), currentUid);
-
-  const { data: myFollows } = await SB.from('follows').select('following_id').eq('follower_id', currentUid);
   followingSet = new Set((myFollows || []).map(f => f.following_id));
 
   document.getElementById('loading').style.display = 'none';

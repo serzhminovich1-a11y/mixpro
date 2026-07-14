@@ -47,9 +47,10 @@ async function init() {
   currentLessonId = new URLSearchParams(location.search).get('lesson');
   if (!currentLessonId) { location.href = 'courses.html'; return; }
 
-  const [{ data: lesson }, { data: profile }] = await Promise.all([
+  const [{ data: lesson }, { data: profile }, { data: existingProgress }] = await Promise.all([
     SB.from('lessons').select('*').eq('id', currentLessonId).single(),
     SB.from('profiles').select('username, role').eq('id', currentUid).single(),
+    SB.from('lesson_progress').select('status').eq('user_id', currentUid).eq('lesson_id', currentLessonId).maybeSingle(),
   ]);
 
   if (!lesson) { location.href = 'courses.html'; return; }
@@ -79,8 +80,6 @@ async function init() {
     document.getElementById('noVideo').style.display = 'block';
   }
 
-  const { data: existingProgress } = await SB.from('lesson_progress')
-    .select('status').eq('user_id', currentUid).eq('lesson_id', currentLessonId).maybeSingle();
   if (existingProgress && existingProgress.status === 'completed') {
     const btn = document.getElementById('completeBtn');
     btn.innerHTML = ICON_CHECK_SM + ' Урок пройден';

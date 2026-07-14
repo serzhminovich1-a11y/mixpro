@@ -34,8 +34,12 @@ function courseCard(c){
   return wrap;
 }
 
-async function renderCourseList(){
-  const { data, error } = await SB.from('courses').select('*').order('created_at', { ascending: true });
+async function renderCourseList(profilePromise){
+  const [{ data, error }, { data: profile }] = await Promise.all([
+    SB.from('courses').select('*').order('created_at', { ascending: true }),
+    profilePromise,
+  ]);
+  canManageCourses = profile && ['VERIFIED_PRO', 'MENTOR', 'ADMIN'].includes(profile.role);
   const grid = document.getElementById('courseGrid');
   if (error || !data || data.length === 0) {
     grid.innerHTML = '<div class="empty">Пока нет ни одного курса</div>';
@@ -59,15 +63,22 @@ function lessonRow(l, idx, status){
 }
 
 async function renderCourseView(courseId){
-  const { data: course } = await SB.from('courses').select('*').eq('id', courseId).single();
+  // Задания курса не зависят от урока/прогресса — грузим их сразу
+  // параллельно, а не после списка уроков
+  const assignmentsPromise = renderAssignments(courseId);
+
+  const [{ data: course }, { data: lessons }] = await Promise.all([
+    SB.from('courses').select('*').eq('id', courseId).single(),
+    SB.from('lessons').select('*').eq('course_id', courseId).order('order_index', { ascending: true }),
+  ]);
   if (!course) {
     document.getElementById('courseTitle').textContent = 'Курс не найден';
+    await assignmentsPromise;
     return;
   }
   document.getElementById('courseTitle').textContent = course.title;
   document.getElementById('courseDesc').textContent = course.description || '';
 
-  const { data: lessons } = await SB.from('lessons').select('*').eq('course_id', courseId).order('order_index', { ascending: true });
   const list = document.getElementById('lessonList');
   const certBanner = document.getElementById('certBanner');
   certBanner.style.display = 'none';
@@ -90,7 +101,7 @@ async function renderCourseView(courseId){
     }
   }
 
-  await renderAssignments(courseId);
+  await assignmentsPromise;
 }
 
 async function handleSubmitAssignment(assignmentId, select, card){
@@ -194,9 +205,16 @@ async function init() {
   if (!session) { location.href = 'auth.html'; return; }
   currentUid = session.user.id;
 
-  const { data: profile } = await SB.from('profiles').select('role').eq('id', currentUid).single();
+  const courseId = new URLSearchParams(location.search).get('course');
+  // Профиль (для прав автора курсов) не нужен для самих данных курса —
+  // грузим его параллельно с уроками/списком курсов, а не перед ними
+  // Promise.resolve() оборачивает builder в обычный промис — иначе
+  // await в двух местах (тут и в renderCourseList) выполнит запрос дважды
+  const profilePromise = Promise.resolve(SB.from('profiles').select('role').eq('id', currentUid).single());
+  const viewPromise = courseId ? renderCourseView(courseId) : renderCourseList(profilePromise);
+
+  const { data: profile } = await profilePromise;
   const canAuthor = profile && ['VERIFIED_PRO', 'MENTOR', 'ADMIN'].includes(profile.role);
-  canManageCourses = canAuthor;
   if (canAuthor) {
     document.getElementById('adminLink').style.display = '';
   } else {
@@ -204,20 +222,18 @@ async function init() {
   }
   mountNotifications(SB, document.getElementById('notifMount'), currentUid);
 
-  const courseId = new URLSearchParams(location.search).get('course');
   document.getElementById('loading').style.display = 'none';
-
   if (courseId) {
     document.getElementById('courseView').style.display = 'flex';
     document.getElementById('courseView').style.flexDirection = 'column';
     document.getElementById('courseView').style.gap = '20px';
-    await renderCourseView(courseId);
   } else {
     document.getElementById('listView').style.display = 'flex';
     document.getElementById('listView').style.flexDirection = 'column';
     document.getElementById('listView').style.gap = '24px';
-    await renderCourseList();
   }
+
+  await viewPromise;
 }
 
 init();

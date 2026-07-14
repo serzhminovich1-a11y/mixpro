@@ -290,15 +290,18 @@ async function init() {
   viewedUid = new URLSearchParams(location.search).get('user') || currentUid;
   isOwn = viewedUid === currentUid;
 
-  const { data: myProfile } = await SB.from('profiles').select('role').eq('id', currentUid).single();
-  currentRole = myProfile ? myProfile.role : null;
+  // Если смотрим свой профиль, viewedProfile и myProfile — одна и та же
+  // строка, второй запрос за ней не нужен
+  const [{ data: viewedProfile }, { data: myProfile }] = await Promise.all([
+    SB.from('profiles').select('*').eq('id', viewedUid).single(),
+    isOwn ? Promise.resolve({ data: null }) : SB.from('profiles').select('role').eq('id', currentUid).single(),
+  ]);
+  if (!viewedProfile) { location.href = 'auth.html'; return; }
+  currentRole = isOwn ? viewedProfile.role : (myProfile ? myProfile.role : null);
   if (['VERIFIED_PRO', 'MENTOR', 'ADMIN'].includes(currentRole)) {
     document.getElementById('adminLink').style.display = '';
   }
   mountNotifications(SB, document.getElementById('notifMount'), currentUid);
-
-  const { data: viewedProfile } = await SB.from('profiles').select('*').eq('id', viewedUid).single();
-  if (!viewedProfile) { location.href = 'auth.html'; return; }
 
   document.getElementById('portAvatar').style.background = viewedProfile.avatar_color || '#4ade80';
   document.getElementById('portAvatar').textContent = viewedProfile.username.slice(0, 2).toUpperCase();

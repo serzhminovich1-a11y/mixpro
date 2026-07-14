@@ -30,7 +30,16 @@ let currentRoute = null;
 let navSeq = 0;
 
 function findRouteForUrl(url) {
-  return routeByPathname.get(url.pathname) || null;
+  // Реальный адрес сайта — "…/mixpro/" БЕЗ "index.html" (сервер отдаёт
+  // index.html по этому адресу сам, но в адресной строке и в
+  // location.pathname имени файла нет). ROUTES же построен из полных
+  // путей с "index.html" на конце. Без этой нормализации самый первый
+  // заход на сайт (по обычной ссылке на корень) не распознавался ни
+  // одним маршрутом — initialMount() тихо ничего не монтировал, и
+  // main.js вообще не выполнялся: ни одна кнопка на Главной не работала.
+  let pathname = url.pathname;
+  if (pathname.endsWith('/')) pathname += 'index.html';
+  return routeByPathname.get(pathname) || null;
 }
 
 function progressBar() {

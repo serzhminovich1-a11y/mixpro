@@ -91,6 +91,8 @@ async function init() {
   const video = document.getElementById('video');
   if (video) video.addEventListener('ended', markComplete);
 
+  mountLessonSteps(SB, currentLessonId, document.getElementById('stepsMount'));
+
   document.getElementById('loading').style.display = 'none';
   document.getElementById('content').style.display = 'flex';
   document.getElementById('content').style.flexDirection = 'column';

@@ -26,6 +26,14 @@ body{min-height:100vh}
 .admin-full-block{text-align:center;padding:80px 20px;color:var(--muted2)}
 .admin-full-block .big{font-size:var(--text-display-3-size);margin-bottom:var(--space-3)}
 
+/* Шаги урока — конструктор внутри карточки урока (courses.css) */
+.admin-steps-panel{padding:var(--space-3) var(--space-4);border-top:1px solid var(--border);background:rgba(0,0,0,.15);display:flex;flex-direction:column;gap:var(--space-3)}
+.admin-steps-list{display:flex;flex-direction:column;gap:var(--space-2)}
+.admin-step-row{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2);background:var(--s2);border:1px solid var(--border);border-radius:9px;padding:var(--space-2) var(--space-3)}
+.admin-step-info{display:flex;align-items:center;gap:var(--space-2);min-width:0;font-size:var(--text-body-1-size);color:var(--text)}
+.admin-step-badge{font-family:var(--mono);font-size:var(--text-caption-1-size);letter-spacing:.04em;color:var(--cyan);padding:var(--space-half) var(--space-2);border-radius:20px;border:1px solid rgba(74,222,128,.3);flex-shrink:0}
+.admin-step-form{display:flex;flex-direction:column;gap:var(--space-3);padding:var(--space-4);border-radius:10px;border:1px dashed var(--border-hi)}
+
 @media(max-width:760px){
   .admin-shell{flex-direction:column}
   .admin-sidebar{width:100%;height:auto;position:static;flex-direction:row;overflow-x:auto;padding:var(--space-2);gap:var(--space-1)}

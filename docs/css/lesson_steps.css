@@ -1,0 +1,56 @@
+/* ══════════════════════════════════════
+   ШАГИ УРОКА (window.mountLessonSteps) — тесты, ответы, сопоставление,
+   сортировка, теория. Использует общие токены темы, определённые в
+   courses.css (эта же страница/файл подключает и то, и другое).
+   ══════════════════════════════════════ */
+.steps-list{display:flex;flex-direction:column;gap:var(--space-4)}
+.step-card{background:linear-gradient(180deg,var(--surf-top),var(--surf-bot)),var(--bg);border:1px solid var(--border);border-radius:12px;padding:var(--space-5);display:flex;flex-direction:column;gap:var(--space-3);box-shadow:var(--shadow-lift);transition:.2s}
+.step-card.correct{border-color:rgba(74,222,128,.4)}
+.step-card.wrong{border-color:rgba(248,113,113,.3)}
+
+.step-head{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap}
+.step-num{width:24px;height:24px;border-radius:50%;background:var(--s2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:var(--text-caption-2-size);color:var(--muted2);flex-shrink:0}
+.step-kind{font-family:var(--mono);font-size:var(--text-caption-1-size);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:var(--space-half) var(--space-2);border-radius:20px;border:1px solid var(--border-hi)}
+.step-title{font-family:var(--ox);font-weight:700;font-size:var(--text-body-1-size);color:var(--text)}
+.step-xp{margin-left:auto;font-family:var(--mono);font-size:var(--text-caption-2-size);color:var(--gold)}
+
+.step-question{font-size:var(--text-body-1-size);color:var(--text);line-height:1.5}
+.step-theory{font-size:var(--text-body-1-size);color:var(--text);line-height:1.6}
+.step-theory p{margin-bottom:var(--space-2)}
+
+.step-options{display:flex;flex-direction:column;gap:var(--space-2)}
+.step-opt{text-align:left;font-family:var(--sans);font-size:var(--text-body-1-size);color:var(--text);background:var(--s2);border:1px solid var(--border);border-radius:9px;padding:var(--space-3) var(--space-4);cursor:pointer;transition:.15s}
+.step-opt:hover{border-color:var(--border-hi)}
+.step-opt.picked{border-color:var(--green);background:rgba(74,222,128,.08);color:var(--green)}
+
+.step-input{background:var(--s2);border:1px solid var(--border);border-radius:9px;padding:var(--space-3) var(--space-4);color:var(--text);font-family:var(--sans);font-size:var(--text-body-1-size);width:100%}
+.step-num-row{display:flex;align-items:center;gap:var(--space-2)}
+.step-input-num{max-width:180px}
+.step-unit{font-family:var(--mono);font-size:var(--text-caption-2-size);color:var(--muted2)}
+
+.step-matching{display:flex;flex-direction:column;gap:var(--space-2)}
+.step-match-row{display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap}
+.step-match-left{flex:1;min-width:140px;font-size:var(--text-body-1-size);color:var(--text)}
+.step-match-select{flex:1;min-width:160px;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:var(--space-2) var(--space-3);color:var(--text);font-family:var(--sans);font-size:var(--text-body-1-size)}
+
+.step-sort-list{display:flex;flex-direction:column;gap:var(--space-2)}
+.step-sort-row{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);background:var(--s2);border:1px solid var(--border);border-radius:9px;padding:var(--space-2) var(--space-4)}
+.step-sort-txt{font-size:var(--text-body-1-size);color:var(--text)}
+.step-sort-btns{display:flex;gap:var(--space-1)}
+.step-sort-up,.step-sort-down{width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted2);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.step-sort-up:hover:not(:disabled),.step-sort-down:hover:not(:disabled){border-color:var(--border-hi);color:var(--text)}
+.step-sort-up:disabled,.step-sort-down:disabled{opacity:.25;cursor:default}
+.step-sort-up svg,.step-sort-down svg{width:14px;height:14px}
+
+.step-actions{display:flex;align-items:center;gap:var(--space-3)}
+.step-submit{font-family:var(--ox);font-size:var(--text-caption-2-size);font-weight:700;padding:var(--space-2) var(--space-5);border-radius:999px;border:none;background:var(--green);color:#06131a;cursor:pointer;transition:.15s}
+.step-submit:hover{opacity:.88}
+.step-submit:disabled{opacity:.5;cursor:default}
+.step-attempts{font-family:var(--mono);font-size:var(--text-caption-2-size);color:var(--muted)}
+
+.step-fb{display:flex;align-items:center;gap:var(--space-2);font-family:var(--ox);font-weight:700;font-size:var(--text-body-1-size);padding:var(--space-2) 0}
+.step-fb svg{width:16px;height:16px;flex-shrink:0}
+.step-fb.correct{color:var(--green)}
+.step-fb.wrong{color:var(--red)}
+.step-explain{display:flex;align-items:flex-start;gap:var(--space-2);margin-top:var(--space-1);padding:var(--space-3) var(--space-4);border-radius:10px;background:rgba(250,204,21,.06);border:1px solid rgba(250,204,21,.22);color:var(--muted2);font-size:var(--text-body-1-size);line-height:1.5}
+.step-explain svg{width:16px;height:16px;flex-shrink:0;margin-top:2px;color:var(--gold)}

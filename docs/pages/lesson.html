@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="../css/courses.css">
 <link rel="stylesheet" href="../css/animations.css">
 <link rel="stylesheet" href="../css/notifications.css">
+<link rel="stylesheet" href="../css/lesson_steps.css">
 </head>
 <body>
 <nav>
@@ -47,13 +48,18 @@
 
     <div id="noVideo" class="empty" style="display:none">Материал к этому уроку скоро появится</div>
 
+    <div id="stepsMount"></div>
+
     <button class="complete-btn" id="completeBtn">Отметить урок пройденным</button>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="../js/animations.js"></script>
+<script src="../js/content_filter.js"></script>
+<script src="../js/rich_text.js"></script>
 <script src="../js/notifications.js"></script>
+<script src="../js/lesson_steps.js"></script>
 <script src="../js/lesson.js"></script>
 </body>
 </html>

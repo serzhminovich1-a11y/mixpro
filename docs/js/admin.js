@@ -21,6 +21,10 @@ const ICON_VIDEO_A = aIcon('<path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.8
 const ICON_HEADPHONES_A = aIcon('<path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H4a1 1 0 0 1-1-1v-6a9 9 0 0 1 18 0v6a1 1 0 0 1-1 1h-2a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/>');
 const ICON_CHECK_A = aIcon('<path d="M20 6 9 17l-5-5"/>');
 const ICON_CLIPBOARD_A = aIcon('<rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>');
+const ICON_STEPS_A = aIcon('<path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/>');
+const ICON_UP_A = aIcon('<path d="m18 15-6-6-6 6"/>');
+const ICON_DOWN_A = aIcon('<path d="m6 9 6 6 6-6"/>');
+const ICON_X_A = aIcon('<path d="M18 6 6 18"/><path d="m6 6 12 12"/>');
 
 async function logout() {
   await SB.auth.signOut();
@@ -201,19 +205,288 @@ async function handleDeleteCourse(course, lessons){
 }
 
 function lessonAdminRow(l){
+  const wrap = document.createElement('div');
+
   const row = document.createElement('div');
   row.className = 'admin-lesson-row';
   row.innerHTML = `
     <span>${l.order_index + 1}. ${escapeHtml(l.title)}</span>
     <span style="display:flex;align-items:center;gap:8px">
       <span>${l.content_url ? ICON_VIDEO_A + ' видео есть' : '— без видео'}</span>
+      <button type="button" class="icon-btn" title="Шаги урока (тесты, теория)">${ICON_STEPS_A}</button>
       <button type="button" class="icon-btn" title="Переименовать">${ICON_PENCIL_A}</button>
       <button type="button" class="icon-btn" title="Удалить урок">${ICON_TRASH_A}</button>
     </span>`;
-  const [renameBtn, delBtn] = row.querySelectorAll('.icon-btn');
+  const [stepsBtn, renameBtn, delBtn] = row.querySelectorAll('.icon-btn');
   renameBtn.addEventListener('click', () => handleRenameLesson(l));
   delBtn.addEventListener('click', () => handleDeleteLesson(l));
+
+  const stepsPanel = document.createElement('div');
+  stepsPanel.className = 'admin-steps-panel';
+  stepsPanel.style.display = 'none';
+  let stepsLoaded = false;
+  stepsBtn.addEventListener('click', async () => {
+    const opening = stepsPanel.style.display === 'none';
+    stepsPanel.style.display = opening ? 'block' : 'none';
+    if (opening && !stepsLoaded) { stepsLoaded = true; await renderStepsPanel(l, stepsPanel); }
+  });
+
+  wrap.appendChild(row);
+  wrap.appendChild(stepsPanel);
+  return wrap;
+}
+
+/* ══════════════════════════════════════
+   ШАГИ УРОКА — конструктор (теория/тесты/сопоставление/сортировка/...)
+   Правильный ответ пишется прямо в lesson_steps.correct_answer — эту
+   таблицу видят только STAFF (RLS), студент получает шаги только через
+   get_lesson_steps()/submit_step_answer() без этой колонки — см.
+   022_lesson_steps.sql. Программирование с проверкой кода намеренно не
+   делаем — нужен отдельный сервер-песочница, которого у сайта нет.
+   ══════════════════════════════════════ */
+const STEP_TYPE_LABELS_A = {
+  theory: 'Теория', quiz_single: 'Тест (один верный)', quiz_multi: 'Тест (несколько верных)',
+  text_answer: 'Ответ текстом', number_answer: 'Ответ числом',
+  matching: 'Сопоставление', sorting: 'Сортировка',
+};
+
+// Перемешивает [0..n-1] — общий приём для matching/sorting: студенту
+// показываем элементы в этом перемешанном порядке, а правильный порядок
+// восстанавливаем по индексам, записанным в correct_answer.
+function shufflePositions(n){
+  const arr = Array.from({ length: n }, (_, i) => i);
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function stepFieldsHtml(type){
+  switch (type) {
+    case 'theory':
+      return `
+        <div class="rt-toolbar">
+          <button type="button" class="rt-btn" data-cmd="bold" title="Жирный"><b>Ж</b></button>
+          <button type="button" class="rt-btn" data-cmd="italic" title="Курсив"><i>К</i></button>
+          <button type="button" class="rt-btn" data-cmd="underline" title="Подчёркнутый"><u>Ч</u></button>
+          <button type="button" class="rt-btn" data-cmd="strikeThrough" title="Зачёркнутый"><s>З</s></button>
+        </div>
+        <div class="rt-editable sTheoryHtml" contenteditable="true" style="width:100%;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;min-height:100px" data-placeholder="Текст теории"></div>`;
+    case 'quiz_single':
+    case 'quiz_multi':
+      return `
+        <div class="field"><label>Вопрос</label><input type="text" class="sQuestion" placeholder="Что означает Q-фактор в эквалайзере?"></div>
+        <div class="field"><label>Варианты ответа — по одному на строку. Верный(-е) отметь звёздочкой * в начале строки</label><textarea class="sOptions" placeholder="*Ширина полосы среза&#10;Скорость атаки&#10;Порог срабатывания"></textarea></div>`;
+    case 'text_answer':
+      return `
+        <div class="field"><label>Вопрос</label><input type="text" class="sQuestion" placeholder="Как называется запас громкости до клиппинга?"></div>
+        <div class="field"><label>Принимаемые ответы — по одному на строку, любой из них засчитается</label><textarea class="sAccepted" placeholder="headroom&#10;хедрум"></textarea></div>`;
+    case 'number_answer':
+      return `
+        <div class="field"><label>Вопрос</label><input type="text" class="sQuestion" placeholder="Стандартный уровень для стриминга по LUFS?"></div>
+        <div class="form-row">
+          <div class="field"><label>Правильное число</label><input type="number" step="any" class="sValue" placeholder="-14"></div>
+          <div class="field"><label>Погрешность ±</label><input type="number" step="any" class="sTolerance" value="0"></div>
+          <div class="field"><label>Единица (необязательно)</label><input type="text" class="sUnit" placeholder="LUFS"></div>
+        </div>`;
+    case 'matching':
+      return `
+        <div class="field"><label>Вопрос/инструкция (необязательно)</label><input type="text" class="sQuestion" placeholder="Сопоставь термин и определение"></div>
+        <div class="field"><label>Пары — формат "Левое = Правое", по одной паре на строку</label><textarea class="sPairs" placeholder="Q factor = Ширина полосы среза&#10;Attack = Скорость реакции компрессора"></textarea></div>`;
+    case 'sorting':
+      return `
+        <div class="field"><label>Вопрос/инструкция (необязательно)</label><input type="text" class="sQuestion" placeholder="Расставь по порядку сигнальной цепи"></div>
+        <div class="field"><label>Элементы в ПРАВИЛЬНОМ порядке — по одному на строку</label><textarea class="sItems" placeholder="Микрофон&#10;Преамп&#10;Эквалайзер&#10;Компрессор"></textarea></div>`;
+    default:
+      return '';
+  }
+}
+
+function linesOf(el){ return (el.value || '').split('\n').map(s => s.trim()).filter(Boolean); }
+
+// Собирает {content, correct_answer} для сохранения по данным формы.
+// Если данных не хватает — возвращает {error: '...'} вместо этого.
+function collectStepPayload(type, container){
+  const q = container.querySelector('.sQuestion');
+  const question = q ? q.value.trim() : '';
+  switch (type) {
+    case 'theory': {
+      const editable = container.querySelector('.sTheoryHtml');
+      const html = sanitizeRichHtml(editable ? editable.innerHTML : '');
+      if (!html.trim()) return { error: 'Добавь текст теории' };
+      return { content: { html }, correct_answer: null };
+    }
+    case 'quiz_single':
+    case 'quiz_multi': {
+      const raw = linesOf(container.querySelector('.sOptions'));
+      if (raw.length < 2) return { error: 'Нужно минимум 2 варианта ответа' };
+      const options = raw.map(l => l.replace(/^\*/, '').trim());
+      const correct = raw.map((l, i) => l.startsWith('*') ? i : -1).filter(i => i >= 0);
+      if (correct.length === 0) return { error: 'Отметь звёздочкой (*) хотя бы один правильный вариант' };
+      if (type === 'quiz_single' && correct.length > 1) return { error: 'Для теста с одним верным ответом отметь звёздочкой только один вариант' };
+      if (!question) return { error: 'Добавь текст вопроса' };
+      return { content: { question, options }, correct_answer: { correct } };
+    }
+    case 'text_answer': {
+      const accepted = linesOf(container.querySelector('.sAccepted'));
+      if (!question) return { error: 'Добавь текст вопроса' };
+      if (accepted.length === 0) return { error: 'Добавь хотя бы один принимаемый ответ' };
+      return { content: { question }, correct_answer: { accepted } };
+    }
+    case 'number_answer': {
+      const valueEl = container.querySelector('.sValue');
+      const value = valueEl.value.trim();
+      if (!question) return { error: 'Добавь текст вопроса' };
+      if (value === '') return { error: 'Укажи правильное число' };
+      const tolerance = Number(container.querySelector('.sTolerance').value || 0);
+      const unit = container.querySelector('.sUnit').value.trim();
+      return { content: { question, unit: unit || null }, correct_answer: { value: Number(value), tolerance } };
+    }
+    case 'matching': {
+      const raw = container.querySelector('.sPairs').value.split('\n').map(l => l.trim()).filter(Boolean);
+      const pairs = raw.map(l => {
+        const idx = l.indexOf('=');
+        if (idx < 0) return null;
+        return { left: l.slice(0, idx).trim(), right: l.slice(idx + 1).trim() };
+      }).filter(Boolean);
+      if (pairs.length < 2) return { error: 'Нужно минимум 2 пары в формате "Левое = Правое"' };
+      const leftArr = pairs.map(p => p.left);
+      const rightOriginal = pairs.map(p => p.right);
+      const shuffled = shufflePositions(rightOriginal.length);
+      const right = shuffled.map(i => rightOriginal[i]);
+      const mapping = leftArr.map((_, i) => shuffled.indexOf(i));
+      return { content: { question, left: leftArr, right }, correct_answer: { mapping } };
+    }
+    case 'sorting': {
+      const correctItems = linesOf(container.querySelector('.sItems'));
+      if (correctItems.length < 2) return { error: 'Нужно минимум 2 элемента для сортировки' };
+      const positions = correctItems.map((_, i) => i);
+      const scrambled = shufflePositions(positions.length);
+      const items = scrambled.map(i => correctItems[i]);
+      const order = correctItems.map((_, correctPos) => scrambled.indexOf(correctPos));
+      return { content: { question, items }, correct_answer: { order } };
+    }
+    default:
+      return { error: 'Неизвестный тип шага' };
+  }
+}
+
+function stepAdminRow(step, onChanged){
+  const row = document.createElement('div');
+  row.className = 'admin-step-row';
+  const label = step.title || (step.content && step.content.question) || (step.step_type === 'theory' ? 'Теоретический блок' : '(без названия)');
+  row.innerHTML = `
+    <span class="admin-step-info">
+      <span class="admin-step-badge">${STEP_TYPE_LABELS_A[step.step_type] || step.step_type}</span>
+      <span>${escapeHtml(label)}</span>
+    </span>
+    <span style="display:flex;align-items:center;gap:6px">
+      <button type="button" class="icon-btn sUp" title="Выше">${ICON_UP_A}</button>
+      <button type="button" class="icon-btn sDown" title="Ниже">${ICON_DOWN_A}</button>
+      <button type="button" class="icon-btn sDel" title="Удалить шаг">${ICON_TRASH_A}</button>
+    </span>`;
+  row.querySelector('.sDel').addEventListener('click', async () => {
+    if (!confirm('Удалить этот шаг?')) return;
+    await SB.from('lesson_steps').delete().eq('id', step.id);
+    onChanged();
+  });
   return row;
+}
+
+async function handleMoveStep(steps, index, dir, onChanged){
+  const other = index + dir;
+  if (other < 0 || other >= steps.length) return;
+  const a = steps[index], b = steps[other];
+  await Promise.all([
+    SB.from('lesson_steps').update({ order_index: b.order_index }).eq('id', a.id),
+    SB.from('lesson_steps').update({ order_index: a.order_index }).eq('id', b.id),
+  ]);
+  onChanged();
+}
+
+async function renderStepsPanel(lesson, panel){
+  const { data: steps } = await SB.from('lesson_steps').select('*').eq('lesson_id', lesson.id).order('order_index', { ascending: true });
+  const list = steps || [];
+
+  panel.innerHTML = '<div class="admin-steps-list"></div>';
+  const listEl = panel.querySelector('.admin-steps-list');
+  if (list.length === 0) {
+    listEl.innerHTML = '<div class="empty" style="padding:10px 0">Шагов пока нет</div>';
+  } else {
+    list.forEach((s, i) => {
+      const refresh = () => renderStepsPanel(lesson, panel);
+      const row = stepAdminRow(s, refresh);
+      const upBtn = row.querySelector('.sUp');
+      const downBtn = row.querySelector('.sDown');
+      if (i === 0) upBtn.disabled = true;
+      if (i === list.length - 1) downBtn.disabled = true;
+      upBtn.addEventListener('click', () => handleMoveStep(list, i, -1, refresh));
+      downBtn.addEventListener('click', () => handleMoveStep(list, i, 1, refresh));
+      listEl.appendChild(row);
+    });
+  }
+
+  const formWrap = document.createElement('div');
+  formWrap.className = 'admin-step-form';
+  formWrap.innerHTML = `
+    <div class="field">
+      <label>Новый шаг</label>
+      <select class="sType">
+        <option value="theory">Теория</option>
+        <option value="quiz_single">Тест (один верный)</option>
+        <option value="quiz_multi">Тест (несколько верных)</option>
+        <option value="text_answer">Ответ текстом</option>
+        <option value="number_answer">Ответ числом</option>
+        <option value="matching">Сопоставление</option>
+        <option value="sorting">Сортировка</option>
+      </select>
+    </div>
+    <div class="sFields"></div>
+    <div class="form-row">
+      <div class="field"><label>XP за шаг</label><input type="number" class="sXp" value="0" min="0"></div>
+      <div class="field"><label>Макс. попыток (пусто — без ограничения)</label><input type="number" class="sMaxAttempts" min="1"></div>
+    </div>
+    <div class="field"><label>Объяснение / решение автора (необязательно, покажется после успеха)</label><textarea class="sExplanation"></textarea></div>
+    <button type="button" class="submit-btn sSaveBtn">Добавить шаг</button>
+    <div class="form-status sStatus"></div>`;
+  panel.appendChild(formWrap);
+
+  const typeSelect = formWrap.querySelector('.sType');
+  const fieldsWrap = formWrap.querySelector('.sFields');
+  function renderFields(){
+    fieldsWrap.innerHTML = stepFieldsHtml(typeSelect.value);
+    if (typeSelect.value === 'theory') makeRichEditor(fieldsWrap);
+  }
+  typeSelect.addEventListener('change', renderFields);
+  renderFields();
+
+  formWrap.querySelector('.sSaveBtn').addEventListener('click', async () => {
+    const statusEl = formWrap.querySelector('.sStatus');
+    const saveBtn = formWrap.querySelector('.sSaveBtn');
+    const type = typeSelect.value;
+    const payload = collectStepPayload(type, fieldsWrap);
+    if (payload.error) { statusEl.textContent = payload.error; statusEl.className = 'form-status error'; return; }
+
+    saveBtn.disabled = true;
+    const xp = Number(formWrap.querySelector('.sXp').value || 0);
+    const maxAttemptsRaw = formWrap.querySelector('.sMaxAttempts').value.trim();
+    const explanation = formWrap.querySelector('.sExplanation').value.trim();
+
+    const { error } = await SB.from('lesson_steps').insert({
+      lesson_id: lesson.id,
+      order_index: list.length,
+      step_type: type,
+      content: payload.content,
+      correct_answer: payload.correct_answer,
+      xp_reward: xp,
+      max_attempts: maxAttemptsRaw ? Number(maxAttemptsRaw) : null,
+      explanation: explanation || null,
+    });
+    saveBtn.disabled = false;
+    if (error) { statusEl.textContent = 'Ошибка: ' + error.message; statusEl.className = 'form-status error'; return; }
+    await renderStepsPanel(lesson, panel);
+  });
 }
 
 function formatMb(bytes){ return (bytes / 1048576).toFixed(1); }

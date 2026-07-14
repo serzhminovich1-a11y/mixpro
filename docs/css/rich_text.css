@@ -1,0 +1,15 @@
+/* ══════════════════════════════════════
+   RICH-TEXT ТУЛБАР (window.makeRichEditor из rich_text.js)
+   Общий блок — используется в композере Ленты и в конструкторе шагов
+   урока (теория) в панели администратора.
+   ══════════════════════════════════════ */
+.rt-toolbar{display:flex;align-items:center;gap:var(--space-1);flex-wrap:wrap}
+.rt-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--s2);color:var(--muted2);font-family:var(--ox);font-size:var(--text-body-1-size);cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center}
+.rt-btn:hover{color:var(--text);border-color:rgba(74,222,128,.35)}
+.rt-btn.active{color:var(--cyan);border-color:var(--cyan);background:rgba(74,222,128,.1)}
+.rt-sep{width:1px;height:18px;background:var(--border);margin:var(--space-0) var(--space-1)}
+.rt-select{background:var(--s2);border:1px solid var(--border);border-radius:6px;color:var(--muted2);font-family:var(--ox);font-size:var(--text-caption-2-size);padding:var(--space-1) var(--space-1);cursor:pointer;max-width:110px}
+.rt-select:hover{color:var(--text)}
+.rt-editable{width:100%;min-height:44px;color:var(--text);font-family:var(--ox);font-size:var(--text-body-2-size);line-height:1.55;outline:none;word-break:break-word}
+.rt-editable:empty:before{content:attr(data-placeholder);color:var(--muted)}
+.rt-editable b,.rt-editable strong{font-weight:700}

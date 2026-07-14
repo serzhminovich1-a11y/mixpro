@@ -436,7 +436,15 @@ const GLOSSARY = [
   {term:'Каскад обработки (Chain)', cat:'mastering', def:'Порядок, в котором сигнал проходит через плагины: например EQ → компрессор → лимитер.'},
 ];
 let glossCat='all';
-function glossIcon(){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>';}
+const GLOSS_ICON_PATHS={
+  eq:'<line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/>',
+  dynamics:'<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
+  loudness:'<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>',
+  space:'<path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/>',
+  recording:'<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/>',
+  mastering:'<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/>',
+};
+function glossIcon(cat){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+(GLOSS_ICON_PATHS[cat]||GLOSS_ICON_PATHS.eq)+'</svg>';}
 function setGlossCat(cat,btn){
   glossCat=cat;
   document.querySelectorAll('#glossCats .gloss-cat-btn').forEach(b=>b.classList.remove('active'));
@@ -466,7 +474,7 @@ function renderGlossary(){
     return;
   }
   grid.innerHTML=items.map(g=>
-    '<div class="gloss-card"><div class="gloss-term">'+glossIcon()+'<span>'+g.term+'</span></div>'+
+    '<div class="gloss-card"><div class="gloss-term">'+glossIcon(g.cat)+'<span>'+g.term+'</span></div>'+
     '<div class="gloss-cat-tag">'+GLOSS_CATS[g.cat]+'</div>'+
     '<div class="gloss-def">'+g.def+'</div></div>'
   ).join('');

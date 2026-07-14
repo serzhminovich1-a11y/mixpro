@@ -55,13 +55,22 @@ function finishProgress() {
   setTimeout(() => { bar.style.opacity = '0'; }, 150);
 }
 
-function ensureStylesheets(doc) {
+function ensureStylesheets(doc, baseUrl) {
+  // doc — распарсенный DOMParser'ом документ другой страницы; его
+  // .baseURI наследуется от ТЕКУЩЕГО документа (а не от той страницы,
+  // откуда взят HTML), поэтому читать резолвленный link.href нельзя —
+  // тот же класс бага, что и с относительными href в постоянной <nav>
+  // (см. комментарий в обработчике клика ниже). Резолвим сырой атрибут
+  // сами, от настоящего адреса загруженной страницы (route.html).
   const existing = new Set(Array.from(document.querySelectorAll('link[rel="stylesheet"]')).map(l => l.href));
   Array.from(doc.querySelectorAll('link[rel="stylesheet"]')).forEach(link => {
-    if (!existing.has(link.href)) {
+    const raw = link.getAttribute('href');
+    if (!raw) return;
+    const abs = new URL(raw, baseUrl).href;
+    if (!existing.has(abs)) {
       const clone = document.createElement('link');
       clone.rel = 'stylesheet';
-      clone.href = link.href;
+      clone.href = abs;
       document.head.appendChild(clone);
     }
   });
@@ -100,7 +109,7 @@ async function navigateTo(route, url, doPushState) {
     }
     if (window.disconnectReveals) window.disconnectReveals(oldRoot);
 
-    ensureStylesheets(doc);
+    ensureStylesheets(doc, route.html);
     document.title = doc.title;
     oldRoot.replaceWith(newRoot);
     if (doPushState) history.pushState({ routeKey: route.key }, '', url);

@@ -69,7 +69,8 @@ body{background:#0a0b12;color:#eef0fb;font-family:'Golos Text',sans-serif;-webki
 .pm-streak-num{font-family:'Golos Text',sans-serif;font-weight:700;font-size:var(--text-header-1-size);color:#fff}
 .pm-streak-sub{font-size:var(--text-caption-2-size);color:var(--muted);margin-top:var(--space-half)}
 .pm-freeze-wrap{display:flex;align-items:center;gap:var(--space-1);padding:var(--space-1) var(--space-2) var(--space-1) var(--space-2);border-radius:20px;background:rgba(255,255,255,.05);border:1px solid var(--border)}
-.pm-freeze-icon{font-size:var(--text-body-2-size);line-height:1}
+.pm-freeze-icon{display:flex;color:var(--cyan)}
+.pm-freeze-icon svg{width:15px;height:15px}
 .pm-freeze-count{font-family:'Golos Text',sans-serif;font-weight:700;font-size:var(--text-body-1-size);color:#fff;min-width:8px;text-align:center}
 .pm-freeze-buy{font-family:'Golos Text',sans-serif;font-weight:700;font-size:var(--text-caption-2-size);border:none;border-radius:14px;padding:var(--space-1) var(--space-2);cursor:pointer;background:rgba(56,189,248,.15);color:#7dd3fc;transition:.15s}
 .pm-freeze-buy:hover{background:rgba(56,189,248,.28)}
@@ -125,7 +126,8 @@ body{background:#0a0b12;color:#eef0fb;font-family:'Golos Text',sans-serif;-webki
 .mode-btn:hover{border-color:rgba(74,222,128,.4);color:#fff;transform:translateY(-2px)}
 .mode-btn.primary{background:linear-gradient(135deg,var(--cyan),var(--purple));border-color:transparent;color:#0a0b16}
 .mode-btn.primary:hover{box-shadow:0 8px 28px rgba(74,222,128,.3)}
-.mode-btn-icon{font-size:var(--text-display-1-size)}
+.mode-btn-icon{display:flex}
+.mode-btn-icon svg{width:34px;height:34px}
 .mode-btn-name{font-family:'Golos Text',sans-serif;font-size:var(--text-body-1-size);font-weight:700}
 .mode-btn-sub{font-size:var(--text-caption-1-size);opacity:.75;text-align:center;line-height:1.4}
 

@@ -55,7 +55,7 @@
         <div class="pm-streak-sub">дней подряд</div>
       </div>
       <div class="pm-freeze-wrap" id="freezeWrap" title="Заморозка защищает стрик, если пропустишь один день">
-        <span class="pm-freeze-icon">🧊</span>
+        <span class="pm-freeze-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M4.2 7l15.6 10M4.2 17l15.6-10"/></svg></span>
         <span class="pm-freeze-count" id="freezeCount">0</span>
         <button class="pm-freeze-buy" id="freezeBuyBtn" onclick="buyFreeze()">за 300</button>
       </div>
@@ -84,12 +84,12 @@
       <p>Слышишь звук с поднятой частотой. Твоя задача — указать её ползунком как можно точнее. Зажми COMPARE чтобы услышать оригинал.</p>
       <div class="mode-grid">
         <button class="mode-btn primary" onclick="openSetupPlay()">
-          <span class="mode-btn-icon">🎯</span>
+          <span class="mode-btn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></span>
           <span class="mode-btn-name">Играть</span>
           <span class="mode-btn-sub">Очки идут в общий рейтинг</span>
         </button>
         <button class="mode-btn" onclick="openTrain()">
-          <span class="mode-btn-icon">⚙</span>
+          <span class="mode-btn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></span>
           <span class="mode-btn-name">Тренировка</span>
           <span class="mode-btn-sub">Свободная настройка, без рейтинга</span>
         </button>
@@ -136,13 +136,13 @@
       <div class="start-toggles">
         <label class="start-toggle">
           <input type="checkbox" id="phoneModeCheck" onchange="setPhoneMode(this.checked)">
-          <span>📱 Телефонный динамик</span>
+          <span><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:3px"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>Телефонный динамик</span>
           <span class="start-toggle-sub">сужает диапазон целей до 300 Гц – 8 кГц</span>
         </label>
         <div class="start-toggle" id="sourceToggleRow" style="display:none">
           <div class="train-chips" id="sourceChips">
             <button class="train-chip on" onclick="setSource('noise',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;vertical-align:-1.5px;margin-right:3px"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>Розовый шум</button>
-            <button class="train-chip" onclick="setSource('tracks',this)">🎵 Мои треки</button>
+            <button class="train-chip" onclick="setSource('tracks',this)"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1.5px;margin-right:3px"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>Мои треки</button>
           </div>
         </div>
       </div>
@@ -228,7 +228,7 @@
         <span class="pm-fg-seg" style="flex:1.65">Воздух · блеск</span>
       </div>
       <div class="pm-mode-badge" id="modeBadge">С БУСТОМ</div>
-      <div class="pm-multi-label" id="multiLabel" style="display:none">🎹 Несколько полос — после ответа увидишь все</div>
+      <div class="pm-multi-label" id="multiLabel" style="display:none"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg>Несколько полос — после ответа увидишь все</div>
       <div class="pm-guess-hint" id="freqLabel">Проведи по графику и отпусти на нужной частоте</div>
     </div>
 
@@ -274,7 +274,7 @@
   <div id="scrTrain" class="screen" style="align-items:center">
     <div class="train-card">
       <div style="display:flex;align-items:center;justify-content:space-between">
-        <h2>⚙ Тренировочный режим</h2>
+        <h2><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:6px"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>Тренировочный режим</h2>
         <button class="pm-back" onclick="closeTrain()">✕ Закрыть</button>
       </div>
       <p style="font-size:13px;color:var(--muted2);line-height:1.6">Настрой параметры под себя. Результаты не сохраняются в рейтинг — это пространство для отработки конкретных навыков.</p>

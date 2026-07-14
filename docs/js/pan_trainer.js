@@ -58,6 +58,7 @@ let totalRight=0, totalAns=0;
 const SB=supabase.createClient('https://mwzskffecoedpvyflswg.supabase.co','sb_publishable_m1ImqMRye4s4yrpuBTvWvA_yMez-ZhD');
 let sbUser=null,sbProfile=null;
 let bestDbScore=0;
+async function logout(){await SB.auth.signOut();location.href='auth.html';}
 async function sbInit(){
   const{data:{session}}=await SB.auth.getSession();
   if(session){

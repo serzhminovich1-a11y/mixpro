@@ -28,8 +28,9 @@ body{background:#0a0b12;color:#eef0fb;font-family:'Golos Text',sans-serif;-webki
 .pm-back{font-family:'Golos Text',sans-serif;font-size:var(--text-caption-2-size);color:var(--muted);text-decoration:none;padding:var(--space-1) var(--space-3);border:1px solid var(--border);border-radius:8px;transition:.15s;background:transparent;cursor:pointer}
 .pm-back:hover{color:#fff;border-color:rgba(255,255,255,.25)}
 .pm-nav-links{display:flex;align-items:center;gap:var(--space-2)}
-.pm-nav-link{font-family:'Golos Text',sans-serif;font-size:var(--text-caption-2-size);color:var(--muted);text-decoration:none;padding:var(--space-1) var(--space-3);border:1px solid var(--border);border-radius:8px;transition:.15s}
+.pm-nav-link{font-family:'Golos Text',sans-serif;font-size:var(--text-caption-2-size);color:var(--muted);background:transparent;cursor:pointer;text-decoration:none;padding:var(--space-1) var(--space-3);border:1px solid var(--border);border-radius:8px;transition:.15s}
 .pm-nav-link:hover{color:#fff;border-color:rgba(255,255,255,.25)}
+.pm-nav-link.danger:hover{color:var(--red);border-color:var(--red)}
 .pm-nav-link.accent{color:var(--gold);border-color:rgba(250,204,21,.3);background:rgba(250,204,21,.08)}
 .pm-nav-link.accent:hover{background:rgba(250,204,21,.16);border-color:var(--gold)}
 

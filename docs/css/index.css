@@ -27,6 +27,8 @@ nav{position:sticky;top:0;z-index:100;background:rgba(10,11,22,.85);backdrop-fil
 .nav-account{display:flex;align-items:center;gap:var(--space-2)}
 .nav-link-btn{font-family:var(--display);font-size:var(--text-body-1-size);font-weight:500;padding:var(--space-2) var(--space-4);border-radius:999px;border:1px solid var(--border);background:transparent;color:var(--muted);text-decoration:none;transition:.15s;display:inline-flex;align-items:center}
 .nav-link-btn:hover{color:var(--text);background:var(--s2);border-color:var(--border-hi)}
+.nav-link-btn.danger{cursor:pointer;font-family:var(--display)}
+.nav-link-btn.danger:hover{color:var(--red);border-color:var(--red);background:rgba(248,113,113,.08)}
 .nav-link-btn-primary{font-family:var(--display);font-size:var(--text-body-1-size);font-weight:700;padding:var(--space-2) var(--space-5);border-radius:999px;border:none;background:var(--amber);color:#0C0C10;text-decoration:none;transition:.15s}
 .nav-link-btn-primary:hover{opacity:.88;transform:translateY(-1px)}
 .nav-vip-btn{font-family:var(--display);font-size:var(--text-caption-2-size);font-weight:700;padding:var(--space-2) var(--space-4);border-radius:999px;border:1px solid var(--amber);background:transparent;color:var(--amber);cursor:pointer;transition:.15s;letter-spacing:.03em}

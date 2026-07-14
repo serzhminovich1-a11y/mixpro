@@ -72,6 +72,7 @@ async function reconcileStreak(){
 //  SUPABASE
 // ══════════════════════════════════════
 const SB=supabase.createClient('https://mwzskffecoedpvyflswg.supabase.co','sb_publishable_m1ImqMRye4s4yrpuBTvWvA_yMez-ZhD');
+async function logout(){await SB.auth.signOut();location.href='auth.html';}
 async function sbInit(){
   const{data:{session}}=await SB.auth.getSession();
   if(session){

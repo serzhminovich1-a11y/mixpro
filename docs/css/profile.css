@@ -94,6 +94,15 @@ tr:hover td{background:var(--s2)}
 .achv-status{font-family:var(--mono);font-size:var(--text-caption-1-size);color:var(--muted2);margin-top:var(--space-2);letter-spacing:.04em}
 .achv-card.unlocked .achv-status{color:var(--gold)}
 
+/* Сертификаты */
+.cert-list{display:flex;flex-direction:column;gap:var(--space-3)}
+.cert-card{display:flex;align-items:center;gap:var(--space-4);border-radius:12px;padding:var(--space-4);border:1px solid rgba(74,222,128,.3);box-shadow:var(--shadow-lift), 0 0 22px -12px rgba(74,222,128,.4)}
+.cert-icon{width:34px;height:34px;flex-shrink:0;color:var(--green)}
+.cert-icon svg{width:100%;height:100%;display:block}
+.cert-body{min-width:0}
+.cert-title{font-family:var(--ox);font-size:var(--text-body-1-size);font-weight:700;color:var(--text)}
+.cert-date{font-family:var(--mono);font-size:var(--text-caption-2-size);color:var(--muted2);margin-top:var(--space-1)}
+
 /* Стена работ — те же карточки-альбомы, что в Портфолио */
 .works-wall{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:var(--space-5)}
 .work-card{border-radius:16px;overflow:hidden;display:flex;flex-direction:column}

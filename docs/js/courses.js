@@ -3,6 +3,7 @@ const SB = supabase.createClient(
   'sb_publishable_m1ImqMRye4s4yrpuBTvWvA_yMez-ZhD'
 );
 const ICON_CHECK_SM = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;vertical-align:-1.5px"><path d="M20 6 9 17l-5-5"/></svg>';
+const ICON_CERT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 12h-5"/><path d="M15 8h-5"/><path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3"/></svg>';
 
 let currentUid = null;
 
@@ -52,6 +53,8 @@ async function renderCourseView(courseId){
 
   const { data: lessons } = await SB.from('lessons').select('*').eq('course_id', courseId).order('order_index', { ascending: true });
   const list = document.getElementById('lessonList');
+  const certBanner = document.getElementById('certBanner');
+  certBanner.style.display = 'none';
   if (!lessons || lessons.length === 0) {
     list.innerHTML = '<div class="empty">В этом курсе пока нет уроков</div>';
   } else {
@@ -63,6 +66,12 @@ async function renderCourseView(courseId){
     list.innerHTML = '';
     lessons.forEach((l, idx) => list.appendChild(lessonRow(l, idx, progressMap.get(l.id))));
     if (window.animateChildren) animateChildren(list);
+
+    const allDone = lessons.every(l => progressMap.get(l.id) === 'completed');
+    if (allDone) {
+      certBanner.style.display = 'flex';
+      certBanner.innerHTML = `${ICON_CERT}<div>Курс пройден полностью<span>Сертификат появился в разделе "Сертификаты" в твоём профиле</span></div>`;
+    }
   }
 
   await renderAssignments(courseId);

@@ -34,6 +34,11 @@ nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-con
 .course-desc{font-size:var(--text-body-1-size);color:var(--muted2);line-height:1.5}
 .course-meta{font-family:var(--mono);font-size:var(--text-caption-2-size);color:var(--muted);margin-top:auto;padding-top:var(--space-2)}
 
+/* Баннер о получении сертификата за курс */
+.cert-banner{display:flex;align-items:center;gap:var(--space-3);border-radius:12px;padding:var(--space-4);border:1px solid rgba(74,222,128,.3);box-shadow:var(--shadow-lift), 0 0 22px -12px rgba(74,222,128,.4);font-family:var(--ox);font-weight:700;color:var(--green)}
+.cert-banner svg{width:22px;height:22px;flex-shrink:0}
+.cert-banner span{font-family:var(--sans);font-weight:400;color:var(--muted2);display:block;font-size:var(--text-caption-2-size);margin-top:2px}
+
 /* Lesson list */
 .lesson-list{display:flex;flex-direction:column;gap:var(--space-2)}
 .lesson-row{background:linear-gradient(180deg,var(--surf-top),var(--surf-bot)),var(--bg);border:1px solid var(--border);border-radius:11px;padding:var(--space-3) var(--space-4);display:flex;align-items:center;gap:var(--space-3);text-decoration:none;transition:.18s ease;box-shadow:var(--shadow-lift)}

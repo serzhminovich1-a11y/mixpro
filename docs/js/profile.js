@@ -26,6 +26,7 @@ const ACHV_ICONS = {
 const ACHV_ICON_DEFAULT = pIcon('<path d="m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526"/><circle cx="12" cy="8" r="6"/>');
 const ICON_LOCK = pIcon('<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>');
 const ICON_CHECK_SM = pIcon('<path d="M20 6 9 17l-5-5"/>');
+const ICON_CERT = pIcon('<path d="M15 12h-5"/><path d="M15 8h-5"/><path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3"/>');
 
 // Пороги XP — должны совпадать с get_level_from_xp() в docs/supabase/migrations/001_lms_schema.sql
 const XP_LEVELS = [
@@ -78,6 +79,28 @@ async function renderAchievements(uid){
     grid.appendChild(card);
   });
   if (window.animateChildren) animateChildren(grid);
+}
+
+async function renderCertificates(uid){
+  const section = document.getElementById('certsSection');
+  const list = document.getElementById('certList');
+  const { data } = await SB.from('certificates').select('*').eq('user_id', uid).order('issued_at', { ascending: false });
+  if (!data || data.length === 0) { section.style.display = 'none'; return; }
+
+  section.style.display = '';
+  list.innerHTML = '';
+  data.forEach(c => {
+    const card = document.createElement('div');
+    card.className = 'cert-card';
+    card.innerHTML = `
+      <div class="cert-icon">${ICON_CERT}</div>
+      <div class="cert-body">
+        <div class="cert-title">${c.title}</div>
+        <div class="cert-date">Выдан ${new Date(c.issued_at).toLocaleDateString('ru-RU')}</div>
+      </div>`;
+    list.appendChild(card);
+  });
+  if (window.animateChildren) animateChildren(list);
 }
 
 const ICON_COVER_PLACEHOLDER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>';
@@ -141,6 +164,7 @@ async function init() {
 
   renderLevelXp(profile.xp);
   renderAchievements(uid);
+  renderCertificates(uid);
   renderWorksWall(uid, viewerCtx);
 
   if (['VERIFIED_PRO', 'MENTOR', 'ADMIN'].includes(myRole)) {

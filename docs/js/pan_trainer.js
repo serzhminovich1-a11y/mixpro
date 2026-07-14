@@ -124,6 +124,8 @@ const FLAME_UNLIT=`<svg viewBox="0 0 24 24"><path fill="rgba(255,255,255,.22)" d
 const FLAME_LIT=`<svg viewBox="0 0 24 24"><defs><linearGradient id="flameGradLit" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#fb923c"/><stop offset="1" stop-color="#facc15"/></linearGradient></defs><path fill="url(#flameGradLit)" d="${FLAME_PATH}"/></svg>`;
 const FLAME_HOT=`<svg viewBox="0 0 24 24"><defs><linearGradient id="flameGradHot" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#f87171"/><stop offset=".5" stop-color="#fb923c"/><stop offset="1" stop-color="#facc15"/></linearGradient></defs><path fill="url(#flameGradHot)" d="${FLAME_PATH}"/></svg>`;
 const FLAME_POPUP=`<svg viewBox="0 0 24 24"><defs><linearGradient id="flameGradPopup" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#fb923c"/><stop offset="1" stop-color="#facc15"/></linearGradient></defs><path fill="url(#flameGradPopup)" d="${FLAME_PATH}"/></svg>`;
+// Простая одноцветная версия (currentColor) для мелких инлайн-упоминаний стрика в тексте
+const FLAME_INLINE=`<svg viewBox="0 0 24 24" fill="currentColor" style="width:.85em;height:.85em;vertical-align:-.1em;display:inline-block"><path d="${FLAME_PATH}"/></svg>`;
 
 function initStreak(){
   const d=loadSD();
@@ -183,7 +185,7 @@ function updateChallenge(){
     d.chDone++;saveSD(d);
     updateStreakUI(d);
     if(d.chDone===5){
-      score+=250;localStorage.setItem('pt_s',score);updateScoreUI();ptsPopup('+250 🎯');
+      score+=250;localStorage.setItem('pt_s',score);updateScoreUI();ptsPopup('+250 '+ICON_TARGET);
       updateDailyStreak();
     }
   }
@@ -196,7 +198,7 @@ function buyFreeze(){
   score-=FREEZE_COST;localStorage.setItem('pt_s',score);updateScoreUI();
   d.freezes=(d.freezes||0)+1;saveSD(d);
   updateStreakUI(d);
-  ptsPopup('🧊 Заморозка куплена');
+  ptsPopup(ICON_SNOWFLAKE+'Заморозка куплена');
 }
 
 function startChallenge(){
@@ -208,7 +210,7 @@ function startChallenge(){
 
 function showStreakPopup(n,type){
   const ov=document.getElementById('streakOverlay');
-  document.getElementById('streakEmoji').innerHTML=type==='lost'?'💔':type==='freeze'?'🧊':FLAME_POPUP;
+  document.getElementById('streakEmoji').innerHTML=type==='lost'?FLAME_UNLIT:type==='freeze'?ICON_SNOWFLAKE:FLAME_POPUP;
   document.getElementById('streakN').textContent=n;
   document.getElementById('streakN').style.color=type==='lost'?'var(--red)':type==='freeze'?'#7dd3fc':'var(--gold)';
   const msgs={3:['3 дня подряд!','Хорошее начало — не останавливайся!'],7:['Неделя!','7 дней ежедневной практики. Ты молодец.'],14:['Две недели!','Привычка формируется за 21 день — ты на пути.'],30:['30 дней! 🏆','Месяц. Это уже серьёзно.'],60:['60 дней! 👑','Два месяца без перерыва. Профессиональная дисциплина.'],100:['100 ДНЕЙ! 🌟','Легендарный стрик. Ты звезда.']};
@@ -216,8 +218,13 @@ function showStreakPopup(n,type){
   else if(type==='freeze'){document.getElementById('streakT').textContent='Стрик защищён';document.getElementById('streakS').textContent='Заморозка спасла твою серию из '+n+' дней. Не забудь сыграть сегодня!';}
   else{const[t,s]=msgs[n]||[n+' дней!','Продолжай!'];document.getElementById('streakT').textContent=t;document.getElementById('streakS').textContent=s;}
   ov.classList.add('open');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>ov.classList.add('show')));
 }
-function closeStreak(){document.getElementById('streakOverlay').classList.remove('open');}
+function closeStreak(){
+  const ov=document.getElementById('streakOverlay');
+  ov.classList.remove('show');
+  setTimeout(()=>ov.classList.remove('open'),200);
+}
 
 // ══════════════════════════════════════
 //  PROGRESSIVE DIFFICULTY (Hard) — своя механика под панораму:
@@ -367,6 +374,10 @@ const ICON_USER='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stro
 const ICON_VOL_HIGH='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>';
 const ICON_VOL_LOW='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>';
 const ICON_VOL_MUTE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="22" x2="16" y1="9" y2="15"/><line x1="16" x2="22" y1="9" y2="15"/></svg>';
+// Иконки вместо оставшихся эмодзи в попапах стрика/подсказках
+const ICON_SNOWFLAKE='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M4.2 7l15.6 10M4.2 17l15.6-10"/></svg>';
+const ICON_BULB='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>';
+const ICON_TARGET='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>';
 function setVolume(v){
   vol=v/100;muted=false;
   document.getElementById('volFill').style.width=v+'%';
@@ -519,7 +530,7 @@ function checkAnswer(timedOut){
   const tname=target.label+(target.val===0?'':' '+target.sub);
   if(ok){
     fm.textContent='✓ Верно!';
-    fs.textContent=tname+' · +'+earned+' pts'+(streak>=3?' · 🔥×'+streak:'');
+    fs.innerHTML=tname+' · +'+earned+' pts'+(streak>=3?' · '+FLAME_INLINE+'×'+streak:'');
     ptsPopup('+'+earned);
   } else if(timedOut){
     fm.textContent='⏱ Время вышло';
@@ -572,7 +583,7 @@ const TIPS = {
 function showTip(){
   const set=TIPS[diff];
   const el=document.getElementById('tipBox');
-  el.textContent='💡 '+set[Math.floor(Math.random()*set.length)];
+  el.innerHTML=ICON_BULB+set[Math.floor(Math.random()*set.length)];
   el.style.display='block';
   el.style.animation='none';void el.offsetWidth;el.style.animation='tipIn .35s ease-out';
 }
@@ -610,15 +621,15 @@ function playSuccessSound() {
 // ══════════════════════════════════════
 function updateScoreUI(){
   document.getElementById('sv').textContent=score.toLocaleString('ru');
-  document.getElementById('stv').textContent=streak+(streak>=3?'🔥':'');
+  document.getElementById('stv').innerHTML=streak+(streak>=3?FLAME_INLINE:'');
   let lvl=LEVELS[0],nxt=LEVELS[1];
   for(let i=0;i<LEVELS.length;i++){if(score>=LEVELS[i].m){lvl=LEVELS[i];nxt=LEVELS[i+1]||null;}}
   document.getElementById('lv').textContent=lvl.n;
   document.getElementById('lf').style.width=nxt?Math.round(((score-lvl.m)/(nxt.m-lvl.m))*100)+'%':'100%';
 }
 
-function ptsPopup(txt){
-  const el=document.createElement('div');el.className='pts-pop';el.textContent=txt;
+function ptsPopup(html){
+  const el=document.createElement('div');el.className='pts-pop';el.innerHTML=html;
   el.style.left='50%';el.style.top='50%';el.style.transform='translateX(-50%)';
   document.body.appendChild(el);setTimeout(()=>el.remove(),900);
 }

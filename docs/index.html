@@ -19,6 +19,7 @@
     <button class="nav-tab" onclick="tab('lessons',this)">Уроки</button>
     <button class="nav-tab" onclick="tab('trainers',this)">Тренажёры</button>
     <button class="nav-tab" onclick="tab('tools',this)">Инструменты</button>
+    <button class="nav-tab" onclick="tab('glossary',this)">Словарь</button>
   </div>
   <div class="nav-right">
     <div class="nav-links">
@@ -311,6 +312,21 @@
       </div>
 
     </div>
+  </div>
+</div>
+
+<!-- ══ GLOSSARY ══ -->
+<div id="glossary" class="section">
+  <div class="tools-wrap">
+    <div class="sec-header"><h2 class="sec-title">Словарь звукорежиссёра</h2></div>
+    <p class="page-sub" style="margin:-16px 0 0">Базовые термины, которые встретятся в уроках, тренажёрах и разборах треков. Ищи по названию или по смыслу.</p>
+
+    <div class="gloss-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="text" id="glossSearch" placeholder="Например: LUFS, компрессор, Q-фактор…" oninput="renderGlossary()">
+    </div>
+    <div class="gloss-cats" id="glossCats"></div>
+    <div class="gloss-grid" id="glossGrid"></div>
   </div>
 </div>
 

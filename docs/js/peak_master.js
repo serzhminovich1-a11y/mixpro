@@ -333,6 +333,15 @@ const ICON_USER='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stro
 const ICON_VOL_HIGH='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>';
 const ICON_VOL_LOW='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>';
 const ICON_VOL_MUTE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="22" x2="16" y1="9" y2="15"/><line x1="16" x2="22" y1="9" y2="15"/></svg>';
+// Иконки вместо оставшихся эмодзи в попапах/подсказках/туре.
+// width/height-атрибуты — разумный размер по умолчанию (CSS в контексте,
+// где он есть, всё равно перебивает атрибуты — см. .pts-pop svg и т.п.)
+const ICON_SNOWFLAKE='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M4.2 7l15.6 10M4.2 17l15.6-10"/></svg>';
+const ICON_BULB='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>';
+const ICON_TARGET='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>';
+const ICON_BOOK='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>';
+const ICON_TRENDUP='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>';
+const ICON_GRAD='<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg>';
 function setVolume(v){
   vol=v/100;muted=false;
   document.getElementById('volFill').style.width=v+'%';
@@ -656,7 +665,7 @@ function checkAnswer(timedOut){
     if(!trainMode){score+=earned;localStorage.setItem('pm_s',score);}
     sessionScore+=earned;
     showTip(target);
-    if(isPerfect){playPerfectSound();ptsPopup('🎯 В ЯБЛОЧКО! +'+earned,true);}
+    if(isPerfect){playPerfectSound();ptsPopup(ICON_TARGET+'В ЯБЛОЧКО! +'+earned,true);}
     else{playSuccessSound();ptsPopup('+'+earned);}
     if(!trainMode){setTimeout(saveScore,300);}
     if(!trainMode) updateChallenge();
@@ -670,8 +679,8 @@ function checkAnswer(timedOut){
       if(et===EASY_GRADUATE_AT){
         setTimeout(()=>{
           const n=document.createElement('div');
-          n.style.cssText='position:fixed;top:24px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#a78bfa,#22d3ee);color:#0a0b16;font-family:Unbounded,sans-serif;font-weight:700;font-size:13px;padding:12px 24px;border-radius:10px;z-index:9999;animation:fup 3s ease-out forwards;text-align:center';
-          n.textContent='🎓 Ты прошёл разминку! Пора попробовать «Средний» уровень';
+          n.style.cssText='position:fixed;top:24px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#a78bfa,#22d3ee);color:#0a0b16;font-family:Unbounded,sans-serif;font-weight:700;font-size:13px;padding:12px 24px;border-radius:10px;z-index:9999;animation:fup 3s ease-out forwards;text-align:center;display:flex;align-items:center;gap:8px;justify-content:center';
+          n.innerHTML=ICON_GRAD+'Ты прошёл разминку! Пора попробовать «Средний» уровень';
           document.body.appendChild(n);setTimeout(()=>n.remove(),3500);
         },500);
       }
@@ -685,8 +694,8 @@ function checkAnswer(timedOut){
   const fs=document.getElementById('fbSub');
   fm.className='pm-fb-main '+(ok?'ok':'no');
   if(ok){
-    fm.textContent=isPerfect?'🎯 В яблочко!':'✓ Верно!';
-    fs.textContent=fmtF(target)+' Hz · +'+earned+' pts'+(streak>=3?' · 🔥×'+streak:'');
+    fm.innerHTML=isPerfect?ICON_TARGET+'В яблочко!':'✓ Верно!';
+    fs.innerHTML=fmtF(target)+' Hz · +'+earned+' pts'+(streak>=3?' · '+FLAME_INLINE+'×'+streak:'');
   } else {
     fm.textContent=timedOut?'⏱ Время вышло':'✗ Неверно';
     fs.textContent='Это был '+fmtF(target)+' Hz'+(timedOut?'':' — слушай ещё раз');
@@ -746,6 +755,7 @@ const FLAME_UNLIT=`<svg viewBox="0 0 24 24"><path fill="rgba(255,255,255,.22)" d
 const FLAME_LIT=`<svg viewBox="0 0 24 24"><defs><linearGradient id="flameGradLit" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#fb923c"/><stop offset="1" stop-color="#facc15"/></linearGradient></defs><path fill="url(#flameGradLit)" d="${FLAME_PATH}"/></svg>`;
 const FLAME_HOT=`<svg viewBox="0 0 24 24"><defs><linearGradient id="flameGradHot" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#f87171"/><stop offset=".5" stop-color="#fb923c"/><stop offset="1" stop-color="#facc15"/></linearGradient></defs><path fill="url(#flameGradHot)" d="${FLAME_PATH}"/></svg>`;
 const FLAME_POPUP=`<svg viewBox="0 0 24 24"><defs><linearGradient id="flameGradPopup" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#fb923c"/><stop offset="1" stop-color="#facc15"/></linearGradient></defs><path fill="url(#flameGradPopup)" d="${FLAME_PATH}"/></svg>`;
+const FLAME_INLINE=`<svg viewBox="0 0 24 24" fill="currentColor" style="width:.85em;height:.85em;vertical-align:-.1em;display:inline-block"><path d="${FLAME_PATH}"/></svg>`;
 
 function initStreak(){
   const d=loadSD();
@@ -807,7 +817,7 @@ function updateChallenge(){
     d.chDone++;saveSD(d);
     updateStreakUI(d);
     if(d.chDone===5){
-      score+=250;localStorage.setItem('pm_s',score);updateScoreUI();ptsPopup('+250 🎯');
+      score+=250;localStorage.setItem('pm_s',score);updateScoreUI();ptsPopup('+250 '+ICON_TARGET);
       updateDailyStreak();
     }
   }
@@ -820,7 +830,7 @@ function buyFreeze(){
   score-=FREEZE_COST;localStorage.setItem('pm_s',score);updateScoreUI();
   d.freezes=(d.freezes||0)+1;saveSD(d);
   updateStreakUI(d);
-  ptsPopup('🧊 Заморозка куплена');
+  ptsPopup(ICON_SNOWFLAKE+'Заморозка куплена');
 }
 
 function startChallenge(){
@@ -833,7 +843,7 @@ function startChallenge(){
 
 function showStreakPopup(n,type){
   const ov=document.getElementById('streakOverlay');
-  document.getElementById('streakEmoji').innerHTML=type==='lost'?'💔':type==='freeze'?'🧊':FLAME_POPUP;
+  document.getElementById('streakEmoji').innerHTML=type==='lost'?FLAME_UNLIT:type==='freeze'?ICON_SNOWFLAKE:FLAME_POPUP;
   document.getElementById('streakN').textContent=n;
   document.getElementById('streakN').style.color=type==='lost'?'var(--red)':type==='freeze'?'#7dd3fc':'var(--gold)';
   const msgs={3:['3 дня подряд!','Хорошее начало — не останавливайся!'],7:['Неделя!','7 дней ежедневной практики. Ты молодец.'],14:['Две недели!','Привычка формируется за 21 день — ты на пути.'],30:['30 дней! 🏆','Месяц. Это уже серьёзно.'],60:['60 дней! 👑','Два месяца без перерыва. Профессиональная дисциплина.'],100:['100 ДНЕЙ! 🌟','Легендарный стрик. Ты звезда.']};
@@ -841,8 +851,13 @@ function showStreakPopup(n,type){
   else if(type==='freeze'){document.getElementById('streakT').textContent='Стрик защищён';document.getElementById('streakS').textContent='Заморозка спасла твою серию из '+n+' дней. Не забудь сыграть сегодня!';}
   else{const[t,s]=msgs[n]||[n+' дней!','Продолжай!'];document.getElementById('streakT').textContent=t;document.getElementById('streakS').textContent=s;}
   ov.classList.add('open');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>ov.classList.add('show')));
 }
-function closeStreak(){document.getElementById('streakOverlay').classList.remove('open');}
+function closeStreak(){
+  const ov=document.getElementById('streakOverlay');
+  ov.classList.remove('show');
+  setTimeout(()=>ov.classList.remove('open'),200);
+}
 
 // ══════════════════════════════════════
 //  TIPS
@@ -955,7 +970,7 @@ function getTip(hz){
 }
 function showTip(hz){
   const el=document.getElementById('tipBox');
-  el.textContent='💡 '+getTip(hz);
+  el.innerHTML=ICON_BULB+getTip(hz);
   el.style.display='block';
   el.style.animation='none';void el.offsetWidth;el.style.animation='tipIn .35s ease-out';
 }
@@ -1282,16 +1297,16 @@ function buildAudioChain(ctx) {
 // ══════════════════════════════════════
 function updateScoreUI(){
   document.getElementById('sv').textContent=score.toLocaleString('ru');
-  document.getElementById('stv').textContent=streak+(streak>=3?'🔥':'');
+  document.getElementById('stv').innerHTML=streak+(streak>=3?FLAME_INLINE:'');
   let lvl=LEVELS[0],nxt=LEVELS[1];
   for(let i=0;i<LEVELS.length;i++){if(score>=LEVELS[i].m){lvl=LEVELS[i];nxt=LEVELS[i+1]||null;}}
   document.getElementById('lv').textContent=lvl.n;
   document.getElementById('lf').style.width=nxt?Math.round(((score-lvl.m)/(nxt.m-lvl.m))*100)+'%':'100%';
 }
 
-function ptsPopup(txt,perfect){
+function ptsPopup(html,perfect){
   const el=document.createElement('div');
-  el.className='pts-pop'+(perfect?' perfect':'');el.textContent=txt;
+  el.className='pts-pop'+(perfect?' perfect':'');el.innerHTML=html;
   // Центрируем по горизонтали, фиксированная позиция по вертикали
   el.style.position='fixed';
   el.style.left='50%';
@@ -1307,19 +1322,19 @@ function fmtF(hz){return hz>=1000?(hz/1000)+'k':String(hz)}
 //  ОБУЧАЮЩИЙ ТУР
 // ══════════════════════════════════════
 const TOUR_STEPS=[
-  {sel:null,title:'👋 Добро пожаловать в Peak Master',
+  {sel:null,title:'Добро пожаловать в Peak Master',
     text:'Короткий тур покажет, что где находится и как играть. Займёт минуту — потом сразу начнёшь.'},
-  {sel:'.pm-vol',title:'🔊 Громкость',
+  {sel:'.pm-vol',title:ICON_VOL_HIGH+'Громкость',
     text:'Настрой удобный уровень перед стартом. Можно менять в любой момент прямо во время игры.'},
   {sel:'#playBtn',title:'▶ Слушай звук',
     text:'Нажми PLAY — услышишь шум с поднятой (или вырезанной) частотой. Это то, что нужно найти на слух.'},
-  {sel:'#cmpBtn',title:'🅰️ / 🅱️ Сравнение',
+  {sel:'#cmpBtn',title:'Сравнение A / B',
     text:'Зажми эту кнопку — услышишь оригинал без изменений. Отпусти — снова буст. Сравнивай туда-обратно.'},
-  {sel:'.pm-graph-card',title:'🎯 Угадывание на графике',
+  {sel:'.pm-graph-card',title:ICON_TARGET+'Угадывание на графике',
     text:'Нажми прямо на графике, веди до нужной частоты и отпусти — воротики (⊏ ⊐) показывают, где ты сейчас. Отпустил — ответ сразу засчитан.'},
-  {sel:'.pm-freq-guide',title:'📖 Что где живёт',
+  {sel:'.pm-freq-guide',title:ICON_BOOK+'Что где живёт',
     text:'Эта полоска — шпаргалка по диапазонам: слева бас и гул, посередине тело и разборчивость речи, справа — шипящие и воздух.'},
-  {sel:'.pm-question',title:'📈 Сложность растёт сама',
+  {sel:'.pm-question',title:ICON_TRENDUP+'Сложность растёт сама',
     text:'В «Лёгком» уровне буст сначала громкий и допуск широкий. С каждым раундом — чуть тише и точнее, пока не подготовишься к «Среднему». Удачи!'},
 ];
 let tourIdx=0, tourWasPlaying=false;
@@ -1380,7 +1395,7 @@ function showTourStep(i){
   const step=TOUR_STEPS[i];
 
   document.getElementById('tourStepN').textContent=(i+1)+' / '+TOUR_STEPS.length;
-  document.getElementById('tourTitle').textContent=step.title;
+  document.getElementById('tourTitle').innerHTML=step.title;
   document.getElementById('tourText').textContent=step.text;
   document.getElementById('tourNextBtn').textContent=(i===TOUR_STEPS.length-1)?'Поехали! →':'Далее →';
 

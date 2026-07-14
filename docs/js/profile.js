@@ -136,6 +136,7 @@ async function init() {
   if (['VERIFIED_PRO', 'MENTOR', 'ADMIN'].includes(myRole)) {
     document.getElementById('adminUsersLink').style.display = '';
   }
+  mountNotifications(SB, document.getElementById('notifMount'), myUid);
 
   if (!isOwn) {
     document.getElementById('shopPresets').style.display = 'none';

@@ -78,6 +78,7 @@ async function init() {
   if (profile && ['MENTOR', 'ADMIN'].includes(profile.role)) {
     document.getElementById('reviewLink').style.display = '';
   }
+  mountNotifications(SB, document.getElementById('notifMount'), currentUid);
 
   document.getElementById('verifyForm').addEventListener('submit', handleSubmit);
   await renderStatus();

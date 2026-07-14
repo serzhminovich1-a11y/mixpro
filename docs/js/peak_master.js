@@ -84,6 +84,8 @@ async function sbInit(){
       const ab=document.getElementById('navAdmin');
       if(ab&&['VERIFIED_PRO','MENTOR','ADMIN'].includes(p.role)) ab.style.display='';
     }
+    const notifMount=document.getElementById('notifMount');
+    if(notifMount)mountNotifications(SB,notifMount,sbUser.id);
     await reconcileStreak();
   }
 }

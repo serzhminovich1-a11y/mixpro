@@ -109,6 +109,7 @@
         await SB.from('project_reactions').delete().eq('project_id', projectId).eq('user_id', currentUid).eq('emoji', emoji);
       } else {
         await SB.from('project_reactions').insert({ project_id: projectId, user_id: currentUid, emoji });
+        notifyUser(SB, { userId: project.user_id, actorId: currentUid, type: 'project_reaction', contentType: 'project', contentId: projectId });
       }
       await refreshReactions();
     }
@@ -165,6 +166,7 @@
             { onConflict: 'project_id,reviewer_id' }
           );
           if (error) { alert('Ошибка: ' + error.message); return; }
+          if (!mine) notifyUser(SB, { userId: project.user_id, actorId: currentUid, type: 'project_review', contentType: 'project', contentId: projectId });
           await loadReviews();
         });
       }
@@ -313,6 +315,7 @@
       if (containsPoliticalContent(raw)) { alert(POLITICAL_GUARD_MESSAGE); return; }
       const { error } = await SB.from('project_comments').insert({ project_id: projectId, user_id: currentUid, content: censorText(raw) });
       if (error) { alert('Ошибка: ' + error.message); return; }
+      notifyUser(SB, { userId: project.user_id, actorId: currentUid, type: 'project_comment', contentType: 'project', contentId: projectId });
       commentInput.value = '';
       await loadComments();
       await refreshCommentCount();

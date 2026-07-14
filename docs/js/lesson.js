@@ -57,6 +57,7 @@ async function init() {
   if (profile && ['VERIFIED_PRO', 'MENTOR', 'ADMIN'].includes(profile.role)) {
     document.getElementById('adminLink').style.display = '';
   }
+  mountNotifications(SB, document.getElementById('notifMount'), currentUid);
 
   const { data: course } = await SB.from('courses').select('id, title').eq('id', lesson.course_id).single();
 

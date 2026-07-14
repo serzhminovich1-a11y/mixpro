@@ -335,6 +335,7 @@ async function handleFollowToggle(authorId, btn){
     followingSet.add(authorId);
     btn.textContent = 'Вы подписаны';
     btn.classList.add('following');
+    notifyUser(SB, { userId: authorId, actorId: currentUid, type: 'follow' });
   }
   btn.disabled = false;
 }
@@ -409,18 +410,19 @@ function startEditPost(post, card){
   });
 }
 
-async function toggleReaction(postId, emoji, pillWrap){
+async function toggleReaction(postId, emoji, pillWrap, authorId){
   const { data: mine } = await SB.from('post_reactions').select('id')
     .eq('post_id', postId).eq('user_id', currentUid).eq('emoji', emoji);
   if (mine && mine.length) {
     await SB.from('post_reactions').delete().eq('post_id', postId).eq('user_id', currentUid).eq('emoji', emoji);
   } else {
     await SB.from('post_reactions').insert({ post_id: postId, user_id: currentUid, emoji });
+    notifyUser(SB, { userId: authorId, actorId: currentUid, type: 'post_reaction', contentType: 'post', contentId: postId });
   }
-  await refreshReactions(postId, pillWrap);
+  await refreshReactions(postId, pillWrap, authorId);
 }
 
-async function refreshReactions(postId, pillWrap){
+async function refreshReactions(postId, pillWrap, authorId){
   const { data } = await SB.from('post_reactions').select('emoji, user_id').eq('post_id', postId);
   const counts = new Map();
   (data || []).forEach(r => {
@@ -435,7 +437,7 @@ async function refreshReactions(postId, pillWrap){
     pill.type = 'button';
     pill.className = 'emoji-pill' + (v.mine ? ' mine' : '');
     pill.textContent = `${emoji} ${v.count}`;
-    pill.addEventListener('click', () => toggleReaction(postId, emoji, pillWrap));
+    pill.addEventListener('click', () => toggleReaction(postId, emoji, pillWrap, authorId));
     pillWrap.appendChild(pill);
   });
 }
@@ -603,7 +605,7 @@ async function refreshCommentCount(postId, countEl){
   countEl.innerHTML = ICON_MESSAGE + ' ' + (count || 0);
 }
 
-async function handleAddComment(postId, input, container, countEl){
+async function handleAddComment(postId, input, container, countEl, authorId){
   const raw = input.value.trim();
   if (!raw) return;
   if (containsPoliticalContent(raw)) { alert(POLITICAL_GUARD_MESSAGE); return; }
@@ -611,11 +613,12 @@ async function handleAddComment(postId, input, container, countEl){
   const { error } = await SB.from('post_comments').insert({ post_id: postId, user_id: currentUid, content: text });
   if (error) { alert('Ошибка: ' + error.message); return; }
   input.value = '';
+  notifyUser(SB, { userId: authorId, actorId: currentUid, type: 'post_comment', contentType: 'post', contentId: postId });
   await loadComments(postId, container, countEl);
   await refreshCommentCount(postId, countEl);
 }
 
-async function handleAddVoiceComment(postId, blob, container, countEl){
+async function handleAddVoiceComment(postId, blob, container, countEl, authorId){
   const file = blobToFile(blob, 'comment');
   const path = `${currentUid}/comments/${file.name}`;
   const { error: upErr } = await SB.storage.from('posts').upload(path, file);
@@ -623,6 +626,7 @@ async function handleAddVoiceComment(postId, blob, container, countEl){
   const { data: pub } = SB.storage.from('posts').getPublicUrl(path);
   const { error } = await SB.from('post_comments').insert({ post_id: postId, user_id: currentUid, audio_url: pub.publicUrl });
   if (error) { alert('Ошибка: ' + error.message); return; }
+  notifyUser(SB, { userId: authorId, actorId: currentUid, type: 'post_comment', contentType: 'post', contentId: postId });
   await loadComments(postId, container, countEl);
   await refreshCommentCount(postId, countEl);
 }
@@ -685,7 +689,7 @@ function postCard(p, commentCounts){
   if (reportBtn) reportBtn.addEventListener('click', () => handleReportContent('post', p.id, reportBtn));
 
   const pillWrap = card.querySelector('.emoji-pills');
-  refreshReactions(p.id, pillWrap);
+  refreshReactions(p.id, pillWrap, p.user_id);
 
   const emojiBtn = card.querySelector('.emoji-add-btn');
   const picker = card.querySelector('.emoji-picker');
@@ -696,7 +700,7 @@ function postCard(p, commentCounts){
     if (willOpen) picker.classList.add('open');
   });
   picker.querySelectorAll('button').forEach(b => {
-    b.addEventListener('click', () => { toggleReaction(p.id, b.dataset.e, pillWrap); picker.classList.remove('open'); });
+    b.addEventListener('click', () => { toggleReaction(p.id, b.dataset.e, pillWrap, p.user_id); picker.classList.remove('open'); });
   });
 
   const commentsBox = card.querySelector('.comments');
@@ -711,7 +715,7 @@ function postCard(p, commentCounts){
   });
   const commentInput = commentsBox.querySelector('input');
   const commentSendBtn = commentsBox.querySelector('.comment-send');
-  const send = () => handleAddComment(p.id, commentInput, commentsBox, commentToggle);
+  const send = () => handleAddComment(p.id, commentInput, commentsBox, commentToggle, p.user_id);
   commentSendBtn.addEventListener('click', send);
   commentInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); send(); } });
 
@@ -760,7 +764,7 @@ function postCard(p, commentCounts){
   vcSendBtn.addEventListener('click', async () => {
     if (!recordedBlob) return;
     vcSendBtn.disabled = true;
-    await handleAddVoiceComment(p.id, recordedBlob, commentsBox, commentToggle);
+    await handleAddVoiceComment(p.id, recordedBlob, commentsBox, commentToggle, p.user_id);
     vcSendBtn.disabled = false;
     recordedBlob = null;
     voicePreview.classList.remove('show');
@@ -807,6 +811,7 @@ async function init() {
   if (['VERIFIED_PRO', 'MENTOR', 'ADMIN'].includes(currentRole)) {
     document.getElementById('adminLink').style.display = '';
   }
+  mountNotifications(SB, document.getElementById('notifMount'), currentUid);
 
   const { data: myFollows } = await SB.from('follows').select('following_id').eq('follower_id', currentUid);
   followingSet = new Set((myFollows || []).map(f => f.following_id));

@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="../css/tokens.css">
 <link rel="stylesheet" href="../css/courses.css">
 <link rel="stylesheet" href="../css/animations.css">
+<link rel="stylesheet" href="../css/notifications.css">
 </head>
 <body>
 <nav>
@@ -22,6 +23,7 @@
   </div>
   <div class="nav-links">
     <a href="admin.html" class="nav-btn accent" id="adminLink" style="display:none">Админ</a>
+    <div id="notifMount"></div>
     <a href="profile.html" class="nav-btn">Профиль</a>
     <button class="nav-btn danger" onclick="logout()">Выйти</button>
   </div>
@@ -51,6 +53,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="../js/animations.js"></script>
+<script src="../js/notifications.js"></script>
 <script src="../js/lesson.js"></script>
 </body>
 </html>

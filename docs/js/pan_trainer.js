@@ -70,6 +70,8 @@ async function sbInit(){
       const ab=document.getElementById('navAdmin');
       if(ab&&['VERIFIED_PRO','MENTOR','ADMIN'].includes(p.role)) ab.style.display='';
     }
+    const notifMount=document.getElementById('notifMount');
+    if(notifMount)mountNotifications(SB,notifMount,sbUser.id);
     const{data:best}=await SB.from('scores').select('score').eq('user_id',sbUser.id).eq('game','pan_trainer').order('score',{ascending:false}).limit(1).maybeSingle();
     if(best) bestDbScore=best.score;
     await reconcileStreak();

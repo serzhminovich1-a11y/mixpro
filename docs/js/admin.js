@@ -828,6 +828,7 @@ async function init() {
   }
 
   document.getElementById('shell').style.display = 'flex';
+  mountNotifications(SB, document.getElementById('notifMount'), currentUid);
 
   if (!['MENTOR', 'ADMIN'].includes(currentRole)) {
     document.getElementById('navVerify').style.display = 'none';

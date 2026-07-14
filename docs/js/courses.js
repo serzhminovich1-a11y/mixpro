@@ -176,6 +176,7 @@ async function init() {
   } else {
     document.getElementById('verifyLink').style.display = '';
   }
+  mountNotifications(SB, document.getElementById('notifMount'), currentUid);
 
   const courseId = new URLSearchParams(location.search).get('course');
   document.getElementById('loading').style.display = 'none';

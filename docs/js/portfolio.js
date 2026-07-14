@@ -295,6 +295,7 @@ async function init() {
   if (['VERIFIED_PRO', 'MENTOR', 'ADMIN'].includes(currentRole)) {
     document.getElementById('adminLink').style.display = '';
   }
+  mountNotifications(SB, document.getElementById('notifMount'), currentUid);
 
   const { data: viewedProfile } = await SB.from('profiles').select('*').eq('id', viewedUid).single();
   if (!viewedProfile) { location.href = 'auth.html'; return; }

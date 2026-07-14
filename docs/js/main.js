@@ -571,6 +571,8 @@ async function sbInit(){
     const adminBtn=document.getElementById('navAdminBtn');
     if(adminBtn)adminBtn.style.display='';
   }
+  const notifMount=document.getElementById('notifMount');
+  if(notifMount&&window.mountNotifications)mountNotifications(SB,notifMount,sbUser.id);
 }
 
 function renderLessons(){

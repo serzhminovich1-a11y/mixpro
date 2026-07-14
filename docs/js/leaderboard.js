@@ -23,6 +23,7 @@ async function init() {
       if (['VERIFIED_PRO', 'MENTOR', 'ADMIN'].includes(p.role)) {
         document.getElementById('adminLink').style.display = '';
       }
+      mountNotifications(SB, document.getElementById('notifMount'), myUserId);
     }
   }
   load();

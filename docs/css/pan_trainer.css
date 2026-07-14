@@ -162,11 +162,15 @@ body{background:#0a0b12;color:#eef0fb;font-family:'Golos Text',sans-serif;-webki
 .pan-dot{position:absolute;top:50%;width:20px;height:20px;border-radius:50%;transform:translate(-50%,-50%);transition:left .3s;cursor:pointer}
 .pan-dot-answer{position:absolute;top:50%;width:16px;height:16px;border-radius:50%;transform:translate(-50%,-50%);opacity:0;transition:opacity .3s}
 
-/* PAN BUTTONS — выбор позиции */
-.pan-buttons{display:grid;gap:var(--space-2);justify-items:center}
+/* PAN BUTTONS — выбор позиции. Flex+wrap вместо grid: при нечётном
+   количестве позиций (9, 13) последняя строка не влезает ровно в
+   колонки grid и повисает прижатой влево — тут она вместо этого
+   центрируется, как и полная строка над ней. */
+.pan-buttons{display:flex;flex-wrap:wrap;justify-content:center;gap:var(--space-2)}
 .pan-btn{
   display:flex;flex-direction:column;align-items:center;gap:var(--space-1);
-  padding:var(--space-3) var(--space-2);border-radius:12px;cursor:pointer;transition:.12s;width:100%;
+  padding:var(--space-3) var(--space-2);border-radius:12px;cursor:pointer;transition:.12s;
+  flex-grow:0;flex-shrink:0;box-sizing:border-box;
   background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.6);
 }
 .pan-btn:hover:not(:disabled){background:rgba(167,139,250,.08);border-color:rgba(167,139,250,.4);color:#fff}

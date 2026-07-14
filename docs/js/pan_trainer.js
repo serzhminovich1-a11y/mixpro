@@ -454,11 +454,15 @@ function buildButtons(){
   const set=POSITIONS[diff];
   const g=document.getElementById('panButtons');g.innerHTML='';
   const cols=set.length<=5?5:set.length<=9?5:7;
-  g.style.gridTemplateColumns='repeat('+cols+', 1fr)';
+  // Ширина считается в % от колонок, а не через grid — так неполная
+  // последняя строка (9 позиций на 5 колонок, 13 на 7) центрируется
+  // вместе с остальными, а не повисает прижатой к левому краю.
+  const basis='calc(('+(100/cols).toFixed(4)+'% - var(--space-2) * '+((cols-1)/cols).toFixed(4)+'))';
   g.style.width='100%';
   set.forEach(p=>{
     const b=document.createElement('button');
     b.className='pan-btn';b.dataset.val=p.val;
+    b.style.flexBasis=basis;
     b.innerHTML=`<span class="pan-icon">${p.icon}</span><span class="pan-val">${p.label}</span><span class="pan-sub">${p.sub}</span>`;
     b.onclick=()=>pickPos(p,b);
     g.appendChild(b);

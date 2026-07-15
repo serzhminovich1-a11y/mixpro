@@ -86,7 +86,7 @@
   <div id="scrStart" class="screen active">
     <div class="start-card">
       <div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.15em;color:rgba(167,139,250,.8);text-transform:uppercase;margin-bottom:10px">Тренажёр панорамы</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.15em;color:var(--amber);text-transform:uppercase;margin-bottom:10px">Тренажёр панорамы</div>
         <h1>Определите где <em>находится<br>звук</em></h1>
       </div>
       <p>Звук воспроизводится на определённой позиции в стерео. <br> Твоя задача — определить где именно: левее, правее или по центру.</p>
@@ -97,7 +97,7 @@
         <div class="rule-row"><span class="rule-n">04</span><span>VU-метр показывает реальный баланс L/R каналов</span></div>
       </div>
       <div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;text-align:center">Сложность</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px;text-align:center">Сложность</div>
         <div class="diff-grid">
           <button class="diff-btn" onclick="setDiff('easy',this)">
             <span class="diff-name">Легко</span>
@@ -113,7 +113,7 @@
           </button>
         </div>
       </div>
-      <div style="font-size:12px;color:var(--orange);background:rgba(251,146,60,.08);border:1px solid rgba(251,146,60,.2);border-radius:8px;padding:10px 16px;max-width:400px;text-align:center">
+      <div style="font-size:12px;color:#fb923c;background:rgba(251,146,60,.08);border:1px solid rgba(251,146,60,.2);border-radius:8px;padding:10px 16px;max-width:400px;text-align:center">
         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>Надевайте наушники — на моно-системах разница не слышна
       </div>
       <button class="start-btn" onclick="startGame()">Начать игру</button>
@@ -182,7 +182,7 @@
     <div class="pm-hint" id="hint">Нажми ▶ чтобы начать слушать</div>
 
     <!-- Pan buttons -->
-    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.3);text-align:center">Выбери позицию звука</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);text-align:center">Выбери позицию звука</div>
     <div class="pan-buttons" id="panButtons"></div>
 
     <!-- Feedback -->

@@ -175,6 +175,7 @@ async function sbInit(){
     vip=true;
     applyVip();
   }
+  if(window.syncThemeFromProfile)syncThemeFromProfile();
   if(p&&['VERIFIED_PRO','MENTOR','ADMIN'].includes(p.role)){
     const adminBtn=document.getElementById('navAdminBtn');
     if(adminBtn)adminBtn.style.display='';

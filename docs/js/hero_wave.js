@@ -23,7 +23,16 @@
     { base: 0.84, amp: 15, freq: 1.9, speed: 0.7,  phase: 3.4,  width: 1.6, fillAlpha: .10, glow: 6  },
   ];
 
-  const COLORS = ['#4ade80', '#a78bfa', '#facc15', '#4ade80'];
+  function readWaveColors(){
+    const cs = getComputedStyle(document.documentElement);
+    const pick = (name, fallback) => { const v = cs.getPropertyValue(name).trim(); return v || fallback; };
+    return [
+      pick('--wave-1', '#4ade80'), pick('--wave-2', '#a78bfa'),
+      pick('--wave-3', '#facc15'), pick('--wave-4', '#4ade80'),
+    ];
+  }
+  let COLORS = readWaveColors();
+  window.addEventListener('mixpro:theme-changed', () => { COLORS = readWaveColors(); });
 
   function makeGradient(alphaMul){
     const g = ctx.createLinearGradient(0, 0, w, 0);
@@ -113,7 +122,7 @@
     for (const [x, y] of pts) ctx.lineTo(x, y);
     ctx.strokeStyle = makeGradient(0.85);
     ctx.lineWidth = layer.width;
-    ctx.shadowColor = 'rgba(74,222,128,.55)';
+    ctx.shadowColor = hexA(COLORS[0], .55);
     ctx.shadowBlur = layer.glow;
     ctx.stroke();
     ctx.shadowBlur = 0;
@@ -128,7 +137,7 @@
       const alpha = Math.max(0, 1 - age / PULSE_LIFE) * 0.45;
       ctx.beginPath();
       ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
-      ctx.strokeStyle = `rgba(74,222,128,${alpha})`;
+      ctx.strokeStyle = hexA(COLORS[0], alpha);
       ctx.lineWidth = 1.5;
       ctx.stroke();
     }

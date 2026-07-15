@@ -134,3 +134,47 @@
 }
 [data-theme="glass"] body{background:linear-gradient(135deg,#c9c3ff 0%,#ffd6e8 45%,#c3f0ff 100%) fixed}
 [data-theme="glass"] .modal,[data-theme="glass"] .theme-panel,[data-theme="glass"] .overlay .modal{backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+
+/* ── ТЕМА «FL»: FL Studio (VIP) ── */
+/* По реальным скриншотам программы (не по логотипу!): холодный
+   серо-синий сланец, а не чёрный. Синий — цвет выбранной вкладки/фейдера,
+   коралловый — цвет тумблеров, оранжевый — точечный акцент выбранного
+   инструмента. См. обсуждение — первая версия по логотипу была неверной. */
+[data-theme="fl"]{
+  --bg:#3d4350; --surface:#454b58; --card:#454b58; --border:#545b69; --border-hi:#6b7383;
+  --amber:#f7941e; --amber-dim:#4a90d9; --amber-glow:rgba(247,148,30,.15); --amber-glow-strong:rgba(247,148,30,.3);
+  --text:#f0f1f3; --muted:#9aa0ac; --muted2:#b5bac4;
+  --green:#4ade80; --red:#e6573a; --gold:#ffb020;
+  --green-glow:rgba(74,222,128,.12); --green-glow-strong:rgba(74,222,128,.28); --green-glow-soft:rgba(74,222,128,.08);
+  --red-glow:rgba(230,87,58,.12); --red-glow-strong:rgba(230,87,58,.22);
+  --s2:rgba(255,255,255,.05);
+  --surf-top:rgba(255,255,255,.06); --surf-bot:rgba(255,255,255,.015);
+  --shadow-lift:0 1px 0 rgba(255,255,255,.05) inset, 0 6px 16px rgba(0,0,0,.35);
+  --shadow-lift-hover:0 1px 0 rgba(255,255,255,.06) inset, 0 8px 20px rgba(0,0,0,.4), 0 0 0 1px rgba(247,148,30,.25);
+  --accent-shadow:0 4px 14px -4px rgba(247,148,30,.5);
+  --on-accent:#2b2016; --on-gold:#2b2016; --elev:#4f5563; --elev2:#383d48; --nav-bg:#2b2f38;
+  --vip-grad-a:#383d48; --vip-grad-b:#2e2416;
+  --bg-glow-1:rgba(74,144,217,.08); --bg-glow-2:rgba(247,148,30,.06);
+  --wave-1:#f7941e; --wave-2:#4a90d9; --wave-3:#e6573a; --wave-4:#f7941e;
+  --r-pill:6px; --r-lg:8px; --r-card:6px; --r-md:5px; --r-sm:4px; --r-xs:3px;
+}
+
+/* ── ТЕМА «AB»: Ableton Live (VIP) ── */
+/* Флэт-дизайн без теней и градиентов — фирменная черта Ableton: светло-
+   серый холст, чёрные волосяные линии, никакого свечения/блюра. */
+[data-theme="ab"]{
+  --bg:#e7e7e5; --surface:#f3f3f1; --card:#f3f3f1; --border:#1a1a1a; --border-hi:#000000;
+  --amber:#2f6fed; --amber-dim:#ff5a36; --amber-glow:rgba(47,111,237,.12); --amber-glow-strong:rgba(47,111,237,.22);
+  --text:#1a1a1a; --muted:#6b6b6b; --muted2:#4a4a4a;
+  --green:#39b06e; --red:#ff5a36; --gold:#ffb020;
+  --green-glow:rgba(57,176,110,.12); --green-glow-strong:rgba(57,176,110,.22); --green-glow-soft:rgba(57,176,110,.08);
+  --red-glow:rgba(255,90,54,.1); --red-glow-strong:rgba(255,90,54,.18);
+  --s2:rgba(0,0,0,.04);
+  --surf-top:rgba(0,0,0,0); --surf-bot:rgba(0,0,0,0);
+  --shadow-lift:0 0 0 0 transparent; --shadow-lift-hover:0 0 0 0 transparent; --accent-shadow:0 0 0 0 transparent;
+  --on-accent:#ffffff; --on-gold:#1a1a1a; --elev:#ffffff; --elev2:#dcdcd9; --nav-bg:#f3f3f1;
+  --vip-grad-a:#f3f3f1; --vip-grad-b:#e2e8fc;
+  --bg-glow-1:transparent; --bg-glow-2:transparent;
+  --wave-1:#2f6fed; --wave-2:#ff5a36; --wave-3:#ffb020; --wave-4:#2f6fed;
+  --r-pill:0px; --r-lg:0px; --r-card:0px; --r-md:0px; --r-sm:0px; --r-xs:0px;
+}

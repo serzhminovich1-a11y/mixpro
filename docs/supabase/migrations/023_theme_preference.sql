@@ -15,7 +15,7 @@ alter table profiles add column if not exists active_theme text not null default
 
 comment on column profiles.active_theme is
   'Выбранная пользователем визуальная тема сайта. ''default'' доступна всем,
-   остальные значения (сейчас: brutal/hifi/neon/glow/glass) требуют is_vip=true —
+   остальные значения (сейчас: brutal/hifi/neon/glow/glass/fl/ab) требуют is_vip=true —
    see guard_theme_selection().';
 
 create or replace function guard_theme_selection()

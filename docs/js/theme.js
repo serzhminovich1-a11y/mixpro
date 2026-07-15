@@ -13,6 +13,8 @@ const THEMES = [
   { id:'neon',    name:'Неоновый аркадный', tier:'vip',  swatch:['#ff2e9a','#00e5ff','#1a0b3d'] },
   { id:'glow',    name:'Студийный свет',    tier:'vip',  swatch:['#ff3d1f','#ff8a5c','#050505'] },
   { id:'glass',   name:'Стекло',            tier:'vip',  swatch:['#7c4dff','#ec4899','#c3f0ff'] },
+  { id:'fl',      name:'FL Studio',         tier:'vip',  swatch:['#f7941e','#4a90d9','#3d4350'] },
+  { id:'ab',      name:'Ableton Live',      tier:'vip',  swatch:['#2f6fed','#ff5a36','#e7e7e5'] },
 ];
 const THEME_KEY = 'mixpro_theme';
 

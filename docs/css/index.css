@@ -7,7 +7,7 @@
   --surf-top:rgba(255,255,255,.05); --surf-bot:rgba(255,255,255,.015);
   --shadow-lift:0 1px 0 rgba(255,255,255,.05) inset, 0 1px 0 rgba(0,0,0,.4), 0 16px 32px -18px rgba(0,0,0,.6);
   --shadow-lift-hover:0 1px 0 rgba(255,255,255,.08) inset, 0 1px 0 rgba(0,0,0,.4), 0 18px 36px -14px rgba(0,0,0,.65), 0 0 0 1px rgba(74,222,128,.14);
-  --on-accent:#0C0C10; --on-gold:#0C0C10; --elev:#1E1E28; --elev2:#1C1C22;
+  --on-accent:#0C0C10; --on-gold:#0C0C10; --elev:#1E1E28; --elev2:#1C1C22; --nav-bg:rgba(10,11,22,.85);
   --vip-grad-a:#1C1C22; --vip-grad-b:#201A10;
   --bg-glow-1:rgba(167,139,250,.14); --bg-glow-2:rgba(74,222,128,.10);
   --wave-1:#4ade80; --wave-2:#a78bfa; --wave-3:#facc15; --wave-4:#4ade80;
@@ -29,7 +29,7 @@
   --s2:rgba(0,0,0,.04);
   --surf-top:rgba(0,0,0,.02); --surf-bot:rgba(0,0,0,.005);
   --shadow-lift:4px 4px 0 #111; --shadow-lift-hover:6px 6px 0 #111; --accent-shadow:4px 4px 0 #111;
-  --on-accent:#ffffff; --on-gold:#111111; --elev:#efece0; --elev2:#efece0;
+  --on-accent:#ffffff; --on-gold:#111111; --elev:#efece0; --elev2:#efece0; --nav-bg:rgba(255,255,255,.95);
   --vip-grad-a:#ffffff; --vip-grad-b:#ffe14d;
   --bg-glow-1:transparent; --bg-glow-2:transparent;
   --wave-1:#2b2bff; --wave-2:#ff3d6e; --wave-3:#ffe14d; --wave-4:#2b2bff;
@@ -51,7 +51,7 @@
   --shadow-lift:0 1px 0 rgba(255,255,255,.05) inset, 0 6px 16px rgba(0,0,0,.4);
   --shadow-lift-hover:0 1px 0 rgba(255,255,255,.06) inset, 0 8px 20px rgba(0,0,0,.45), 0 0 0 1px rgba(255,90,54,.25);
   --accent-shadow:0 4px 14px -4px rgba(255,90,54,.5);
-  --on-accent:#17171a; --on-gold:#17171a; --elev:#26262a; --elev2:#1c1c1f;
+  --on-accent:#17171a; --on-gold:#17171a; --elev:#26262a; --elev2:#1c1c1f; --nav-bg:rgba(28,28,31,.88);
   --vip-grad-a:#1c1c1f; --vip-grad-b:#2a1810;
   --bg-glow-1:rgba(255,90,54,.05); --bg-glow-2:rgba(255,176,54,.04);
   --wave-1:#ff5a36; --wave-2:#ffb036; --wave-3:#ff5a36; --wave-4:#ffb036;
@@ -72,7 +72,7 @@
   --shadow-lift:0 0 0 1px rgba(0,229,255,.15), 0 8px 24px -8px rgba(255,46,154,.25);
   --shadow-lift-hover:0 0 0 1px rgba(255,46,154,.4), 0 0 26px rgba(255,46,154,.35);
   --accent-shadow:0 0 26px rgba(255,46,154,.55);
-  --on-accent:#ffffff; --on-gold:#1a0b3d; --elev:rgba(255,255,255,.07); --elev2:rgba(20,8,45,.85);
+  --on-accent:#ffffff; --on-gold:#1a0b3d; --elev:rgba(255,255,255,.07); --elev2:rgba(20,8,45,.85); --nav-bg:rgba(20,8,45,.72);
   --vip-grad-a:rgba(20,8,45,.9); --vip-grad-b:rgba(43,15,74,.9);
   --bg-glow-1:rgba(0,229,255,.14); --bg-glow-2:rgba(255,46,154,.14);
   --wave-1:#ff2e9a; --wave-2:#00e5ff; --wave-3:#a020f0; --wave-4:#ff2e9a;
@@ -84,7 +84,7 @@ html{scroll-behavior:smooth}
 body{background:radial-gradient(1200px 600px at 82% -10%,var(--bg-glow-1),transparent),radial-gradient(900px 500px at 0% 100%,var(--bg-glow-2),transparent),var(--bg);color:var(--text);font-family:var(--sans);font-size:var(--text-body-2-size);line-height:1.6;min-height:100vh;overflow-x:hidden;transition:background-color .25s}
 
 /* ── NAV ── */
-nav{position:sticky;top:0;z-index:100;background:rgba(10,11,22,.85);backdrop-filter:blur(16px);border-bottom:var(--bw) solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:var(--space-0) var(--space-8);height:58px}
+nav{position:sticky;top:0;z-index:100;background:var(--nav-bg);backdrop-filter:blur(16px);border-bottom:var(--bw) solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:var(--space-0) var(--space-8);height:58px}
 .nav-logo{font-family:var(--display);font-weight:700;font-size:var(--text-body-3-size);color:var(--text);text-decoration:none;letter-spacing:-0.5px;display:flex;align-items:center;gap:var(--space-2)}
 .nav-logo span{color:var(--amber)}
 .nav-logo-badge{width:26px;height:26px;border-radius:var(--r-badge);background:var(--amber);color:var(--on-accent);font-family:var(--display);font-weight:800;font-size:var(--text-body-1-size);display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -198,7 +198,7 @@ nav{position:sticky;top:0;z-index:100;background:rgba(10,11,22,.85);backdrop-fil
 .trainer-meta{display:flex;align-items:center;gap:var(--space-2);margin-top:auto}
 .trainer-badge{font-family:var(--mono);font-size:var(--text-caption-1-size);letter-spacing:.08em;padding:var(--space-half) var(--space-2);border-radius:var(--r-xs);text-transform:uppercase}
 .badge-active{background:var(--amber-glow);color:var(--amber);border:var(--bw) solid var(--amber-dim)}
-.badge-soon{background:rgba(255,255,255,.05);color:var(--muted);border:var(--bw) solid var(--border)}
+.badge-soon{background:var(--s2);color:var(--muted);border:var(--bw) solid var(--border)}
 .trainer-play{margin-left:auto;font-family:var(--display);font-size:var(--text-body-1-size);font-weight:600;color:var(--amber)}
 .trainer-glow{position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;opacity:.06;background:var(--amber)}
 
@@ -209,7 +209,7 @@ nav{position:sticky;top:0;z-index:100;background:rgba(10,11,22,.85);backdrop-fil
 .tags{display:flex;gap:var(--space-2);align-items:center;flex-wrap:wrap}
 .tag{font-family:var(--mono);font-size:var(--text-caption-2-size);letter-spacing:.08em;text-transform:uppercase;padding:var(--space-half) var(--space-2);border-radius:var(--r-xs)}
 .tag-free{background:var(--amber-glow);color:var(--amber);border:var(--bw) solid var(--amber-dim)}
-.tag-vip{background:rgba(255,255,255,.04);color:var(--muted);border:var(--bw) solid var(--border)}
+.tag-vip{background:var(--s2);color:var(--muted);border:var(--bw) solid var(--border)}
 .tag-green{background:var(--green-glow);color:var(--green);border:var(--bw) solid var(--green-glow-strong)}
 .lessons-list{display:flex;flex-direction:column;gap:var(--space-half)}
 .lesson-card{background:linear-gradient(180deg,var(--surf-top),var(--surf-bot)),var(--bg);border:var(--bw) solid var(--border);border-radius:var(--r-md);padding:var(--space-5) var(--space-6);cursor:pointer;transition:.15s;overflow:hidden;position:relative;box-shadow:var(--shadow-lift)}

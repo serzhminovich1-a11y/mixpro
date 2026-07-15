@@ -15,18 +15,18 @@
 .wa-toggle svg{width:13px;height:13px;transition:transform .2s}
 .wa-toggle.open svg{transform:rotate(180deg)}
 
-.wa-panel{margin-top:var(--space-2);border-radius:10px;border:1px solid var(--border);background:var(--s2);padding:var(--space-3) var(--space-4)}
+.wa-panel{margin-top:var(--space-2);border-radius:var(--r-md);border:var(--bw) solid var(--border);background:var(--s2);padding:var(--space-3) var(--space-4)}
 .wa-loading{font-size:var(--text-caption-2-size);color:var(--muted);text-align:center;padding:var(--space-2) 0;display:flex;align-items:center;justify-content:center;gap:var(--space-1)}
 .wa-loading.wa-error{color:var(--red)}
 .wa-loading.wa-error svg{width:14px;height:14px;flex-shrink:0}
 
 /* ── палитра цвета шкал ── */
-.wa-theme-row{display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-3);padding-bottom:var(--space-3);border-bottom:1px solid var(--border)}
+.wa-theme-row{display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-3);padding-bottom:var(--space-3);border-bottom:var(--bw) solid var(--border)}
 .wa-theme-label{font-size:var(--text-caption-2-size);color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
 .wa-theme-swatches{display:flex;gap:6px}
-.wa-swatch{width:16px;height:16px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0;transition:.15s}
+.wa-swatch{width:16px;height:16px;border-radius:var(--r-badge);border:2px solid transparent;cursor:pointer;padding:0;transition:.15s}
 .wa-swatch:hover{transform:scale(1.15)}
-.wa-swatch.active{border-color:#fff}
+.wa-swatch.active{border-color:var(--text)}
 
 /* ── живые метры ── */
 .wa-live-row{display:flex;align-items:center;gap:var(--space-2);margin-top:var(--space-3)}
@@ -60,7 +60,7 @@
 .wa-hint{font-size:var(--text-caption-2-size);color:var(--muted);text-align:center;margin-top:var(--space-3);opacity:.7}
 
 /* ── итоговые цифры на весь трек ── */
-.wa-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:var(--space-3);margin-top:var(--space-4);padding-top:var(--space-3);border-top:1px solid var(--border)}
+.wa-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:var(--space-3);margin-top:var(--space-4);padding-top:var(--space-3);border-top:var(--bw) solid var(--border)}
 .wa-metric{display:flex;flex-direction:column;gap:2px}
 .wa-label{font-size:var(--text-caption-2-size);color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
 .wa-value{font-family:var(--mono);font-size:var(--text-body-2-size);font-weight:700;color:var(--text);font-variant-numeric:tabular-nums}

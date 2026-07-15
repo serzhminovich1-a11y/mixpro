@@ -7,8 +7,17 @@
 <link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400..900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <!-- Подключаем файл со стилями -->
 <link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/themes.css">
 <link rel="stylesheet" href="../css/auth.css">
 <link rel="stylesheet" href="../css/animations.css">
+<script>
+(function(){
+  try {
+    var t = localStorage.getItem('mixpro_theme');
+    if (t && t !== 'default') document.documentElement.setAttribute('data-theme', t);
+  } catch(e){}
+})();
+</script>
 </head>
 <body>
 <a href="../index.html" class="logo">MIX<span>PRO</span></a>

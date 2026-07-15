@@ -1,12 +1,13 @@
 /* ══════════════════════════════════════
    ОБЩИЙ ПЛЕЕР С ВОЛНОЙ (window.createWavePlayer)
    Подключается вместе с animations.css туда, где есть аудио: Лента,
-   Портфолио, Профиль. Использует общие токены темы (--border, --s1 и т.д.),
-   которые определены одинаково в feed.css / portfolio.css / profile.css.
+   Портфолио, Профиль. Использует общие токены темы (--border, --surface
+   и т.д.), определённые в css/themes.css (подключается на каждой странице
+   раньше собственного css страницы).
    Волна сверху, под ней время + транспорт (пред./плей/след.) + громкость —
    так остаётся место для кнопок перехода между треками на любой ширине.
    ══════════════════════════════════════ */
-.wave-player{display:flex;flex-direction:column;gap:var(--space-2);padding:var(--space-3) var(--space-4);border-radius:12px;border:1px solid var(--border);background:var(--s1)}
+.wave-player{display:flex;flex-direction:column;gap:var(--space-2);padding:var(--space-3) var(--space-4);border-radius:var(--r-card);border:var(--bw) solid var(--border);background:var(--surface)}
 .wp-wave{height:38px;cursor:grab;touch-action:none}
 .wp-wave.dragging{cursor:grabbing}
 .wp-wave canvas{display:block;width:100%;height:100%}
@@ -15,11 +16,11 @@
 .wp-time{display:flex;align-items:center;gap:var(--space-1);font-family:var(--mono);font-size:var(--text-caption-2-size);color:var(--muted);letter-spacing:.02em;min-width:64px}
 .wp-time .wp-cur::after{content:' / '}
 .wp-error .wp-time{color:var(--red)}
-.wp-format{font-family:var(--sans);font-size:9px;font-weight:700;letter-spacing:.03em;color:var(--muted);background:rgba(255,255,255,.08);border-radius:4px;padding:1px 5px;margin-left:var(--space-1)}
+.wp-format{font-family:var(--sans);font-size:9px;font-weight:700;letter-spacing:.03em;color:var(--muted);background:var(--s2);border-radius:var(--r-xs);padding:1px 5px;margin-left:var(--space-1)}
 .wp-format:empty{display:none}
 
 .wp-transport{display:flex;align-items:center;gap:var(--space-2);margin:0 auto}
-.wp-play{width:34px;height:34px;border-radius:50%;border:none;background:var(--green);color:#0a0b16;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:.15s}
+.wp-play{width:34px;height:34px;border-radius:var(--r-badge);border:none;background:var(--amber);color:var(--on-accent);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:.15s}
 .wp-play:hover{opacity:.85;transform:scale(1.05)}
 .wp-play:disabled{opacity:.4;cursor:default;transform:none}
 .wp-play svg{width:15px;height:15px}
@@ -32,12 +33,12 @@
 .wp-vol-icon{width:22px;height:22px;border:none;background:transparent;color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:.15s}
 .wp-vol-icon:hover{color:var(--text)}
 .wp-vol-icon svg{width:15px;height:15px}
-.wp-vol-slider{width:64px;accent-color:var(--green);cursor:pointer}
+.wp-vol-slider{width:64px;accent-color:var(--amber);cursor:pointer}
 
 .wp-channels{display:flex;flex-wrap:wrap;gap:6px}
-.wp-ch-btn{border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--sans);font-size:10px;font-weight:600;letter-spacing:.01em;padding:3px 9px;border-radius:999px;cursor:pointer;transition:.15s}
+.wp-ch-btn{border:var(--bw) solid var(--border);background:transparent;color:var(--muted);font-family:var(--sans);font-size:10px;font-weight:600;letter-spacing:.01em;padding:3px 9px;border-radius:var(--r-pill);cursor:pointer;transition:.15s}
 .wp-ch-btn:hover{color:var(--text);border-color:var(--border-hi)}
-.wp-ch-btn.active{background:var(--green);border-color:var(--green);color:#06131a}
+.wp-ch-btn.active{background:var(--amber);border-color:var(--amber);color:var(--on-accent)}
 
 @media(max-width:480px){
   .wp-time{display:none}
@@ -49,7 +50,7 @@
    вдохновлено плеером трека в Spotify: большая кнопка play, волна выше. */
 .wave-player.lg{padding:var(--space-4);gap:var(--space-3)}
 .wave-player.lg .wp-wave{height:56px}
-.wave-player.lg .wp-play{width:44px;height:44px;box-shadow:0 8px 20px -6px rgba(74,222,128,.5)}
+.wave-player.lg .wp-play{width:44px;height:44px;box-shadow:var(--accent-shadow)}
 .wave-player.lg .wp-play svg{width:18px;height:18px}
 .wave-player.lg .wp-prev,.wave-player.lg .wp-next{width:28px;height:28px}
 .wave-player.lg .wp-prev svg,.wave-player.lg .wp-next svg{width:17px;height:17px}

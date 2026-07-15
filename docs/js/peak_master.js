@@ -30,6 +30,7 @@ let challengeMode=false;
 let sbUser=null, sbProfile=null;
 let phoneMode=false, revealShown=true, sessionRound=0, sessionScore=0, sessionResults=[];
 let guessFrac=0.5, dragging=false;
+let modeLabel='С БУСТОМ';
 let guessSource='noise';
 let trackManifest=[], trackCache={};
 
@@ -97,87 +98,95 @@ async function saveScore(){
 let totalRight=0,totalAns=0;
 
 // ══════════════════════════════════════
-//  SVG EQ GRAPH
+//  ЧАСТОТНАЯ ЛИНЕЙКА
 // ══════════════════════════════════════
-const LO=Math.log10(20),HI=Math.log10(20000);
-function fToSvgX(f){return((Math.log10(f)-LO)/(HI-LO))*1240}
-function dbToSvgY(db){return 100-(db/24)*100}
+// Полосатая линейка вместо кривой EQ: чередующиеся зоны по октавам,
+// крупная текущая частота у курсора — целевая частота (target) при этом
+// по-прежнему берётся из существующих наборов SETS/FREQ_RANGES (там есть
+// значения от 45 Hz), поэтому границы линейки шире слышимых меток —
+// с запасом покрывают весь возможный диапазон целей.
+const RULER_MARKS=[40,80,160,320,640,1280,2560,5120,10240,20480];
+const RULER_LABELS=['40','80','160','320','640','1.3k','2.6k','5.1k','10k','20k'];
+const LO=Math.log10(RULER_MARKS[0]),HI=Math.log10(RULER_MARKS[RULER_MARKS.length-1]);
+function fToPct(f){return((Math.log10(f)-LO)/(HI-LO))*100}
 
-function buildEQPath(hz,gainDB,q){
-  let d='';
-  for(let px=0;px<=1240;px+=4){
-    const f=Math.pow(10,LO+(px/1240)*(HI-LO));
-    const x=q*(f/hz-hz/f);
-    const db=gainDB/(1+x*x);
-    const y=dbToSvgY(db);
-    d+=(px===0?'M':'L')+px.toFixed(1)+','+y.toFixed(1);
+function updateRulerCursor(v){
+  const cursor=document.getElementById('rulerCursor');
+  const tag=document.getElementById('rulerCursorTag');
+  if(!cursor)return;
+  cursor.style.left=(v*100)+'%';
+  cursor.style.opacity=answered?'0':'1';
+  const hz=Math.round(sliderToFreq(v));
+  tag.innerHTML=hz.toLocaleString('en-US')+' <small>Hz</small>';
+}
+
+function buildRuler(){
+  const zones=document.getElementById('rulerZones');
+  const ticks=document.getElementById('rulerTicks');
+  if(!zones||!ticks)return;
+  zones.innerHTML='';
+  for(let i=0;i<RULER_MARKS.length-1;i++){
+    const z=document.createElement('div');
+    z.className='pm-ruler-zone';
+    const w=fToPct(RULER_MARKS[i+1])-fToPct(RULER_MARKS[i]);
+    z.style.flex='0 0 '+w+'%';
+    zones.appendChild(z);
   }
-  return d;
+  ticks.innerHTML='';
+  RULER_MARKS.forEach((f,i)=>{
+    const pct=fToPct(f);
+    const tick=document.createElement('div');
+    tick.className='pm-ruler-tick';
+    tick.style.left=pct+'%';
+    ticks.appendChild(tick);
+    const label=document.createElement('div');
+    label.className='pm-ruler-tick-label';
+    label.style.left=pct+'%';
+    // Крайние подписи центрируются наполовину за пределами линейки и
+    // обрезаются overflow:hidden — прижимаем их внутрь по краю.
+    if(i===0) label.style.transform='translateX(0)';
+    else if(i===RULER_MARKS.length-1) label.style.transform='translateX(-100%)';
+    label.textContent=RULER_LABELS[i];
+    ticks.appendChild(label);
+  });
 }
 
-// Стилизованная кривая полки (shelf) — плавный переход через corner-частоту
-// к постоянному уровню gainDB с одной стороны, и 0 дБ с другой.
-function buildShelfPath(hz,gainDB,isHigh){
-  let d='';
-  const k=3.2; // крутизна перехода в декадах log10(f)
-  for(let px=0;px<=1240;px+=4){
-    const f=Math.pow(10,LO+(px/1240)*(HI-LO));
-    const t=(Math.log10(f)-Math.log10(hz))*k;
-    const shape=isHigh?1/(1+Math.exp(-t)):1/(1+Math.exp(t));
-    const db=gainDB*shape;
-    const y=dbToSvgY(db);
-    d+=(px===0?'M':'L')+px.toFixed(1)+','+y.toFixed(1);
-  }
-  return d;
+function showRulerPeak(freq,ok){
+  const peak=document.getElementById('rulerPeak');
+  const freqEl=document.getElementById('rulerPeakFreq');
+  const okEl=document.getElementById('rulerPeakOk');
+  if(!peak)return;
+  peak.style.left=fToPct(freq)+'%';
+  peak.style.opacity=comparing?'0':'1';
+  peak.style.background=ok?'rgba(74,222,128,.85)':'rgba(248,113,113,.75)';
+  freqEl.textContent=fmtF(freq)+' Hz';
+  okEl.textContent=ok?'✓ ВЕРНО':'✗ НЕВЕРНО';
+  okEl.className='pm-ruler-peak-ok'+(ok?'':' no');
+}
+function hideRulerPeak(){
+  const peak=document.getElementById('rulerPeak');
+  if(peak)peak.style.opacity='0';
 }
 
-function updateGraph(showCurve, color, label){
-  const eqPath=document.getElementById('eqPath');
-  const peakLine=document.getElementById('peakLine');
-  const peakTag=document.getElementById('peakTag');
-  const peakFreqLabel=document.getElementById('peakFreqLabel');
-
-  if(showCurve && target){
-    const sign=lastCutApplied?-1:1;
-    const g=comparing?0:sign*(trainMode?trainCfg.gain:getBoostForPhase());
-    const q=trainMode?trainCfg.q:getQForPhase();
-    eqPath.setAttribute('d', isShelfMode ? buildShelfPath(target,g,isHighShelf) : buildEQPath(target,g,q));
-    eqPath.style.stroke=color||'#34e0c4';
-    eqPath.style.filter=color?`drop-shadow(0 0 7px ${color}88)`:'drop-shadow(0 0 7px rgba(52,224,196,.7))';
-
-    const x=fToSvgX(target);
-    peakLine.setAttribute('x1',x);peakLine.setAttribute('x2',x);
-    peakLine.style.opacity=comparing?'0':'.6';
-    peakTag.style.left=(x/1240*100)+'%';
-    peakTag.style.opacity=comparing?'0':'1';
-    peakFreqLabel.textContent=fmtF(target)+' Hz';
-    document.getElementById('peakBoostLabel').textContent=label||'С БУСТОМ';
-  } else {
-    eqPath.setAttribute('d','M0,100 L1240,100');
-    peakLine.style.opacity='0';
-    peakTag.style.opacity='0';
-  }
+// Доп. полосы (2я/3я в тренировке, вторая в hard-режиме) — метки на линейке после ответа
+function clearExtraRulerMarkers(){
+  document.querySelectorAll('.pm-ruler-extra,.pm-ruler-extra-tag').forEach(el=>el.remove());
 }
-
-// Доп. полосы (2я/3я в тренировке, вторая в hard-режиме) — метки на графике после ответа
-function clearExtraBandMarkers(){
-  document.querySelectorAll('.pm-extra-band-line,.pm-extra-band-tag').forEach(el=>el.remove());
-}
-function drawExtraBandMarker(freq,i){
-  const svg=document.getElementById('eqSvg');
-  const x=fToSvgX(freq);
-  const line=document.createElementNS('http://www.w3.org/2000/svg','line');
-  line.setAttribute('class','pm-extra-band-line');
-  line.setAttribute('x1',x);line.setAttribute('x2',x);line.setAttribute('y1',0);line.setAttribute('y2',200);
-  line.setAttribute('stroke','rgba(251,146,60,.55)');line.setAttribute('stroke-width','1.5');line.setAttribute('stroke-dasharray','3 5');
-  svg.appendChild(line);
+function drawExtraRulerMarker(freq,i){
+  const ruler=document.getElementById('ruler');
+  if(!ruler)return;
+  const pct=fToPct(freq);
+  const line=document.createElement('div');
+  line.className='pm-ruler-extra';
+  line.style.left=pct+'%';
+  ruler.appendChild(line);
 
   const tag=document.createElement('div');
-  tag.className='pm-extra-band-tag';
-  const top=40+i*22; // ступеньками вниз, чтобы не наезжать друг на друга и на бейдж С БУСТОМ
-  tag.style.cssText='position:absolute;top:'+top+'px;left:'+(x/1240*100)+'%;transform:translateX(-50%);font-family:JetBrains Mono,monospace;font-size:10px;font-weight:700;color:#fb923c;background:rgba(10,11,22,.85);padding:2px 6px;border-radius:5px;border:1px solid rgba(251,146,60,.4);white-space:nowrap;pointer-events:none;z-index:5';
+  tag.className='pm-ruler-extra-tag';
+  tag.style.left=pct+'%';
+  tag.style.top=(34+i*22)+'px';
   tag.textContent=fmtF(freq)+' Hz';
-  document.querySelector('.pm-graph-inner').appendChild(tag);
+  ruler.appendChild(tag);
 }
 
 // ══════════════════════════════════════
@@ -269,9 +278,6 @@ async function startAudio(){
   gainNode.gain.setValueAtTime(0,t);
   gainNode.gain.linearRampToValueAtTime(muted?0:vol*.75,t+.1);
   playing=true;
-  const pb=document.getElementById('playBtn');
-  pb.classList.add('playing');
-  pb.innerHTML='<div class="pm-pause"><span class="pm-pause-bar"></span><span class="pm-pause-bar"></span></div>';
   if(qStart===0){qStart=Date.now();maybeStartAnswerTimer();}
   document.getElementById('hint').textContent=comparing?'Оригинал без буста':'С EQ бустом — слушай';
 }
@@ -281,9 +287,6 @@ function stopAudio(){
   const os=srcNode,of=filtNode,of2=filtNode2,of3=filtNode3,og=gainNode;
   srcNode=null;filtNode=null;filtNode2=null;filtNode3=null;gainNode=null;
   playing=false;
-  const pb=document.getElementById('playBtn');
-  pb.classList.remove('playing');
-  pb.innerHTML='<div class="pm-play-triangle"></div>';
   if(!os)return;
   if(og&&actx&&actx.state!=='closed'){
     const t=actx.currentTime;og.gain.setValueAtTime(og.gain.value,t);og.gain.linearRampToValueAtTime(0,t+.08);
@@ -291,42 +294,36 @@ function stopAudio(){
   setTimeout(()=>{try{os.stop();os.disconnect();}catch(e){}try{if(of)of.disconnect();}catch(e){}try{if(of2)of2.disconnect();}catch(e){}try{if(of3)of3.disconnect();}catch(e){}try{if(og)og.disconnect();}catch(e){}},100);
 }
 
-function togglePlay(){if(playing)stopAudio();else startAudio();}
-
-function startCompare(){
+// EQ Off / EQ On — переключатель вместо play+зажатия для сравнения:
+// клик по любой из двух кнопок либо запускает звук впервые, либо
+// плавно переключает уже играющий звук между оригиналом и бустом.
+function setEqState(on){
   if(answered)return;
-  comparing=true;
-  document.getElementById('cmpBtn').classList.add('active');
-  document.getElementById('modeBadge').textContent='ОРИГИНАЛ';
-  document.getElementById('modeBadge').classList.add('comparing');
-  if(filtNode&&actx) filtNode.gain.setTargetAtTime(0,actx.currentTime,.015);
-  if(filtNode2&&actx) filtNode2.gain.setTargetAtTime(0,actx.currentTime,.015);
-  if(filtNode3&&actx) filtNode3.gain.setTargetAtTime(0,actx.currentTime,.015);
-  if(!playing) startAudio();
-  else document.getElementById('hint').textContent='Оригинал без буста';
-  // A mode: плоская линия
-  document.getElementById('eqPath').setAttribute('d','M0,100 L1240,100');
-  document.getElementById('eqPath').style.stroke='rgba(255,255,255,.25)';
-  document.getElementById('eqPath').style.filter='none';
-  document.getElementById('peakTag').style.opacity='0';
-  document.getElementById('peakLine').style.opacity='0';
-  document.getElementById('modeBadge').textContent='ОРИГИНАЛ';
-  document.getElementById('modeBadge').classList.add('comparing');
-}
-function endCompare(){
-  if(!comparing)return;
-  comparing=false;
-  document.getElementById('cmpBtn').classList.remove('active');
-  document.getElementById('modeBadge').textContent='С БУСТОМ';
-  document.getElementById('modeBadge').classList.remove('comparing');
-  const curBoost = trainMode?trainCfg.gain:getBoostForPhase();
-  const curSign = isCutMode?-1:1;
-  if(filtNode&&actx) filtNode.gain.setTargetAtTime(curBoost*curSign,actx.currentTime,.015);
-  if(filtNode2&&actx) filtNode2.gain.setTargetAtTime(curBoost*curSign*0.85,actx.currentTime,.015);
-  if(filtNode3&&actx) filtNode3.gain.setTargetAtTime(curBoost*curSign*0.7,actx.currentTime,.015);
-  if(playing) document.getElementById('hint').textContent='С EQ бустом — слушай';
-  document.getElementById('modeBadge').textContent='С БУСТОМ';
-  document.getElementById('modeBadge').classList.remove('comparing');
+  comparing=!on;
+  const offBtn=document.getElementById('eqOffBtn'), onBtn=document.getElementById('eqOnBtn');
+  if(offBtn)offBtn.classList.toggle('on',!on);
+  if(onBtn)onBtn.classList.toggle('on',on);
+  const badge=document.getElementById('modeBadge');
+  if(badge){badge.textContent=on?modeLabel:'ОРИГИНАЛ';badge.classList.toggle('comparing',!on);}
+  if(!playing){
+    startAudio();
+    return;
+  }
+  if(!actx)return;
+  const t=actx.currentTime;
+  if(on){
+    const curBoost=trainMode?trainCfg.gain:getBoostForPhase();
+    const curSign=isCutMode?-1:1;
+    if(filtNode) filtNode.gain.setTargetAtTime(curBoost*curSign,t,.015);
+    if(filtNode2) filtNode2.gain.setTargetAtTime(curBoost*curSign*0.85,t,.015);
+    if(filtNode3) filtNode3.gain.setTargetAtTime(curBoost*curSign*0.7,t,.015);
+    document.getElementById('hint').textContent='С EQ бустом — слушай';
+  } else {
+    if(filtNode) filtNode.gain.setTargetAtTime(0,t,.015);
+    if(filtNode2) filtNode2.gain.setTargetAtTime(0,t,.015);
+    if(filtNode3) filtNode3.gain.setTargetAtTime(0,t,.015);
+    document.getElementById('hint').textContent='Оригинал без буста';
+  }
 }
 
 // ══════════════════════════════════════
@@ -445,7 +442,7 @@ function newRound(){
   document.getElementById('fbMain').textContent='';
   document.getElementById('fbMain').className='pm-fb-main';
   document.getElementById('fbSub').textContent='';
-  document.getElementById('hint').textContent='Нажми ▶ чтобы начать слушать';
+  document.getElementById('hint').textContent='Нажми EQ On, чтобы начать слушать';
 
   // Показываем фазу для hard и лёгкого (плавный рост сложности)
   const diffLabelEl = document.getElementById('diffLabel');
@@ -469,75 +466,48 @@ function newRound(){
 
   // Надпись режима (буст/срез/полка)
   const modeB=document.getElementById('modeBadge');
-  if(modeB){
-    let txt=isCutMode?'СО СРЕЗОМ':'С БУСТОМ';
-    if(isShelfMode) txt=(isCutMode?'СРЕЗ':'БУСТ')+' ПОЛКОЙ';
-    modeB.textContent=txt;
-  }
+  modeLabel=isCutMode?'СО СРЕЗОМ':'С БУСТОМ';
+  if(isShelfMode) modeLabel=(isCutMode?'СРЕЗ':'БУСТ')+' ПОЛКОЙ';
+  if(modeB) modeB.textContent=modeLabel;
 
   // Multi-band hint
   const ml=document.getElementById('multiLabel');
   if(ml) ml.style.display=(targets2.length>0||(trainMode&&trainCfg.bands>=2))?'block':'none';
   document.getElementById('modeBadge').classList.remove('comparing');
-  document.getElementById('cmpBtn').classList.remove('active');
+  const offBtn=document.getElementById('eqOffBtn'), onBtn=document.getElementById('eqOnBtn');
+  if(offBtn)offBtn.classList.remove('on');
+  if(onBtn)onBtn.classList.remove('on');
   const tb=document.getElementById('tipBox');tb.style.display='none';tb.textContent='';
   const fl=document.getElementById('freqLabel');
   if(fl)fl.textContent=isShelfMode?'Найди частоту среза полки':(isCutMode?'Найди срез частоты':'Выбери частоту буста');
   const nb=document.getElementById('nextBtn');nb.style.display='none';
   const rb=document.getElementById('revealBtn');rb.style.display='none';
-  // Graph — пустая кривая
-  updateGraph(false);
-  clearExtraBandMarkers();
+  // Линейка — прячем прошлый раунд
+  hideRulerPeak();
+  clearExtraRulerMarkers();
   clearAnswerTimer();
 
-  // Сброс гипотезы — воротики видны полупрозрачно по центру, ждут перетаскивания
+  // Сброс гипотезы — курсор скрыт по центру, ждёт перетаскивания
   guessFrac=0.5;dragging=false;
-  document.getElementById('guessLine').style.opacity='0';
-  document.getElementById('guessTag').style.opacity='0';
-  document.getElementById('guessGate').classList.remove('active');
-  updateGuessGate(0.5);
-  const gt=document.getElementById('graphTouch');if(gt)gt.style.pointerEvents='auto';
+  updateRulerCursor(0.5);
+  document.getElementById('rulerCursor').style.opacity='0';
+  const gt=document.getElementById('rulerTouch');if(gt)gt.style.pointerEvents='auto';
 }
 
 function sliderToFreq(v){return Math.pow(10,LO+v*(HI-LO))}
 function freqToSlider(f){return(Math.log10(f)-LO)/(HI-LO)}
 
-// ── Угадывание прямо на графике: тронул → провёл → отпустил ──
+// ── Угадывание прямо на линейке: тронул → провёл → отпустил ──
 function graphFracFromEvent(e){
-  const svg=document.getElementById('eqSvg');
-  const rect=svg.getBoundingClientRect();
+  const ruler=document.getElementById('ruler');
+  const rect=ruler.getBoundingClientRect();
   const clientX=(e.touches&&e.touches[0])?e.touches[0].clientX:e.clientX;
   return Math.max(0,Math.min(1,(clientX-rect.left)/rect.width));
 }
 
-function updateGuessLine(v){
-  const gl=document.getElementById('guessLine');
-  if(!gl)return;
-  const x=v*1240;
-  gl.setAttribute('x1',x);gl.setAttribute('x2',x);
-  gl.style.opacity=answered?'0':'.9';
-}
-
-function updateGuessTag(v){
-  const tag=document.getElementById('guessTag');
-  const label=document.getElementById('guessFreqTag');
-  if(!tag)return;
-  tag.style.left=(v*100)+'%';
-  tag.style.opacity=answered?'0':'1';
-  label.textContent=fmtF(Math.round(sliderToFreq(v)))+' Hz';
-}
-
-function updateGuessGate(v){
-  const gate=document.getElementById('guessGate');
-  if(!gate)return;
-  gate.style.left=(v*100)+'%';
-}
-
 function setGuessFraction(v){
   guessFrac=v;
-  updateGuessLine(v);
-  updateGuessTag(v);
-  updateGuessGate(v);
+  updateRulerCursor(v);
 }
 
 function graphPointerDown(e){
@@ -549,16 +519,15 @@ function graphPointerDown(e){
     return;
   }
   dragging=true;
-  document.getElementById('guessGate').classList.add('active');
   setGuessFraction(graphFracFromEvent(e));
   e.preventDefault();
 }
 
 function nudgePlayButton(){
   const hint=document.getElementById('hint');
-  const pb=document.getElementById('playBtn');
+  const pb=document.getElementById('eqOnBtn');
   const prev=hint.textContent;
-  hint.textContent='Сначала нажми ▶ — послушай звук';
+  hint.textContent='Сначала нажми EQ On — послушай звук';
   pb.classList.add('nudge');
   setTimeout(()=>{pb.classList.remove('nudge');if(!playing)hint.textContent=prev;},900);
 }
@@ -580,8 +549,8 @@ function graphHoverMove(e){
 }
 function graphHoverLeave(){
   if(dragging||answered)return;
-  const tag=document.getElementById('guessTag');
-  if(tag)tag.style.opacity='0';
+  const cursor=document.getElementById('rulerCursor');
+  if(cursor)cursor.style.opacity='0';
 }
 
 function submitGuess(){
@@ -644,23 +613,18 @@ function checkAnswer(timedOut){
   let earned=0;
   totalAns++;
 
-  const gt=document.getElementById('graphTouch');if(gt)gt.style.pointerEvents='none';
-  updateGuessLine(guessFrac);
-  updateGuessTag(guessFrac);
+  const gt=document.getElementById('rulerTouch');if(gt)gt.style.pointerEvents='none';
+  updateRulerCursor(guessFrac);
 
-  // EQ кривая
   // Подсвечиваем вторую/третью полосу если были (hard-режим или тренировка)
   const ml2=document.getElementById('multiLabel');if(ml2)ml2.style.display='none';
-  clearExtraBandMarkers();
+  clearExtraRulerMarkers();
   const extraBands=[];
   if(targets2.length>0) extraBands.push(targets2[0]);
   if(trainBand2Freq) extraBands.push(trainBand2Freq);
   if(trainBand3Freq) extraBands.push(trainBand3Freq);
-  extraBands.forEach((f,i)=>drawExtraBandMarker(f,i));
-  const revColor=ok?'rgba(74,222,128,.9)':'rgba(248,113,113,.7)';
-  updateGraph(true,revColor,ok?'✓ ВЕРНО':'✗ НЕВЕРНО');
-  document.getElementById('peakBoostLabel').style.background=ok?'var(--green)':'var(--red)';
-  document.getElementById('peakBoostLabel').style.color=ok?'#0a0b16':'#fff';
+  extraBands.forEach((f,i)=>drawExtraRulerMarker(f,i));
+  showRulerPeak(target,ok);
 
   let perfectBonus=0;
   if(ok){
@@ -731,12 +695,10 @@ function toggleReveal(){
   revealShown=!revealShown;
   const rb=document.getElementById('revealBtn');
   if(revealShown){
-    const ok=roundWasOk();
-    const revColor=ok?'rgba(74,222,128,.9)':'rgba(248,113,113,.7)';
-    updateGraph(true,revColor,ok?'✓ ВЕРНО':'✗ НЕВЕРНО');
+    showRulerPeak(target,roundWasOk());
     rb.textContent='Скрыть буст';
   } else {
-    updateGraph(false);
+    hideRulerPeak();
     rb.textContent='Показать буст';
   }
 }
@@ -1337,14 +1299,12 @@ const TOUR_STEPS=[
     text:'Короткий тур покажет, что где находится и как играть. Займёт минуту — потом сразу начнёшь.'},
   {sel:'.pm-vol',title:ICON_VOL_HIGH+'Громкость',
     text:'Настрой удобный уровень перед стартом. Можно менять в любой момент прямо во время игры.'},
-  {sel:'#playBtn',title:'▶ Слушай звук',
-    text:'Нажми PLAY — услышишь шум с поднятой (или вырезанной) частотой. Это то, что нужно найти на слух.'},
-  {sel:'#cmpBtn',title:'Сравнение A / B',
-    text:'Зажми эту кнопку — услышишь оригинал без изменений. Отпусти — снова буст. Сравнивай туда-обратно.'},
-  {sel:'.pm-graph-card',title:ICON_TARGET+'Угадывание на графике',
-    text:'Нажми прямо на графике, веди до нужной частоты и отпусти — воротики (⊏ ⊐) показывают, где ты сейчас. Отпустил — ответ сразу засчитан.'},
-  {sel:'.pm-freq-guide',title:ICON_BOOK+'Что где живёт',
-    text:'Эта полоска — шпаргалка по диапазонам: слева бас и гул, посередине тело и разборчивость речи, справа — шипящие и воздух.'},
+  {sel:'#eqOnBtn',title:'EQ On — слушай звук',
+    text:'Нажми EQ On — услышишь шум с поднятой (или вырезанной) частотой. Это то, что нужно найти на слух.'},
+  {sel:'#eqOffBtn',title:'EQ Off — сравнение',
+    text:'Нажми EQ Off — услышишь оригинал без изменений. Переключайся туда-обратно, чтобы сравнить.'},
+  {sel:'.pm-graph-card',title:ICON_TARGET+'Угадывание на линейке',
+    text:'Нажми прямо на линейке частот, веди до нужного места и отпусти — курсор показывает точную частоту. Отпустил — ответ сразу засчитан.'},
   {sel:'.pm-question',title:ICON_TRENDUP+'Сложность растёт сама',
     text:'В «Лёгком» уровне буст сначала громкий и допуск широкий. С каждым раундом — чуть тише и точнее, пока не подготовишься к «Среднему». Удачи!'},
 ];
@@ -1438,13 +1398,14 @@ function endTour(){
 //  INIT
 // ══════════════════════════════════════
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&actx&&actx.state==='suspended')actx.resume();});
+buildRuler();
 updateScoreUI();
 initStreak();
 sbInit();
 loadTrackManifest();
 
-// Угадывание прямо на графике: мышь и тач
-const graphTouchEl=document.getElementById('graphTouch');
+// Угадывание прямо на линейке: мышь и тач
+const graphTouchEl=document.getElementById('rulerTouch');
 graphTouchEl.addEventListener('mousedown',graphPointerDown);
 graphTouchEl.addEventListener('touchstart',graphPointerDown,{passive:false});
 graphTouchEl.addEventListener('mousemove',graphHoverMove);
@@ -1453,8 +1414,3 @@ window.addEventListener('mousemove',graphPointerMove);
 window.addEventListener('touchmove',graphPointerMove,{passive:false});
 window.addEventListener('mouseup',graphPointerUp);
 window.addEventListener('touchend',graphPointerUp);
-
-// A/Б сравнение: если отпустить вне кнопки, подсветка не должна "залипать"
-window.addEventListener('mouseup',endCompare);
-window.addEventListener('touchend',endCompare);
-window.addEventListener('mouseleave',endCompare);

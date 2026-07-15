@@ -776,8 +776,8 @@ function submissionCard(s){
     <div class="form-status rStatus"></div>`;
 
   if (projectUrl) {
-    createWavePlayer(projectUrl, card.querySelector('.wp-mount'));
-    createAudioAnalysisPanel(projectUrl, card.querySelector('.wa-mount'));
+    const player = createWavePlayer(projectUrl, card.querySelector('.wp-mount'));
+    createAudioAnalysisPanel(projectUrl, card.querySelector('.wa-mount'), player.audio);
   }
   card.querySelector('.rApprove').addEventListener('click', () => handleReviewSubmission(s, card, true, maxScore));
   card.querySelector('.rReject').addEventListener('click', () => handleReviewSubmission(s, card, false, maxScore));

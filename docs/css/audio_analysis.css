@@ -1,7 +1,8 @@
 /* ══════════════════════════════════════
    ПАНЕЛЬ АНАЛИЗА МИКСА (window.createAudioAnalysisPanel)
-   Сворачиваемый блок под плеером с волной — LUFS/True Peak/стерео/
-   динамика. Использует те же токены темы, что и остальной сайт.
+   Сворачиваемый блок под плеером с волной — живые метры громкости/пика/
+   стерео, синхронные с воспроизведением, плюс итоговые цифры на весь
+   трек. Использует те же токены темы, что и остальной сайт.
    ══════════════════════════════════════ */
 .wave-analysis{margin-top:var(--space-2)}
 .wa-toggle{display:flex;align-items:center;gap:var(--space-1);border:none;background:transparent;color:var(--muted);font-family:var(--sans);font-size:var(--text-caption-2-size);cursor:pointer;padding:var(--space-1) 0;transition:.15s}
@@ -9,19 +10,47 @@
 .wa-toggle svg{width:13px;height:13px;transition:transform .2s}
 .wa-toggle.open svg{transform:rotate(180deg)}
 
-.wa-panel{margin-top:var(--space-2);border-radius:10px;border:1px solid var(--border);background:var(--s2);padding:var(--space-3)}
+.wa-panel{margin-top:var(--space-2);border-radius:10px;border:1px solid var(--border);background:var(--s2);padding:var(--space-3) var(--space-4)}
 .wa-loading{font-size:var(--text-caption-2-size);color:var(--muted);text-align:center;padding:var(--space-2) 0;display:flex;align-items:center;justify-content:center;gap:var(--space-1)}
 .wa-loading.wa-error{color:var(--red)}
 .wa-loading.wa-error svg{width:14px;height:14px;flex-shrink:0}
 
-.wa-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:var(--space-3)}
+/* ── живые метры ── */
+.wa-live-row{display:flex;align-items:center;gap:var(--space-2);margin-top:var(--space-3)}
+.wa-live-row:first-child{margin-top:0}
+.wa-live-label{font-size:var(--text-caption-2-size);color:var(--muted);text-transform:uppercase;letter-spacing:.04em;flex-shrink:0}
+.wa-live-value{margin-left:auto;font-family:var(--mono);font-size:var(--text-body-2-size);font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;min-width:3.5em;text-align:right}
+
+.wa-mode-toggle{display:flex;gap:2px;background:rgba(0,0,0,.25);border-radius:999px;padding:2px}
+.wa-mode-btn{border:none;background:transparent;color:var(--muted);font-family:var(--sans);font-size:10px;font-weight:600;letter-spacing:.02em;padding:3px 10px;border-radius:999px;cursor:pointer;transition:.15s}
+.wa-mode-btn:hover{color:var(--text)}
+.wa-mode-btn.active{background:var(--green);color:#06131a}
+
+.wa-meter{position:relative;height:8px;border-radius:4px;margin-top:var(--space-1);overflow:visible;
+  background:linear-gradient(90deg,#4ade80 0%,#4ade80 62%,#facc15 82%,#f87171 100%);
+  box-shadow:0 0 0 1px var(--border) inset;}
+.wa-meter-fill{position:absolute;top:0;right:0;height:100%;border-radius:0 4px 4px 0;background:var(--s2);transition:width .1s linear}
+.wa-meter-lufs .wa-meter-fill,.wa-meter-peak .wa-meter-fill{background:#12141f}
+
+.wa-meter-target{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--text);opacity:.6;transform:translateX(-1px)}
+.wa-meter-hold{position:absolute;top:-2px;bottom:-2px;width:2px;background:#fff;box-shadow:0 0 6px rgba(255,255,255,.8);transition:left .08s linear}
+
+.wa-meter-corr{background:linear-gradient(90deg,#f87171 0%,#facc15 30%,#4ade80 50%,#4ade80 100%)}
+.wa-meter-center{position:absolute;top:-3px;bottom:-3px;left:50%;width:1px;background:rgba(255,255,255,.35)}
+.wa-meter-needle{position:absolute;top:-4px;bottom:-4px;width:3px;border-radius:2px;background:#fff;box-shadow:0 0 6px rgba(255,255,255,.8);transform:translateX(-1.5px);transition:left .1s linear;left:50%}
+
+.wa-hint{font-size:var(--text-caption-2-size);color:var(--muted);text-align:center;margin-top:var(--space-3);opacity:.7}
+
+/* ── итоговые цифры на весь трек ── */
+.wa-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:var(--space-3);margin-top:var(--space-4);padding-top:var(--space-3);border-top:1px solid var(--border)}
 .wa-metric{display:flex;flex-direction:column;gap:2px}
 .wa-label{font-size:var(--text-caption-2-size);color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
-.wa-value{font-family:var(--mono);font-size:var(--text-body-2-size);font-weight:700;color:var(--text)}
+.wa-value{font-family:var(--mono);font-size:var(--text-body-2-size);font-weight:700;color:var(--text);font-variant-numeric:tabular-nums}
 .wa-metric.warn .wa-value{color:var(--gold)}
 .wa-note{font-size:var(--text-caption-2-size);color:var(--muted);line-height:1.4}
 .wa-metric.warn .wa-note{color:var(--gold)}
 
 @media(max-width:480px){
   .wa-grid{grid-template-columns:repeat(2,1fr)}
+  .wa-live-label{font-size:10px}
 }

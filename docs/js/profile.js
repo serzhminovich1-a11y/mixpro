@@ -121,8 +121,8 @@ function workCard(p, viewerCtx){
       <div class="pf-mount"></div>
     </div>`;
 
-  createWavePlayer(p.file_url, card.querySelector('.wp-mount'), { size: 'lg' });
-  createAudioAnalysisPanel(p.file_url, card.querySelector('.wa-mount'));
+  const player = createWavePlayer(p.file_url, card.querySelector('.wp-mount'), { size: 'lg' });
+  createAudioAnalysisPanel(p.file_url, card.querySelector('.wa-mount'), player.audio);
   mountProjectFeedback(SB, p, card.querySelector('.pf-mount'), viewerCtx);
   return card;
 }

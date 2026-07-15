@@ -590,8 +590,8 @@ function postCard(p, commentCounts, reactionsByPost){
     </div>`;
 
   if (p.attachment_type === 'audio' && p.attachment_url) {
-    createWavePlayer(p.attachment_url, card.querySelector('.wp-mount'));
-    createAudioAnalysisPanel(p.attachment_url, card.querySelector('.wa-mount'));
+    const player = createWavePlayer(p.attachment_url, card.querySelector('.wp-mount'));
+    createAudioAnalysisPanel(p.attachment_url, card.querySelector('.wa-mount'), player.audio);
   }
 
   const followBtn = card.querySelector('.follow-btn');

@@ -82,7 +82,7 @@
         <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.15em;color:rgba(34,211,238,.7);text-transform:uppercase;margin-bottom:10px">EQ тренажёр · слух</div>
         <h1>Услышь <em>любую<br>частоту</em></h1>
       </div>
-      <p>Слышишь звук с поднятой частотой. Твоя задача — указать её на линейке как можно точнее. Нажми EQ Off чтобы услышать оригинал.</p>
+      <p>Слышишь звук с поднятой частотой. Твоя задача — указать её ползунком как можно точнее. Зажми COMPARE чтобы услышать оригинал.</p>
       <div class="mode-grid">
         <button class="mode-btn primary" onclick="openSetupPlay()">
           <span class="mode-btn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></span>
@@ -95,7 +95,7 @@
           <span class="mode-btn-sub">Свободная настройка, без рейтинга</span>
         </button>
       </div>
-      <div class="pm-hint">Нажми EQ Off во время игры, чтобы услышать оригинал без буста</div>
+      <div class="pm-hint">Зажми COMPARE во время игры, чтобы услышать оригинал без буста</div>
     </div>
   </div>
 
@@ -107,9 +107,9 @@
         <button class="pm-back" onclick="backToModeSelect()">← Назад</button>
       </div>
       <div class="start-rules">
-        <div class="rule-row"><span class="rule-n">01</span><span>Нажми EQ On — услышишь звук с EQ бустом</span></div>
-        <div class="rule-row"><span class="rule-n">02</span><span>Нажми EQ Off — услышишь оригинал без буста</span></div>
-        <div class="rule-row"><span class="rule-n">03</span><span>Веди по линейке и отпусти на нужной частоте — чем точнее, тем больше очков</span></div>
+        <div class="rule-row"><span class="rule-n">01</span><span>Нажми PLAY — услышишь звук с EQ бустом</span></div>
+        <div class="rule-row"><span class="rule-n">02</span><span>Зажми COMPARE — услышишь оригинал без буста</span></div>
+        <div class="rule-row"><span class="rule-n">03</span><span>Двигай ползунок и жми «Ответить» — чем точнее, тем больше очков</span></div>
         <div class="rule-row"><span class="rule-n">04</span><span>Почти идеальное попадание даёт бонус очков</span></div>
       </div>
       <div>
@@ -160,34 +160,77 @@
     </div>
     <div class="pm-phase-progress" id="phaseProgress" style="display:none"></div>
 
-    <!-- Ruler Graph -->
+    <!-- EQ Graph -->
     <div class="pm-graph-card">
-      <div class="pm-ruler-inner">
-        <div class="pm-ruler" id="ruler">
-          <div class="pm-ruler-zones" id="rulerZones"></div>
-          <div class="pm-ruler-ticks" id="rulerTicks"></div>
-          <!-- Линия правильной частоты — появляется после ответа -->
-          <div class="pm-ruler-peak" id="rulerPeak" style="left:50%;opacity:0">
-            <div class="pm-ruler-peak-tag">
-              <span class="pm-ruler-peak-freq" id="rulerPeakFreq">?</span>
-              <span class="pm-ruler-peak-ok" id="rulerPeakOk">✓ ВЕРНО</span>
-            </div>
-          </div>
-          <!-- Курсор гипотезы — следует за пальцем/мышью -->
-          <div class="pm-ruler-cursor" id="rulerCursor" style="left:50%;opacity:0">
-            <span class="pm-ruler-cursor-tag" id="rulerCursorTag">? <small>Hz</small></span>
-          </div>
-          <!-- Прозрачный слой для клика/перетаскивания прямо по линейке -->
-          <div class="pm-ruler-touch" id="rulerTouch"></div>
+      <div class="pm-graph-inner">
+        <svg id="eqSvg" viewBox="0 0 1240 200" class="pm-svg" preserveAspectRatio="none">
+          <!-- Grid lines -->
+          <line x1="0" x2="1240" y1="0"   y2="0"   stroke="rgba(255,255,255,.07)" stroke-width="1" stroke-dasharray="4 5"/>
+          <line x1="0" x2="1240" y1="40"  y2="40"  stroke="rgba(255,255,255,.07)" stroke-width="1" stroke-dasharray="4 5"/>
+          <line x1="0" x2="1240" y1="80"  y2="80"  stroke="rgba(255,255,255,.07)" stroke-width="1" stroke-dasharray="4 5"/>
+          <line x1="0" x2="1240" y1="100" y2="100" stroke="rgba(34,211,238,.3)"   stroke-width="1.5"/>
+          <line x1="0" x2="1240" y1="120" y2="120" stroke="rgba(255,255,255,.07)" stroke-width="1" stroke-dasharray="4 5"/>
+          <line x1="0" x2="1240" y1="160" y2="160" stroke="rgba(255,255,255,.07)" stroke-width="1" stroke-dasharray="4 5"/>
+          <line x1="0" x2="1240" y1="200" y2="200" stroke="rgba(255,255,255,.07)" stroke-width="1" stroke-dasharray="4 5"/>
+          <!-- Spectrum bars (updated by JS) -->
+          <path id="specPath" d="M0,100 L1240,100" fill="none" stroke="rgba(34,211,238,.3)" stroke-width="1"/>
+          <!-- EQ curve -->
+          <path id="eqPath" d="M0,100 L1240,100" fill="none" stroke="#34e0c4" stroke-width="3.5" style="filter:drop-shadow(0 0 7px rgba(52,224,196,.7));transition:d .3s ease"/>
+          <!-- Peak vertical line -->
+          <line id="peakLine" x1="620" x2="620" y1="0" y2="200" stroke="rgba(167,139,250,.5)" stroke-width="1.5" stroke-dasharray="3 5" opacity="0"/>
+          <!-- Guess cursor line, follows drag on the graph -->
+          <line id="guessLine" x1="620" x2="620" y1="0" y2="200" stroke="rgba(251,146,60,.8)" stroke-width="2" stroke-dasharray="5 4" opacity="0"/>
+        </svg>
+        <!-- dB labels -->
+        <span class="pm-db-label" style="top:0%">+24</span>
+        <span class="pm-db-label" style="top:20%">+12</span>
+        <span class="pm-db-label" style="top:40%">+4</span>
+        <span class="pm-db-label" style="top:50%">0</span>
+        <span class="pm-db-label" style="top:60%">-4</span>
+        <span class="pm-db-label" style="top:80%">-12</span>
+        <span class="pm-db-label" style="top:100%">-24</span>
+        <!-- Peak tag -->
+        <div class="pm-peak-tag" id="peakTag" style="left:50%;opacity:0">
+          <span class="pm-peak-freq" id="peakFreqLabel">?</span>
+          <span class="pm-peak-boost" id="peakBoostLabel">С БУСТОМ</span>
         </div>
+        <!-- Guess tag — следует за пальцем/мышью прямо по графику -->
+        <div class="pm-guess-tag" id="guessTag" style="left:50%;opacity:0">
+          <span id="guessFreqTag">?</span>
+        </div>
+        <!-- Воротики — держатель для перетаскивания гипотезы -->
+        <div class="pm-guess-gate" id="guessGate" style="left:50%">
+          <span class="pm-gate-arm left"></span>
+          <span class="pm-gate-arm right"></span>
+        </div>
+        <!-- Прозрачный слой для клика/перетаскивания прямо по графику -->
+        <div class="pm-graph-touch" id="graphTouch"></div>
+      </div>
+      <div class="pm-xlabels" style="position:relative;height:16px;margin-top:6px">
+        <span class="pm-xl" style="left:0.0%;transform:translateX(-0%)">20</span>
+        <span class="pm-xl" style="left:16.6%;transform:translateX(-50%)">63</span>
+        <span class="pm-xl" style="left:26.5%;transform:translateX(-50%)">125</span>
+        <span class="pm-xl" style="left:36.6%;transform:translateX(-50%)">250</span>
+        <span class="pm-xl" style="left:46.6%;transform:translateX(-50%)">500</span>
+        <span class="pm-xl" style="left:56.6%;transform:translateX(-50%)">1k</span>
+        <span class="pm-xl" style="left:66.7%;transform:translateX(-50%)">2k</span>
+        <span class="pm-xl" style="left:76.7%;transform:translateX(-50%)">4k</span>
+        <span class="pm-xl" style="left:86.7%;transform:translateX(-50%)">8k</span>
+        <span class="pm-xl" style="left:96.8%;transform:translateX(-100%)">16k</span>
+        <span class="pm-xl" style="left:100.0%;transform:translateX(-100%)">20k</span>
+      </div>
+      <div class="pm-freq-guide">
+        <span class="pm-fg-seg" style="flex:1.15">Суб-бас · гул</span>
+        <span class="pm-fg-seg" style="flex:1.55">Бас · тело</span>
+        <span class="pm-fg-seg" style="flex:1.15">Мид · ящик</span>
+        <span class="pm-fg-seg" style="flex:1.7">Средние · разборчивость</span>
+        <span class="pm-fg-seg" style="flex:1.5">Верх-мид · присутствие</span>
+        <span class="pm-fg-seg" style="flex:1.3">Резкость · шипящие</span>
+        <span class="pm-fg-seg" style="flex:1.65">Воздух · блеск</span>
       </div>
       <div class="pm-mode-badge" id="modeBadge">С БУСТОМ</div>
       <div class="pm-multi-label" id="multiLabel" style="display:none"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg>Несколько полос — после ответа увидишь все</div>
-      <div class="pm-guess-hint" id="freqLabel">Проведи по линейке и отпусти на нужной частоте</div>
-      <div class="pm-eq-toggle">
-        <button class="pm-eq-btn" id="eqOffBtn" onclick="setEqState(false)">EQ Off</button>
-        <button class="pm-eq-btn on" id="eqOnBtn" onclick="setEqState(true)">EQ On<span class="pm-eq-dot"></span></button>
-      </div>
+      <div class="pm-guess-hint" id="freqLabel">Проведи по графику и отпусти на нужной частоте</div>
     </div>
 
     <!-- Answer timer (высокие фазы "Сложно") -->
@@ -197,7 +240,19 @@
       <span class="pm-timer-num" id="answerTimerNum">10</span>
     </div>
 
-    <div class="pm-hint" id="hint">Нажми EQ On, чтобы начать слушать</div>
+    <!-- Transport -->
+    <div class="pm-transport">
+      <button class="pm-play-circle" id="playBtn" onclick="togglePlay()">
+        <div class="pm-play-triangle" id="playIcon"></div>
+      </button>
+      <button class="pm-compare-btn" id="cmpBtn"
+        onmousedown="startCompare()" onmouseup="endCompare()"
+        ontouchstart="startCompare(event)" ontouchend="endCompare()">
+        <span>А / Б</span>
+        <span class="pm-compare-key">зажать для сравнения</span>
+      </button>
+    </div>
+    <div class="pm-hint" id="hint">Нажми ▶ чтобы начать слушать</div>
 
     <!-- Feedback -->
     <div class="pm-feedback">

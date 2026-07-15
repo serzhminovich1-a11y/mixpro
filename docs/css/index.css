@@ -100,6 +100,32 @@
   --hero-glow-color:#ff3d1f;
 }
 
+/* ── ТЕМА «Ж»: Стекло (глассморфизм, VIP) ── */
+[data-theme="glass"]{
+  --bg:#d8d2ff; --surface:rgba(255,255,255,.4); --card:rgba(255,255,255,.4); --border:rgba(255,255,255,.65); --border-hi:rgba(255,255,255,.85);
+  --amber:#7c4dff; --amber-dim:#ec4899; --amber-glow:rgba(124,77,255,.15); --amber-glow-strong:rgba(124,77,255,.28);
+  --text:#241d47; --muted:#524a75; --muted2:#4b4470;
+  --green:#059669; --red:#e11d48; --gold:#d97706;
+  --green-glow:rgba(5,150,105,.14); --green-glow-strong:rgba(5,150,105,.3); --green-glow-soft:rgba(5,150,105,.1);
+  --red-glow:rgba(225,29,72,.1); --red-glow-strong:rgba(225,29,72,.15);
+  --s2:rgba(255,255,255,.3);
+  --surf-top:rgba(255,255,255,.55); --surf-bot:rgba(255,255,255,.2);
+  --shadow-lift:0 8px 32px -12px rgba(80,60,140,.25);
+  --shadow-lift-hover:0 10px 36px -10px rgba(80,60,140,.32), 0 0 0 1px rgba(124,77,255,.2);
+  --accent-shadow:0 10px 24px -10px rgba(124,77,255,.6);
+  --on-accent:#ffffff; --on-gold:#ffffff; --elev:rgba(255,255,255,.55); --elev2:#ece9ff; --nav-bg:rgba(255,255,255,.35);
+  --vip-grad-a:rgba(255,255,255,.5); --vip-grad-b:rgba(255,214,232,.5);
+  --bg-glow-1:transparent; --bg-glow-2:transparent;
+  --wave-1:#7c4dff; --wave-2:#ec4899; --wave-3:#06b6d4; --wave-4:#7c4dff;
+}
+[data-theme="glass"] body{background:linear-gradient(135deg,#c9c3ff 0%,#ffd6e8 45%,#c3f0ff 100%) fixed}
+/* Настоящее стекло — карточки прозрачные с блюром, а не сплошная плашка var(--bg) */
+[data-theme="glass"] .inside-card,[data-theme="glass"] .trainer-card,[data-theme="glass"] .lesson-card,
+[data-theme="glass"] .bpm-master,[data-theme="glass"] .tool-card,[data-theme="glass"] .gloss-card{
+  background:var(--card);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+}
+[data-theme="glass"] .modal,[data-theme="glass"] .theme-panel{backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+
 *,*::before,*::after{box-sizing:border-box;margin:var(--space-0);padding:var(--space-0)}
 html{scroll-behavior:smooth}
 body{background:radial-gradient(1200px 600px at 82% -10%,var(--bg-glow-1),transparent),radial-gradient(900px 500px at 0% 100%,var(--bg-glow-2),transparent),var(--bg);color:var(--text);font-family:var(--sans);font-size:var(--text-body-2-size);line-height:1.6;min-height:100vh;overflow-x:hidden;transition:background-color .25s}

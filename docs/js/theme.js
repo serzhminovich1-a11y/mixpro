@@ -12,6 +12,7 @@ const THEMES = [
   { id:'hifi',    name:'Ретро хай-фай',     tier:'vip',  swatch:['#ff5a36','#ffb036','#221f22'] },
   { id:'neon',    name:'Неоновый аркадный', tier:'vip',  swatch:['#ff2e9a','#00e5ff','#1a0b3d'] },
   { id:'glow',    name:'Студийный свет',    tier:'vip',  swatch:['#ff3d1f','#ff8a5c','#050505'] },
+  { id:'glass',   name:'Стекло',            tier:'vip',  swatch:['#7c4dff','#ec4899','#c3f0ff'] },
 ];
 const THEME_KEY = 'mixpro_theme';
 

@@ -764,7 +764,7 @@ function submissionCard(s){
       </div>
       <div class="review-card-date">${date}</div>
     </div>
-    ${projectUrl ? `<div><div class="review-card-attach">${ICON_HEADPHONES_A}${escapeHtml(projectTitle)}</div><div class="wp-mount"></div></div>` : '<div class="empty">Работа не прикреплена</div>'}
+    ${projectUrl ? `<div><div class="review-card-attach">${ICON_HEADPHONES_A}${escapeHtml(projectTitle)}</div><div class="wp-mount"></div><div class="wa-mount"></div></div>` : '<div class="empty">Работа не прикреплена</div>'}
     <div class="form-row">
       <div class="field"><label>Оценка (из ${maxScore})</label><input type="number" class="rScore" min="0" max="${maxScore}" value="${maxScore}"></div>
     </div>
@@ -775,7 +775,10 @@ function submissionCard(s){
     </div>
     <div class="form-status rStatus"></div>`;
 
-  if (projectUrl) createWavePlayer(projectUrl, card.querySelector('.wp-mount'));
+  if (projectUrl) {
+    createWavePlayer(projectUrl, card.querySelector('.wp-mount'));
+    createAudioAnalysisPanel(projectUrl, card.querySelector('.wa-mount'));
+  }
   card.querySelector('.rApprove').addEventListener('click', () => handleReviewSubmission(s, card, true, maxScore));
   card.querySelector('.rReject').addEventListener('click', () => handleReviewSubmission(s, card, false, maxScore));
 

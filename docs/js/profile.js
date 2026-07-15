@@ -117,10 +117,12 @@ function workCard(p, viewerCtx){
     <div class="work-body-wrap">
       <div class="work-body"><div class="work-title">${p.title}</div><div class="work-meta">${date}</div></div>
       <div class="wp-mount"></div>
+      <div class="wa-mount"></div>
       <div class="pf-mount"></div>
     </div>`;
 
   createWavePlayer(p.file_url, card.querySelector('.wp-mount'), { size: 'lg' });
+  createAudioAnalysisPanel(p.file_url, card.querySelector('.wa-mount'));
   mountProjectFeedback(SB, p, card.querySelector('.pf-mount'), viewerCtx);
   return card;
 }

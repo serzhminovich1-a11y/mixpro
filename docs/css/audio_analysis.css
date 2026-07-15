@@ -1,0 +1,27 @@
+/* ══════════════════════════════════════
+   ПАНЕЛЬ АНАЛИЗА МИКСА (window.createAudioAnalysisPanel)
+   Сворачиваемый блок под плеером с волной — LUFS/True Peak/стерео/
+   динамика. Использует те же токены темы, что и остальной сайт.
+   ══════════════════════════════════════ */
+.wave-analysis{margin-top:var(--space-2)}
+.wa-toggle{display:flex;align-items:center;gap:var(--space-1);border:none;background:transparent;color:var(--muted);font-family:var(--sans);font-size:var(--text-caption-2-size);cursor:pointer;padding:var(--space-1) 0;transition:.15s}
+.wa-toggle:hover{color:var(--text)}
+.wa-toggle svg{width:13px;height:13px;transition:transform .2s}
+.wa-toggle.open svg{transform:rotate(180deg)}
+
+.wa-panel{margin-top:var(--space-2);border-radius:10px;border:1px solid var(--border);background:var(--s2);padding:var(--space-3)}
+.wa-loading{font-size:var(--text-caption-2-size);color:var(--muted);text-align:center;padding:var(--space-2) 0;display:flex;align-items:center;justify-content:center;gap:var(--space-1)}
+.wa-loading.wa-error{color:var(--red)}
+.wa-loading.wa-error svg{width:14px;height:14px;flex-shrink:0}
+
+.wa-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:var(--space-3)}
+.wa-metric{display:flex;flex-direction:column;gap:2px}
+.wa-label{font-size:var(--text-caption-2-size);color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.wa-value{font-family:var(--mono);font-size:var(--text-body-2-size);font-weight:700;color:var(--text)}
+.wa-metric.warn .wa-value{color:var(--gold)}
+.wa-note{font-size:var(--text-caption-2-size);color:var(--muted);line-height:1.4}
+.wa-metric.warn .wa-note{color:var(--gold)}
+
+@media(max-width:480px){
+  .wa-grid{grid-template-columns:repeat(2,1fr)}
+}

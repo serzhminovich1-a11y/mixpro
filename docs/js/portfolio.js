@@ -60,6 +60,7 @@ function projectCard(p){
       </div>
       ${badges ? `<div class="proj-badges">${badges}</div>` : ''}
       <div class="wp-mount"></div>
+      <div class="wa-mount"></div>
       <div class="pf-mount"></div>
       ${isOwn ? '<button class="proj-del" data-id="' + p.id + '">Удалить</button>' : ''}
     </div>`;
@@ -67,6 +68,7 @@ function projectCard(p){
   if (isOwn) card.querySelector('.proj-del').addEventListener('click', () => deleteProject(p));
 
   createWavePlayer(p.file_url, card.querySelector('.wp-mount'), { size: 'lg' });
+  createAudioAnalysisPanel(p.file_url, card.querySelector('.wa-mount'));
   mountProjectFeedback(SB, p, card.querySelector('.pf-mount'), { currentUid, currentRole });
 
   return card;

@@ -31,6 +31,38 @@
     return Array.from({ length: n }, (_, i) => .16 + .09 * Math.sin(i * 0.7));
   }
 
+  // Определяем формат по сигнатуре первых байт файла, а не по расширению
+  // в ссылке — расширение может быть какое угодно (Supabase Storage
+  // отдаёт файл по тому имени, что дал пользователь при загрузке),
+  // а первые байты честно говорят, что внутри на самом деле.
+  function sniffFormat(bytes, url) {
+    const str = (start, len) => {
+      let s = '';
+      for (let i = start; i < start + len && i < bytes.length; i++) s += String.fromCharCode(bytes[i]);
+      return s;
+    };
+    if (bytes.length >= 12 && str(0, 4) === 'RIFF' && str(8, 4) === 'WAVE') return 'WAV';
+    if (bytes.length >= 4 && str(0, 4) === 'fLaC') return 'FLAC';
+    if (bytes.length >= 4 && str(0, 4) === 'OggS') return 'OGG';
+    if (bytes.length >= 8 && str(4, 4) === 'ftyp') return 'M4A';
+    if (bytes.length >= 4 && bytes[0] === 0x1A && bytes[1] === 0x45 && bytes[2] === 0xDF && bytes[3] === 0xA3) return 'WEBM';
+    if (bytes.length >= 3 && str(0, 3) === 'ID3') return 'MP3';
+    if (bytes.length >= 2 && bytes[0] === 0xFF && (bytes[1] & 0xE0) === 0xE0) return 'MP3';
+    const m = url.match(/\.([a-zA-Z0-9]+)(?:\?|#|$)/);
+    return m ? m[1].toUpperCase() : null;
+  }
+
+  async function detectFormat(url) {
+    try {
+      const res = await fetch(url, { headers: { Range: 'bytes=0-15' } });
+      if (!res.ok) return null;
+      const buf = await res.arrayBuffer();
+      return sniffFormat(new Uint8Array(buf), url);
+    } catch (e) {
+      return null;
+    }
+  }
+
   async function computePeaks(url, bars) {
     const res = await fetch(url);
     if (!res.ok) throw new Error('fetch failed: ' + res.status);
@@ -63,6 +95,55 @@
   let sharedVolume = parseFloat(localStorage.getItem(VOL_KEY));
   if (!isFinite(sharedVolume) || sharedVolume < 0 || sharedVolume > 1) sharedVolume = 1;
   let lastNonZeroVolume = sharedVolume || 1;
+
+  // Один AudioContext на все плееры страницы — соло-каналов (Лево/Право/
+  // Моно/Только стерео) не сделать без маршрутизации через Web Audio,
+  // а создавать по контексту на каждый трек нет смысла и есть лимиты
+  // браузера на их количество.
+  let sharedCtx = null;
+  function getAudioCtx() {
+    if (!sharedCtx) {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      sharedCtx = new Ctx();
+    }
+    return sharedCtx;
+  }
+
+  // Разбирает воспроизведение на L/R через ChannelSplitter и собирает
+  // обратно через 4 регулируемых gain-узла — так одним набором узлов
+  // получаются все режимы: обычное стерео, соло Лево/Право, Моно (L+R,
+  // то же самое, что услышит человек с одной колонкой) и "Только
+  // стерео" (L−R — всё, что панорамировано в центр, гасится, остаётся
+  // только то, чем каналы отличаются друг от друга).
+  function setupChannelRouting(audio) {
+    const ctx = getAudioCtx();
+    const source = ctx.createMediaElementSource(audio);
+    const splitter = ctx.createChannelSplitter(2);
+    source.connect(splitter);
+    const gLL = ctx.createGain(), gRL = ctx.createGain(), gLR = ctx.createGain(), gRR = ctx.createGain();
+    splitter.connect(gLL, 0);
+    splitter.connect(gRL, 1);
+    splitter.connect(gLR, 0);
+    splitter.connect(gRR, 1);
+    const merger = ctx.createChannelMerger(2);
+    gLL.connect(merger, 0, 0);
+    gRL.connect(merger, 0, 0);
+    gLR.connect(merger, 0, 1);
+    gRR.connect(merger, 0, 1);
+    merger.connect(ctx.destination);
+
+    function setMode(mode) {
+      const now = ctx.currentTime;
+      const RAMP = 0.05; // плавный переход, чтобы не щёлкало при смене режима
+      const set = (node, val) => node.gain.linearRampToValueAtTime(val, now + RAMP);
+      if (mode === 'L') { set(gLL, 1); set(gRL, 0); set(gLR, 1); set(gRR, 0); }
+      else if (mode === 'R') { set(gLL, 0); set(gRL, 1); set(gLR, 0); set(gRR, 1); }
+      else if (mode === 'mid') { set(gLL, .5); set(gRL, .5); set(gLR, .5); set(gRR, .5); }
+      else if (mode === 'side') { set(gLL, .5); set(gRL, -.5); set(gLR, .5); set(gRR, -.5); }
+      else { set(gLL, 1); set(gRL, 0); set(gLR, 0); set(gRR, 1); } // stereo
+    }
+    return { ctx, setMode };
+  }
 
   // Очередь плееров текущей страницы, в порядке создания (совпадает с
   // порядком карточек — Лента/Портфолио/Профиль рендерят их именно так
@@ -102,7 +183,7 @@
     mount.innerHTML = `
       <div class="wp-wave"><canvas></canvas></div>
       <div class="wp-row">
-        <div class="wp-time"><span class="wp-cur">0:00</span><span class="wp-dur">--:--</span></div>
+        <div class="wp-time"><span class="wp-cur">0:00</span><span class="wp-dur">--:--</span><span class="wp-format"></span></div>
         <div class="wp-transport">
           <button type="button" class="wp-prev" aria-label="Предыдущий трек">${ICON_PREV}</button>
           <button type="button" class="wp-play" aria-label="Воспроизвести">${ICON_PLAY}</button>
@@ -112,18 +193,62 @@
           <button type="button" class="wp-vol-icon" aria-label="Звук">${ICON_VOL_UP}</button>
           <input type="range" class="wp-vol-slider" min="0" max="1" step="0.01">
         </div>
+      </div>
+      <div class="wp-channels">
+        <button type="button" class="wp-ch-btn active" data-ch="stereo">Стерео</button>
+        <button type="button" class="wp-ch-btn" data-ch="L">Лево</button>
+        <button type="button" class="wp-ch-btn" data-ch="R">Право</button>
+        <button type="button" class="wp-ch-btn" data-ch="mid">Моно</button>
+        <button type="button" class="wp-ch-btn" data-ch="side">Только стерео</button>
       </div>`;
 
     const audio = new Audio();
     audio.preload = 'metadata';
+    // Пробуем сразу с crossOrigin — он нужен заранее для соло-каналов
+    // (задним числом, без перезагрузки файла, его не включить). Но если
+    // у хранилища файла нет нужных CORS-заголовков, ЗАПРОС С crossOrigin
+    // не грузится ВООБЩЕ (не только соло-каналы — сама загрузка трека
+    // падает с ошибкой) — поэтому при первой же ошибке загрузки тихо
+    // откатываемся на обычный запрос без crossOrigin (грузится и играет
+    // нормально) и просто выключаем кнопки каналов для этого трека:
+    // лучше рабочий плеер без одной фичи, чем полностью немой трек.
+    let corsOk = null; // null = ещё не знаем, true/false = выяснили
+    let corsRetryInFlight = false;
+    audio.crossOrigin = 'anonymous';
+    // Должен сработать ДО обработчика ниже (mount.classList.add('wp-error');
+    // playBtn.disabled = true) — он всё ещё думает, что любая ошибка
+    // загрузки означает "битый файл", хотя она может значить лишь то,
+    // что нужно перегрузить без crossOrigin. corsRetryInFlight — сигнал
+    // тому обработчику "эту конкретную ошибку я уже обрабатываю, не
+    // считай её настоящим сбоем".
+    audio.addEventListener('error', () => {
+      if (corsOk === null) {
+        corsOk = false;
+        corsRetryInFlight = true;
+        audio.crossOrigin = null;
+        audio.src = url;
+        audio.load();
+        mount.querySelectorAll('.wp-ch-btn').forEach(b => { if (b.dataset.ch !== 'stereo') b.disabled = true; });
+      }
+    });
+    audio.addEventListener('loadedmetadata', () => { if (corsOk === null) corsOk = true; });
     audio.src = url;
     audio.volume = sharedVolume;
+    let channelRouting = null;
+    function ensureChannelRouting() {
+      if (corsOk === false) return null;
+      if (!channelRouting) {
+        try { channelRouting = setupChannelRouting(audio); } catch (e) { channelRouting = false; }
+      }
+      return channelRouting || null;
+    }
 
     const playBtn = mount.querySelector('.wp-play');
     const prevBtn = mount.querySelector('.wp-prev');
     const nextBtn = mount.querySelector('.wp-next');
     const volIcon = mount.querySelector('.wp-vol-icon');
     const volSlider = mount.querySelector('.wp-vol-slider');
+    const chButtons = mount.querySelectorAll('.wp-ch-btn');
     const waveEl = mount.querySelector('.wp-wave');
     const canvas = waveEl.querySelector('canvas');
     const curEl = mount.querySelector('.wp-cur');
@@ -181,6 +306,10 @@
       // видео-вложения) — они не в DOM-дереве этого плеера и событие их не достанет.
       document.dispatchEvent(new CustomEvent('mixpro:pauseOtherPlayers', { detail: audio }));
       document.querySelectorAll('audio, video').forEach(el => el.pause());
+      // Браузеры не дают Web Audio Context работать до жеста пользователя —
+      // клик по play как раз им и является, resume() тут безопасен, даже
+      // если соло-каналы ни разу не трогали (channelRouting тогда пуст).
+      if (channelRouting) channelRouting.ctx.resume();
       audio.play().catch(() => {});
     }
 
@@ -198,6 +327,17 @@
     nextBtn.addEventListener('click', () => playRelative(entry, 1));
     document.addEventListener('mixpro:pauseOtherPlayers', (e) => { if (e.detail !== audio) audio.pause(); });
 
+    chButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const mode = btn.dataset.ch;
+        const routing = ensureChannelRouting();
+        if (!routing) return; // нет CORS у файла — соло-каналов не будет, обычное воспроизведение не трогаем
+        if (channelRouting.ctx.state === 'suspended') channelRouting.ctx.resume();
+        routing.setMode(mode);
+        chButtons.forEach(b => b.classList.toggle('active', b === btn));
+      });
+    });
+
     // Следующий трек в очереди — после того, как текущий доиграл до
     // конца сам (не по клику "Следующий"), а не только по кнопке.
     audio.addEventListener('ended', () => { playBtn.innerHTML = ICON_PLAY; draw(); playRelative(entry, 1); });
@@ -207,6 +347,7 @@
     audio.addEventListener('timeupdate', () => { curEl.textContent = fmtTime(audio.currentTime); draw(); });
     audio.addEventListener('loadedmetadata', () => { durEl.textContent = fmtTime(audio.duration); draw(); });
     audio.addEventListener('error', () => {
+      if (corsRetryInFlight) { corsRetryInFlight = false; return; } // ожидаемая ошибка из-за CORS, откат уже запущен выше
       mount.classList.add('wp-error');
       playBtn.disabled = true;
       durEl.textContent = 'ошибка загрузки';
@@ -236,6 +377,8 @@
     if (window.ResizeObserver) new ResizeObserver(draw).observe(waveEl);
 
     computePeaks(url, bars).then(p => { peaks = p; draw(); }).catch(() => { /* волна остаётся плоской, но плеер полностью рабочий */ });
+    const formatEl = mount.querySelector('.wp-format');
+    detectFormat(url).then(fmt => { if (fmt) formatEl.textContent = fmt; }).catch(() => {});
 
     const entry = { audio, mount, startPlayback, volSlider, renderVolIcon };
     queue.push(entry);

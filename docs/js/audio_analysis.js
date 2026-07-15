@@ -39,6 +39,15 @@
   const PEAK_MIN = -40, PEAK_MAX = 0;
   const PEAK_HOLD_DECAY_PER_SEC = 12; // дБ/сек — скорость оседания пик-холда
 
+  // Цвет "безопасной" зоны шкал — предпочтение на весь сайт (не на
+  // отдельный трек), поэтому одно значение в localStorage на все панели.
+  const THEME_KEY = 'mixpro_wa_accent';
+  const THEMES = ['#4ade80', '#22d3ee', '#a78bfa', '#f472b6', '#fb923c'];
+  function getAccent() {
+    const v = localStorage.getItem(THEME_KEY);
+    return THEMES.includes(v) ? v : THEMES[0];
+  }
+
   function dbStr(db) {
     if (!isFinite(db)) return '—';
     return (db > 0 ? '+' : '') + db.toFixed(1);
@@ -267,19 +276,31 @@
   }
 
   function panelSkeleton() {
+    const accent = getAccent();
+    const swatches = THEMES.map(c =>
+      `<button type="button" class="wa-swatch${c === accent ? ' active' : ''}" style="background:${c}" data-color="${c}" aria-label="Цвет шкал ${c}"></button>`
+    ).join('');
     return `
+      <div class="wa-theme-row">
+        <span class="wa-theme-label">Цвет шкал</span>
+        <span class="wa-theme-swatches">${swatches}</span>
+      </div>
       <div class="wa-live">
         <div class="wa-live-row">
           <span class="wa-live-label">Громкость (LUFS)</span>
-          <div class="wa-mode-toggle">
-            <button type="button" class="wa-mode-btn active" data-mode="fast">Быстро</button>
-            <button type="button" class="wa-mode-btn" data-mode="slow">Медленно</button>
-          </div>
-          <span class="wa-live-value wa-v-lufs">−∞</span>
+          <span class="wa-live-pair">
+            <span class="wa-v-fast">−∞</span><small>быстро</small>
+            <span class="wa-v-slow">−∞</span><small>медленно</small>
+          </span>
         </div>
         <div class="wa-meter wa-meter-lufs">
           <div class="wa-meter-fill wa-fill-lufs"></div>
+          <div class="wa-meter-marker wa-marker-fast" title="Быстро (Momentary, 400мс)"></div>
           <div class="wa-meter-target wa-target-lufs" title="Целевой ориентир стриминга −14 LUFS"></div>
+        </div>
+        <div class="wa-live-legend">
+          <span><i class="wa-dot-fast"></i>быстро (400мс) — мгновенная реакция, дёргается вместе с музыкой</span>
+          <span><i class="wa-dot-slow"></i>медленно (3с) — сглаженное среднее, ровнее и стабильнее</span>
         </div>
 
         <div class="wa-live-row">
@@ -341,7 +362,6 @@
     const panel = mount.querySelector('.wa-panel');
     let cached = null;
     let loading = false;
-    let mode = 'fast';
     let peakHold = PEAK_MIN;
     let rafId = null;
     let lastFrameT = 0;
@@ -349,8 +369,10 @@
 
     function els() {
       return {
-        vLufs: panel.querySelector('.wa-v-lufs'),
+        vFast: panel.querySelector('.wa-v-fast'),
+        vSlow: panel.querySelector('.wa-v-slow'),
         fillLufs: panel.querySelector('.wa-fill-lufs'),
+        markerFast: panel.querySelector('.wa-marker-fast'),
         targetLufs: panel.querySelector('.wa-target-lufs'),
         vPeak: panel.querySelector('.wa-v-peak'),
         fillPeak: panel.querySelector('.wa-fill-peak'),
@@ -359,8 +381,6 @@
         needleCorr: panel.querySelector('.wa-needle-corr'),
         hint: panel.querySelector('.wa-hint'),
         grid: panel.querySelector('.wa-grid'),
-        fastBtn: panel.querySelector('[data-mode="fast"]'),
-        slowBtn: panel.querySelector('[data-mode="slow"]'),
       };
     }
 
@@ -382,10 +402,18 @@
       const e = els();
       const idx = Math.max(0, Math.min(cached.momentaryLufs.length - 1, Math.floor(audioEl.currentTime / cached.hopSeconds)));
 
-      const series = mode === 'fast' ? cached.momentaryLufs : cached.shortTermLufs;
-      const lufsVal = series[idx];
-      e.fillLufs.style.width = (100 - clampPct(lufsVal, LUFS_MIN, LUFS_MAX)) + '%';
-      e.vLufs.textContent = isFinite(lufsVal) ? lufsVal.toFixed(1) : '−∞';
+      // Медленный (short-term) ряд двигает основную заливку плавно —
+      // читается как стабильный уровень. Быстрый (momentary) ряд не
+      // сглажен CSS-переходом на самой метке (см. .wa-marker-fast в
+      // CSS) — она дёргается резче и заметно обгоняет/отстаёт от края
+      // заливки, чтобы разница между режимами была видна на глаз,
+      // а не только в цифрах.
+      const fastVal = cached.momentaryLufs[idx];
+      const slowVal = cached.shortTermLufs[idx];
+      e.fillLufs.style.width = (100 - clampPct(slowVal, LUFS_MIN, LUFS_MAX)) + '%';
+      e.markerFast.style.left = clampPct(fastVal, LUFS_MIN, LUFS_MAX) + '%';
+      e.vFast.textContent = isFinite(fastVal) ? fastVal.toFixed(1) : '−∞';
+      e.vSlow.textContent = isFinite(slowVal) ? slowVal.toFixed(1) : '−∞';
 
       const peakVal = cached.peakSeries[idx];
       e.fillPeak.style.width = (100 - clampPct(peakVal, PEAK_MIN, PEAK_MAX)) + '%';
@@ -412,9 +440,17 @@
       } else {
         e.targetLufs.style.display = 'none';
       }
-      e.fastBtn.addEventListener('click', () => { mode = 'fast'; e.fastBtn.classList.add('active'); e.slowBtn.classList.remove('active'); });
-      e.slowBtn.addEventListener('click', () => { mode = 'slow'; e.slowBtn.classList.add('active'); e.fastBtn.classList.remove('active'); });
       e.grid.innerHTML = summaryHtml(cached);
+
+      mount.style.setProperty('--wa-accent', getAccent());
+      panel.querySelectorAll('.wa-swatch').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const color = btn.dataset.color;
+          localStorage.setItem(THEME_KEY, color);
+          document.querySelectorAll('.wave-analysis').forEach(m => m.style.setProperty('--wa-accent', color));
+          panel.querySelectorAll('.wa-swatch').forEach(b => b.classList.toggle('active', b === btn));
+        });
+      });
     }
 
     toggle.addEventListener('click', async () => {

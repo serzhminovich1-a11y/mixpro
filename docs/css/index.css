@@ -75,6 +75,7 @@ nav{position:sticky;top:0;z-index:100;background:rgba(10,11,22,.85);backdrop-fil
 .inside-icon-violet{color:#a78bfa}
 .inside-icon-gold{color:#facc15}
 .inside-icon-cyan{color:#38bdf8}
+.inside-icon-orange{color:#fb923c}
 .inside-title{font-family:var(--display);font-size:var(--text-body-2-size);font-weight:700;color:var(--text)}
 .inside-desc{font-size:var(--text-body-1-size);color:var(--muted);line-height:1.6}
 .inside-link{font-family:var(--display);font-size:var(--text-body-1-size);font-weight:600;color:var(--amber);margin-top:auto;padding-top:var(--space-1)}

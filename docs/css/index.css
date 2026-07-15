@@ -16,6 +16,7 @@
   --red-glow:rgba(248,113,113,.08); --red-glow-strong:rgba(255,78,78,.1);
   --bw:1px;
   --r-pill:999px; --r-lg:16px; --r-card:14px; --r-md:10px; --r-sm:8px; --r-xs:4px; --r-badge:50%;
+  --hero-glow-color:transparent;
 }
 
 /* ── ТЕМА «Г»: Смело и графично (нео-брутализм, VIP) ── */
@@ -78,6 +79,26 @@
   --wave-1:#ff2e9a; --wave-2:#00e5ff; --wave-3:#a020f0; --wave-4:#ff2e9a;
 }
 [data-theme="neon"] body{background:radial-gradient(1200px 600px at 82% -10%,var(--bg-glow-1),transparent),radial-gradient(900px 500px at 0% 100%,var(--bg-glow-2),transparent),linear-gradient(180deg,#0d0221 0%,#1a0b3d 55%,#2b0f4a 100%)}
+
+/* ── ТЕМА «Р»: Тёмный студийный свет (VIP) ── */
+[data-theme="glow"]{
+  --bg:#050505; --surface:rgba(255,255,255,.035); --card:rgba(255,255,255,.035); --border:rgba(255,255,255,.09); --border-hi:rgba(255,80,40,.35);
+  --amber:#ff3d1f; --amber-dim:#ff7a3d; --amber-glow:rgba(255,60,20,.14); --amber-glow-strong:rgba(255,60,20,.28);
+  --text:#f5f0ee; --muted:rgba(255,255,255,.5); --muted2:rgba(255,255,255,.62);
+  --green:#4ade80; --red:#ff4d6d; --gold:#ffb036;
+  --green-glow:rgba(74,222,128,.12); --green-glow-strong:rgba(74,222,128,.28); --green-glow-soft:rgba(74,222,128,.08);
+  --red-glow:rgba(255,77,109,.1); --red-glow-strong:rgba(255,77,109,.14);
+  --s2:rgba(255,255,255,.05);
+  --surf-top:rgba(255,255,255,.045); --surf-bot:rgba(255,255,255,.012);
+  --shadow-lift:0 1px 0 rgba(255,255,255,.05) inset, 0 20px 40px -20px rgba(0,0,0,.7);
+  --shadow-lift-hover:0 1px 0 rgba(255,255,255,.06) inset, 0 22px 44px -18px rgba(0,0,0,.75), 0 0 0 1px rgba(255,60,20,.2);
+  --accent-shadow:0 10px 30px -8px rgba(255,60,20,.55);
+  --on-accent:#0a0a0a; --on-gold:#0a0a0a; --elev:rgba(255,255,255,.06); --elev2:rgba(20,10,8,.9); --nav-bg:rgba(10,10,10,.75);
+  --vip-grad-a:rgba(255,255,255,.04); --vip-grad-b:rgba(255,60,20,.12);
+  --bg-glow-1:rgba(255,80,40,.1); --bg-glow-2:rgba(255,120,60,.06);
+  --wave-1:#ff3d1f; --wave-2:#ff8a5c; --wave-3:#ffb036; --wave-4:#ff3d1f;
+  --hero-glow-color:#ff3d1f;
+}
 
 *,*::before,*::after{box-sizing:border-box;margin:var(--space-0);padding:var(--space-0)}
 html{scroll-behavior:smooth}
@@ -147,6 +168,9 @@ nav{position:sticky;top:0;z-index:100;background:var(--nav-bg);backdrop-filter:b
 
 /* Centered hero (главная) */
 .hero-centered{max-width:900px;text-align:center;position:relative}
+.hero-centered::before{content:'';position:absolute;top:-70px;right:-12%;width:420px;height:340px;background:radial-gradient(circle,var(--hero-glow-color),transparent 70%);filter:blur(70px);opacity:0;pointer-events:none;z-index:-1;transition:opacity .3s}
+[data-theme="glow"] .hero-centered::before{opacity:.22}
+@media(prefers-reduced-motion:reduce){.hero-centered::before{transition:none}}
 .hero-centered h1{max-width:760px;margin-left:auto;margin-right:auto}
 .hero-centered .hero-sub{margin-left:auto;margin-right:auto;position:relative;z-index:1}
 .hero-centered .hero-actions{justify-content:center}

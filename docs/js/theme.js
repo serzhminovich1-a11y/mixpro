@@ -11,6 +11,7 @@ const THEMES = [
   { id:'brutal',  name:'Смело и графично',  tier:'vip',  swatch:['#2b2bff','#ff3d6e','#f5f3ea'] },
   { id:'hifi',    name:'Ретро хай-фай',     tier:'vip',  swatch:['#ff5a36','#ffb036','#221f22'] },
   { id:'neon',    name:'Неоновый аркадный', tier:'vip',  swatch:['#ff2e9a','#00e5ff','#1a0b3d'] },
+  { id:'glow',    name:'Студийный свет',    tier:'vip',  swatch:['#ff3d1f','#ff8a5c','#050505'] },
 ];
 const THEME_KEY = 'mixpro_theme';
 

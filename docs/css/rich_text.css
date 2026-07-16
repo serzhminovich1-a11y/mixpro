@@ -13,3 +13,26 @@
 .rt-editable{width:100%;min-height:44px;color:var(--text);font-family:var(--display);font-size:var(--text-body-2-size);line-height:1.55;outline:none;word-break:break-word}
 .rt-editable:empty:before{content:attr(data-placeholder);color:var(--muted)}
 .rt-editable b,.rt-editable strong{font-weight:700}
+
+/* ── Расширенный тулбар конструктора теории (opts.full в makeRichEditor) ── */
+.rt-toolbar-full{row-gap:var(--space-1)}
+.rt-color-wrap{position:relative;font-weight:800;overflow:hidden}
+.rt-color{position:absolute;inset:0;opacity:0;cursor:pointer;border:none;padding:0}
+.rt-source{display:block;width:100%;min-height:180px;background:var(--elev2);border:var(--bw) solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--mono);font-size:var(--text-caption-2-size);padding:var(--space-2) var(--space-3);resize:vertical;margin-top:var(--space-2)}
+
+/* ── Содержимое: заголовки/списки/цитата/ссылки/картинки/таблицы —
+   те же правила, что у .step-theory на стороне студента (lesson_steps.css),
+   чтобы предпросмотр в админке не расходился с тем, что увидит ученик. ── */
+.rt-editable h2{font-family:var(--display);font-size:var(--text-header-2-size);font-weight:800;margin:var(--space-4) 0 var(--space-2)}
+.rt-editable h3{font-family:var(--display);font-size:var(--text-header-1-size);font-weight:700;margin:var(--space-4) 0 var(--space-2)}
+.rt-editable h4{font-family:var(--display);font-size:var(--text-body-3-size);font-weight:700;margin:var(--space-3) 0 var(--space-2)}
+.rt-editable h2:first-child,.rt-editable h3:first-child,.rt-editable h4:first-child{margin-top:0}
+.rt-editable ul,.rt-editable ol{margin:var(--space-2) 0 var(--space-3);padding-left:var(--space-6)}
+.rt-editable li{margin-bottom:var(--space-1)}
+.rt-editable blockquote{margin:var(--space-3) 0;padding:var(--space-2) var(--space-4);border-left:3px solid var(--amber);color:var(--muted2);font-style:italic}
+.rt-editable a{color:var(--amber);text-decoration:underline;word-break:break-word}
+.rt-editable img{max-width:100%;border-radius:var(--r-md);margin:var(--space-2) 0;display:block}
+.rt-editable table{width:100%;border-collapse:collapse;margin:var(--space-3) 0;font-size:var(--text-body-1-size)}
+.rt-editable td,.rt-editable th{border:var(--bw) solid var(--border);padding:var(--space-2) var(--space-3);text-align:left}
+.rt-editable th{background:var(--s2);font-weight:700}
+.rt-editable hr{border:none;border-top:var(--bw) solid var(--border);margin:var(--space-4) 0}

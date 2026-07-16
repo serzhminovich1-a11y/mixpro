@@ -25,6 +25,17 @@ const ICON_STEPS_A = aIcon('<path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="m2 17 
 const ICON_UP_A = aIcon('<path d="m18 15-6-6-6 6"/>');
 const ICON_DOWN_A = aIcon('<path d="m6 9 6 6 6-6"/>');
 const ICON_X_A = aIcon('<path d="M18 6 6 18"/><path d="m6 6 12 12"/>');
+// Иконки расширенного тулбара конструктора теории (Stepik-подобный редактор)
+const ICON_LIST_UL_A = aIcon('<line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/>');
+const ICON_LIST_OL_A = aIcon('<line x1="10" x2="21" y1="6" y2="6"/><line x1="10" x2="21" y1="12" y2="12"/><line x1="10" x2="21" y1="18" y2="18"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/>');
+const ICON_ALIGN_L_A = aIcon('<line x1="21" x2="3" y1="6" y2="6"/><line x1="15" x2="3" y1="12" y2="12"/><line x1="17" x2="3" y1="18" y2="18"/>');
+const ICON_ALIGN_C_A = aIcon('<line x1="21" x2="3" y1="6" y2="6"/><line x1="17" x2="7" y1="12" y2="12"/><line x1="19" x2="5" y1="18" y2="18"/>');
+const ICON_ALIGN_R_A = aIcon('<line x1="21" x2="3" y1="6" y2="6"/><line x1="21" x2="9" y1="12" y2="12"/><line x1="21" x2="7" y1="18" y2="18"/>');
+const ICON_LINK_A = aIcon('<path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="M15 7h2a5 5 0 1 1 0 10h-2"/><line x1="8" x2="16" y1="12" y2="12"/>');
+const ICON_UNLINK_A = aIcon('<path d="M9 17H7A5 5 0 0 1 7 7"/><path d="M15 7h2a5 5 0 0 1 3.9 8.11"/><line x1="8" x2="16" y1="12" y2="12"/><line x1="3" x2="21" y1="3" y2="21"/>');
+const ICON_IMAGE_A = aIcon('<rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>');
+const ICON_TABLE_A = aIcon('<path d="M12 3v18"/><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/>');
+const ICON_CODE_A = aIcon('<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>');
 
 async function logout() {
   await SB.auth.signOut();
@@ -149,6 +160,18 @@ function tusUploadFile({ file, bucket, path, onProgress }){
   });
 }
 
+// Картинка внутри текста теории — отдельный публичный бакет 'lesson-content'
+// (не 'lessons': тот приватный, для видео, см. 006_storage_lessons.sql).
+async function uploadTheoryImage(file){
+  if (!file.type || !file.type.startsWith('image/')) throw new Error('Нужен файл изображения');
+  if (file.size > 5 * 1024 * 1024) throw new Error('Максимум 5 МБ');
+  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+  const path = `${currentUid}/${Date.now()}.${ext}`;
+  const { error } = await SB.storage.from('lesson-content').upload(path, file);
+  if (error) throw error;
+  return SB.storage.from('lesson-content').getPublicUrl(path).data.publicUrl;
+}
+
 async function handleCreateCourse(e){
   e.preventDefault();
   const btn = document.getElementById('courseBtn');
@@ -266,13 +289,38 @@ function stepFieldsHtml(type){
   switch (type) {
     case 'theory':
       return `
-        <div class="rt-toolbar">
+        <div class="rt-toolbar rt-toolbar-full">
+          <select class="rt-select rt-style" title="Стиль абзаца">
+            <option value="">Стиль</option>
+            <option value="p">Обычный текст</option>
+            <option value="h2">Заголовок 2</option>
+            <option value="h3">Заголовок 3</option>
+            <option value="h4">Заголовок 4</option>
+            <option value="blockquote">Цитата</option>
+          </select>
+          <span class="rt-sep"></span>
           <button type="button" class="rt-btn" data-cmd="bold" title="Жирный"><b>Ж</b></button>
           <button type="button" class="rt-btn" data-cmd="italic" title="Курсив"><i>К</i></button>
           <button type="button" class="rt-btn" data-cmd="underline" title="Подчёркнутый"><u>Ч</u></button>
           <button type="button" class="rt-btn" data-cmd="strikeThrough" title="Зачёркнутый"><s>З</s></button>
+          <label class="rt-btn rt-color-wrap" title="Цвет текста">A<input type="color" class="rt-color" value="#ff5a36"></label>
+          <span class="rt-sep"></span>
+          <button type="button" class="rt-btn" data-cmd="insertUnorderedList" title="Маркированный список">${ICON_LIST_UL_A}</button>
+          <button type="button" class="rt-btn" data-cmd="insertOrderedList" title="Нумерованный список">${ICON_LIST_OL_A}</button>
+          <span class="rt-sep"></span>
+          <button type="button" class="rt-btn" data-cmd="justifyLeft" title="По левому краю">${ICON_ALIGN_L_A}</button>
+          <button type="button" class="rt-btn" data-cmd="justifyCenter" title="По центру">${ICON_ALIGN_C_A}</button>
+          <button type="button" class="rt-btn" data-cmd="justifyRight" title="По правому краю">${ICON_ALIGN_R_A}</button>
+          <span class="rt-sep"></span>
+          <button type="button" class="rt-btn rt-link-btn" title="Вставить ссылку">${ICON_LINK_A}</button>
+          <button type="button" class="rt-btn" data-cmd="unlink" title="Убрать ссылку">${ICON_UNLINK_A}</button>
+          <button type="button" class="rt-btn rt-img-btn" title="Вставить картинку">${ICON_IMAGE_A}</button>
+          <input type="file" class="rt-img-input" accept="image/*" style="display:none">
+          <button type="button" class="rt-btn rt-table-btn" title="Вставить таблицу">${ICON_TABLE_A}</button>
+          <span class="rt-sep"></span>
+          <button type="button" class="rt-btn rt-source-btn" title="Исходный код (HTML)">${ICON_CODE_A}</button>
         </div>
-        <div class="rt-editable sTheoryHtml" contenteditable="true" style="width:100%;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;min-height:100px" data-placeholder="Текст теории"></div>`;
+        <div class="rt-editable sTheoryHtml" contenteditable="true" style="width:100%;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;min-height:180px" data-placeholder="Текст теории"></div>`;
     case 'quiz_single':
     case 'quiz_multi':
       return `
@@ -456,7 +504,7 @@ async function renderStepsPanel(lesson, panel){
   const fieldsWrap = formWrap.querySelector('.sFields');
   function renderFields(){
     fieldsWrap.innerHTML = stepFieldsHtml(typeSelect.value);
-    if (typeSelect.value === 'theory') makeRichEditor(fieldsWrap);
+    if (typeSelect.value === 'theory') makeRichEditor(fieldsWrap, { full: true, onImageUpload: uploadTheoryImage });
   }
   typeSelect.addEventListener('change', renderFields);
   renderFields();

@@ -317,7 +317,10 @@ function makeRichEditor(container, opts){
       if (!sourceArea) {
         sourceArea = document.createElement('textarea');
         sourceArea.className = 'rt-source';
-        sourceArea.value = editable.innerHTML;
+        // Санитизируем перед показом — иначе видны переходные теги вроде
+        // <font color>, которые execCommand создаёт при работе с цветом,
+        // а на сохранении они всё равно превращаются в <span style>.
+        sourceArea.value = sanitizeRichHtml(editable.innerHTML);
         editable.insertAdjacentElement('afterend', sourceArea);
         editable.style.display = 'none';
         sourceBtn.classList.add('active');

@@ -4,12 +4,13 @@
    урока (теория) в панели администратора.
    ══════════════════════════════════════ */
 .rt-toolbar{display:flex;align-items:center;gap:var(--space-1);flex-wrap:wrap}
-.rt-btn{width:28px;height:28px;border-radius:var(--r-xs);border:var(--bw) solid var(--border);background:var(--s2);color:var(--muted2);font-family:var(--display);font-size:var(--text-body-1-size);cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center}
-.rt-btn:hover{color:var(--text);border-color:var(--amber-glow-strong);transform:translateY(-1px)}
-.rt-btn.active{color:var(--amber);border-color:var(--amber);background:var(--amber-glow)}
-.rt-sep{width:1px;height:18px;background:var(--border);margin:var(--space-0) var(--space-1)}
-.rt-select{background:var(--s2);border:var(--bw) solid var(--border);border-radius:var(--r-xs);color:var(--muted2);font-family:var(--display);font-size:var(--text-caption-2-size);padding:var(--space-1) var(--space-1);cursor:pointer;max-width:110px}
-.rt-select:hover{color:var(--text)}
+.rt-btn,.rt-color-wrap,.rt-toolbar .rt-select{height:30px;box-sizing:border-box;border-radius:var(--r-xs);border:var(--bw) solid var(--border);background-color:var(--s2);color:var(--muted2);font-family:var(--display);cursor:pointer;transition:background-color .16s ease,border-color .16s ease,color .16s ease,transform .16s ease;flex-shrink:0}
+.rt-btn{width:30px;font-size:var(--text-body-1-size);display:flex;align-items:center;justify-content:center;padding:0}
+.rt-btn:hover,.rt-color-wrap:hover,.rt-toolbar .rt-select:hover{color:var(--text);border-color:var(--amber-glow-strong);background-color:var(--amber-glow);transform:translateY(-1px)}
+.rt-btn:active,.rt-color-wrap:active,.rt-toolbar .rt-select:active{transform:translateY(0)}
+.rt-btn.active{color:var(--amber);border-color:var(--amber);background-color:var(--amber-glow)}
+.rt-sep{width:1px;height:20px;align-self:center;background:var(--border);margin:0 var(--space-1);flex-shrink:0}
+.rt-toolbar .rt-select{width:auto;font-size:var(--text-caption-1-size);padding:0 22px 0 var(--space-2);max-width:126px;appearance:none;-webkit-appearance:none;-moz-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23888' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;background-size:9px 6px}
 .rt-editable{width:100%;min-height:44px;color:var(--text);font-family:var(--display);font-size:var(--text-body-2-size);line-height:1.55;outline:none;word-break:break-word}
 .course-rich-editor{background:var(--s2);border:var(--bw) solid var(--border);border-radius:var(--r-sm);overflow:hidden;transition:border-color .18s,box-shadow .18s,transform .18s;animation:rt-editor-in .32s cubic-bezier(.2,.75,.3,1) both}
 .course-rich-editor:focus-within{border-color:var(--amber);box-shadow:0 0 0 3px var(--amber-glow)}
@@ -21,7 +22,7 @@
 
 /* ── Расширенный тулбар конструктора теории (opts.full в makeRichEditor) ── */
 .rt-toolbar-full{row-gap:var(--space-1)}
-.rt-color-wrap{position:relative;font-weight:800;overflow:hidden}
+.rt-color-wrap{width:30px;position:relative;font-weight:800;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .rt-color{position:absolute;inset:0;opacity:0;cursor:pointer;border:none;padding:0}
 .rt-source{display:block;width:100%;min-height:180px;background:var(--elev2);border:var(--bw) solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--mono);font-size:var(--text-caption-2-size);padding:var(--space-2) var(--space-3);resize:vertical;margin-top:var(--space-2)}
 

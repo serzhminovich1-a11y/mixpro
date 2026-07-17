@@ -146,6 +146,7 @@ async function init() {
   if (!session) { location.href = 'auth.html'; return; }
 
   const myUid = session.user.id;
+  SB.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', myUid);
   const uid = new URLSearchParams(location.search).get('user') || myUid;
   const isOwn = uid === myUid;
 

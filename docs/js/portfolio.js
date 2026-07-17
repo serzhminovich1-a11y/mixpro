@@ -289,6 +289,7 @@ async function init() {
   const { data: { session } } = await SB.auth.getSession();
   if (!session) { location.href = 'auth.html'; return; }
   currentUid = session.user.id;
+  SB.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', currentUid);
   viewedUid = new URLSearchParams(location.search).get('user') || currentUid;
   isOwn = viewedUid === currentUid;
 

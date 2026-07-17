@@ -1402,6 +1402,149 @@ async function handleDeleteUser(u, tr){
   document.getElementById('userCount').textContent = document.querySelectorAll('#usersBody tr').length + ' из ' + allUsers.length;
 }
 
+/* ── Досье пользователя: "был(а) в сети" + журнал действий ──
+   Собираем ленту активности не из отдельного лога, а прямо из уже
+   существующих таблиц (посты, комментарии, игры, сдачи заданий,
+   проекты, заявки на верификацию, поданные и полученные жалобы) —
+   у каждой записи уже есть user_id и created_at, отдельный лог не нужен. */
+const ICON_POST_A = aIcon('<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>');
+const ICON_GAME_A = aIcon('<rect width="20" height="12" x="2" y="6" rx="2"/><path d="M6 12h4M8 10v4M15 11h.01M18 13h.01"/>');
+const ICON_PROJECT_A = aIcon('<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>');
+const ICON_FLAG_A = aIcon('<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/>');
+const ACTIVITY_ICONS = { post: ICON_POST_A, comment: ICON_CLIPBOARD_A, game: ICON_GAME_A, submission: ICON_STEPS_A, project: ICON_PROJECT_A, verify: ICON_CHECK_A, report: ICON_FLAG_A };
+
+function formatRelativeTime(dateStr){
+  if (!dateStr) return { label: 'никогда', cls: '' };
+  const min = Math.floor((Date.now() - new Date(dateStr).getTime()) / 60000);
+  if (min < 1) return { label: 'сейчас', cls: 'online' };
+  if (min < 5) return { label: min + ' мин назад', cls: 'online' };
+  if (min < 60) return { label: min + ' мин назад', cls: 'recent' };
+  const hours = Math.floor(min / 60);
+  if (hours < 24) return { label: hours + ' ч назад', cls: 'recent' };
+  const days = Math.floor(hours / 24);
+  if (days < 30) return { label: days + ' дн назад', cls: '' };
+  const months = Math.floor(days / 30);
+  if (months < 12) return { label: months + ' мес назад', cls: '' };
+  return { label: new Date(dateStr).toLocaleDateString('ru-RU'), cls: '' };
+}
+
+function stripHtmlForPreview(html){
+  const div = document.createElement('div');
+  div.innerHTML = html || '';
+  return (div.textContent || '').trim();
+}
+function truncateText(str, n){
+  if (!str) return '(пусто)';
+  return str.length > n ? str.slice(0, n) + '…' : str;
+}
+
+let userDetailWired = false;
+function wireUserDetailModal(){
+  if (userDetailWired) return;
+  userDetailWired = true;
+  document.getElementById('userDetailClose').addEventListener('click', closeUserDetail);
+  document.getElementById('userDetailOverlay').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeUserDetail(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeUserDetail(); });
+}
+function closeUserDetail(){
+  document.getElementById('userDetailOverlay').classList.remove('open');
+}
+
+async function openUserDetail(u){
+  wireUserDetailModal();
+  const overlay = document.getElementById('userDetailOverlay');
+  const body = document.getElementById('userDetailBody');
+  body.innerHTML = '<div class="empty">Загрузка…</div>';
+  overlay.classList.add('open');
+
+  const [
+    { data: posts }, { data: comments }, { data: scores },
+    { data: submissions }, { data: projects }, { data: verifyReqs }, { data: reportsFiled },
+    { data: allPosts }, { data: allComments },
+  ] = await Promise.all([
+    SB.from('posts').select('id, content, created_at').eq('user_id', u.id).order('created_at', { ascending: false }).limit(15),
+    SB.from('post_comments').select('id, content, created_at').eq('user_id', u.id).order('created_at', { ascending: false }).limit(15),
+    SB.from('scores').select('id, game, score, accuracy, difficulty, created_at').eq('user_id', u.id).order('created_at', { ascending: false }).limit(15),
+    SB.from('assignment_submissions').select('id, status, score, submitted_at').eq('user_id', u.id).order('submitted_at', { ascending: false }).limit(15),
+    SB.from('projects').select('id, title, created_at').eq('user_id', u.id).order('created_at', { ascending: false }).limit(15),
+    SB.from('verification_requests').select('id, status, created_at').eq('user_id', u.id).order('created_at', { ascending: false }).limit(10),
+    SB.from('content_reports').select('id, content_type, reason, status, created_at').eq('reporter_id', u.id).order('created_at', { ascending: false }).limit(10),
+    SB.from('posts').select('id').eq('user_id', u.id),
+    SB.from('post_comments').select('id').eq('user_id', u.id),
+  ]);
+
+  const postIds = (allPosts || []).map(p => p.id);
+  const commentIds = (allComments || []).map(c => c.id);
+  let reportsAgainst = [];
+  const reportQueries = [];
+  if (postIds.length) reportQueries.push(SB.from('content_reports').select('id, reason, status, created_at, content_type').eq('content_type', 'post').in('content_id', postIds));
+  if (commentIds.length) reportQueries.push(SB.from('content_reports').select('id, reason, status, created_at, content_type').eq('content_type', 'comment').in('content_id', commentIds));
+  if (reportQueries.length) {
+    const results = await Promise.all(reportQueries);
+    reportsAgainst = results.flatMap(r => r.data || []);
+  }
+
+  renderUserDetailBody(u, {
+    posts, comments, scores, submissions, projects, verifyReqs, reportsFiled, reportsAgainst,
+    postsCount: postIds.length, commentsCount: commentIds.length,
+  });
+}
+
+function renderUserDetailBody(u, data){
+  const body = document.getElementById('userDetailBody');
+  const initials = (u.username || '??').slice(0, 2).toUpperCase();
+  const seen = formatRelativeTime(u.last_seen_at);
+  const registered = u.created_at ? new Date(u.created_at).toLocaleDateString('ru-RU') : '—';
+
+  const timeline = [];
+  (data.posts || []).forEach(p => timeline.push({ t: p.created_at, icon: 'post', text: 'Пост: ' + escapeHtml(truncateText(stripHtmlForPreview(p.content), 90)) }));
+  (data.comments || []).forEach(c => timeline.push({ t: c.created_at, icon: 'comment', text: 'Комментарий: ' + escapeHtml(truncateText(stripHtmlForPreview(c.content), 90)) }));
+  (data.scores || []).forEach(s => timeline.push({ t: s.created_at, icon: 'game', text: `Игра «${escapeHtml(s.game)}»: ${s.score} очков (${s.accuracy}% точность, ${escapeHtml(s.difficulty || '')})` }));
+  (data.submissions || []).forEach(s => timeline.push({ t: s.submitted_at, icon: 'submission', text: `Сдал(а) задание — статус: ${escapeHtml(s.status)}${s.score != null ? ', ' + s.score + ' баллов' : ''}` }));
+  (data.projects || []).forEach(p => timeline.push({ t: p.created_at, icon: 'project', text: 'Загрузил(а) проект в портфолио: ' + escapeHtml(p.title || '') }));
+  (data.verifyReqs || []).forEach(v => timeline.push({ t: v.created_at, icon: 'verify', text: 'Заявка на верификацию — статус: ' + escapeHtml(v.status) }));
+  (data.reportsFiled || []).forEach(r => timeline.push({ t: r.created_at, icon: 'report', text: `Пожаловался(-ась) на ${r.content_type === 'post' ? 'пост' : 'комментарий'}${r.reason ? ': ' + escapeHtml(r.reason) : ''}` }));
+  timeline.sort((a, b) => new Date(b.t) - new Date(a.t));
+
+  const stats = [
+    { n: data.postsCount, l: 'Постов' },
+    { n: data.commentsCount, l: 'Комментариев' },
+    { n: (data.scores || []).length, l: 'Игр (посл. 15)' },
+    { n: (data.submissions || []).length, l: 'Сдач заданий' },
+    { n: (data.projects || []).length, l: 'Проектов' },
+    { n: data.reportsAgainst.length, l: 'Жалоб на контент' },
+  ];
+
+  body.innerHTML = `
+    <div class="aud-head">
+      <div class="aud-avatar" style="background:${escapeAttr(u.avatar_color || '')}">${initials}</div>
+      <div>
+        <div class="aud-name">${escapeHtml(u.username || '(без имени)')}</div>
+        <div class="aud-meta">
+          <span class="aud-badge role-${escapeAttr(u.role)}">${escapeHtml(u.role)}</span>
+          <span><span class="au-seen-dot ${seen.cls}" style="display:inline-block;vertical-align:-1px"></span> Был(а): ${seen.label}</span>
+          <span>Регистрация: ${registered}</span>
+        </div>
+      </div>
+    </div>
+    <div class="aud-stats">${stats.map(s => `<div class="aud-stat"><div class="n">${s.n}</div><div class="l">${s.l}</div></div>`).join('')}</div>
+    ${data.reportsAgainst.length ? `
+      <div class="aud-section-title aud-flag">⚠ Жалобы на контент этого пользователя (${data.reportsAgainst.length})</div>
+      <div class="aud-timeline">${data.reportsAgainst.map(r => `<div class="aud-item"><div class="aud-item-icon">${ICON_FLAG_A}</div><div class="aud-item-body"><div class="aud-item-text">${r.content_type === 'post' ? 'Пост' : 'Комментарий'} — статус «${escapeHtml(r.status)}»${r.reason ? ': ' + escapeHtml(r.reason) : ''}</div><div class="aud-item-time">${new Date(r.created_at).toLocaleString('ru-RU')}</div></div></div>`).join('')}</div>
+    ` : ''}
+    <div class="aud-section-title">Последние действия</div>
+    <div class="aud-timeline">
+      ${timeline.length ? timeline.slice(0, 40).map(item => `
+        <div class="aud-item">
+          <div class="aud-item-icon">${ACTIVITY_ICONS[item.icon] || ACTIVITY_ICONS.post}</div>
+          <div class="aud-item-body">
+            <div class="aud-item-text">${item.text}</div>
+            <div class="aud-item-time">${new Date(item.t).toLocaleString('ru-RU')}</div>
+          </div>
+        </div>`).join('') : '<div class="empty">Действий пока нет</div>'}
+    </div>`;
+}
+
 function userRow(u){
   const tr = document.createElement('tr');
 
@@ -1410,15 +1553,19 @@ function userRow(u){
   const initials = (u.username || '??').slice(0, 2).toUpperCase();
   const date = u.created_at ? new Date(u.created_at).toLocaleDateString('ru-RU') : '—';
   const isSelf = u.id === currentUid;
+  const seen = formatRelativeTime(u.last_seen_at);
 
   tr.innerHTML = `
-    <td><div class="au-user"><div class="au-avatar" style="background:${u.avatar_color || ''}">${initials}</div><div class="au-username">${u.username || '(без имени)'}</div></div></td>
+    <td><button type="button" class="au-user au-userOpenBtn" style="background:none;border:none;cursor:pointer;padding:0;text-align:left" title="Открыть досье"><div class="au-avatar" style="background:${escapeAttr(u.avatar_color || '')}">${initials}</div><div class="au-username">${escapeHtml(u.username || '(без имени)')}</div></button></td>
     <td><select class="au-role role-${u.role}">${roleOptions}</select><span class="au-saved"></span></td>
     <td><input type="number" class="au-xp" value="${u.xp || 0}" min="0"><span class="au-saved"></span></td>
     <td><select class="au-vstatus">${vOptions}</select><span class="au-saved"></span></td>
     <td><label class="au-vip-toggle"><input type="checkbox" class="au-vip" ${u.is_vip ? 'checked' : ''}><span class="au-saved"></span></label></td>
+    <td><button type="button" class="au-seen au-userOpenBtn" title="Открыть досье"><span class="au-seen-dot ${seen.cls}"></span>${seen.label}</button></td>
     <td class="au-date">${date}</td>
     <td>${isSelf ? '' : `<button type="button" class="icon-btn au-del" title="Удалить аккаунт">${ICON_TRASH_A}</button>`}</td>`;
+
+  tr.querySelectorAll('.au-userOpenBtn').forEach(btn => btn.addEventListener('click', () => openUserDetail(u)));
 
   const roleSel = tr.querySelector('.au-role');
   roleSel.addEventListener('change', () => {
@@ -1470,6 +1617,7 @@ async function init() {
   if (!session) { location.href = 'auth.html'; return; }
   currentUid = session.user.id;
   currentSession = session;
+  SB.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', currentUid);
 
   const { data: profile } = await SB.from('profiles').select('role').eq('id', currentUid).single();
   currentRole = profile ? profile.role : null;

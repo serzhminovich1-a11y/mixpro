@@ -30,3 +30,37 @@
 .au-vip::after{content:'';position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:var(--r-badge);background:var(--muted2);transition:transform .15s,background .15s}
 .au-vip:checked{background:rgba(250,204,21,.15);border-color:var(--gold)}
 .au-vip:checked::after{transform:translateX(15px);background:var(--gold)}
+
+/* ── "Был(а)" / онлайн-индикатор ── */
+.au-seen{display:inline-flex;align-items:center;gap:var(--space-2);font-family:var(--mono);font-size:var(--text-caption-2-size);color:var(--muted2);white-space:nowrap;cursor:pointer;background:none;border:none;padding:0}
+.au-seen:hover{color:var(--text)}
+.au-seen-dot{width:8px;height:8px;border-radius:var(--r-badge);background:var(--muted);flex-shrink:0}
+.au-seen-dot.online{background:var(--green);box-shadow:0 0 0 3px var(--green-glow)}
+.au-seen-dot.recent{background:var(--amber)}
+
+/* ── Модалка "Досье пользователя" ── */
+.au-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:300;backdrop-filter:blur(4px);align-items:flex-start;justify-content:center;padding:var(--space-6) var(--space-4);overflow-y:auto}
+.au-overlay.open{display:flex}
+.au-modal{background:var(--card);border:var(--bw) solid var(--border-hi);border-radius:var(--r-lg);padding:var(--space-6);max-width:720px;width:100%;box-shadow:var(--shadow-lift-hover);position:relative;margin:auto}
+.au-modal-close{position:absolute;top:var(--space-4);right:var(--space-4);width:32px;height:32px;border-radius:var(--r-badge);border:var(--bw) solid var(--border);background:var(--s2);color:var(--muted2);font-size:20px;line-height:1;cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center}
+.au-modal-close:hover{color:var(--text);border-color:var(--border-hi)}
+.aud-head{display:flex;align-items:center;gap:var(--space-4);padding-right:40px}
+.aud-avatar{width:56px;height:56px;border-radius:var(--r-badge);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:800;font-size:var(--text-header-1-size);color:var(--on-accent);background:linear-gradient(135deg,var(--amber),var(--amber-dim));flex-shrink:0}
+.aud-name{font-family:var(--display);font-weight:800;font-size:var(--text-header-2-size);color:var(--text)}
+.aud-meta{font-family:var(--mono);font-size:var(--text-caption-2-size);color:var(--muted2);margin-top:var(--space-1);display:flex;gap:var(--space-3);flex-wrap:wrap;align-items:center}
+.aud-badge{display:inline-flex;align-items:center;padding:var(--space-half) var(--space-2);border-radius:var(--r-xs);font-weight:700;letter-spacing:.03em}
+.aud-badge.role-ADMIN{color:var(--gold);background:rgba(250,204,21,.12)}
+.aud-badge.role-MENTOR,.aud-badge.role-VERIFIED_PRO{color:var(--amber);background:var(--amber-glow)}
+.aud-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:var(--space-2);margin:var(--space-5) 0}
+.aud-stat{background:var(--s2);border:var(--bw) solid var(--border);border-radius:var(--r-sm);padding:var(--space-3);text-align:center}
+.aud-stat .n{font-family:var(--display);font-size:var(--text-header-1-size);font-weight:800;color:var(--amber);font-variant-numeric:tabular-nums}
+.aud-stat .l{font-family:var(--mono);font-size:var(--text-caption-1-size);color:var(--muted2);margin-top:var(--space-1)}
+.aud-section-title{font-family:var(--display);font-size:var(--text-body-1-size);font-weight:700;color:var(--text);margin:var(--space-5) 0 var(--space-2)}
+.aud-timeline{display:flex;flex-direction:column;gap:var(--space-1);max-height:360px;overflow-y:auto}
+.aud-item{display:flex;align-items:flex-start;gap:var(--space-3);padding:var(--space-2) var(--space-3);border-radius:var(--r-sm);background:var(--s2)}
+.aud-item-icon{width:26px;height:26px;border-radius:var(--r-badge);background:var(--elev2);border:var(--bw) solid var(--border);color:var(--amber);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.aud-item-icon svg{width:13px;height:13px}
+.aud-item-body{flex:1;min-width:0}
+.aud-item-text{font-size:var(--text-caption-2-size);color:var(--text);line-height:1.4;word-break:break-word}
+.aud-item-time{font-family:var(--mono);font-size:var(--text-caption-1-size);color:var(--muted);margin-top:var(--space-half)}
+.aud-flag{color:var(--red)}

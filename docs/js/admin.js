@@ -182,24 +182,24 @@ async function uploadCourseAsset(file){
 function fullRichToolbarHtml(){
   return `
     <div class="rt-toolbar rt-toolbar-full">
-      <button type="button" class="rt-btn" data-cmd="undo" title="Отменить">${ICON_UNDO_A}</button><button type="button" class="rt-btn" data-cmd="redo" title="Повторить">${ICON_REDO_A}</button>
+      <button type="button" class="rt-btn" data-cmd="undo" data-tip="Отменить" aria-label="Отменить">${ICON_UNDO_A}</button><button type="button" class="rt-btn" data-cmd="redo" data-tip="Повторить" aria-label="Повторить">${ICON_REDO_A}</button>
       <span class="rt-sep"></span>
-      <button type="button" class="rt-btn" data-cmd="bold" title="Жирный"><b>Ж</b></button><button type="button" class="rt-btn" data-cmd="italic" title="Курсив"><i>К</i></button><button type="button" class="rt-btn" data-cmd="underline" title="Подчёркнутый"><u>Ч</u></button><button type="button" class="rt-btn rt-code-btn" title="Блок кода">&lt;/&gt;</button>
+      <button type="button" class="rt-btn" data-cmd="bold" data-tip="Жирный" aria-label="Жирный"><b>Ж</b></button><button type="button" class="rt-btn" data-cmd="italic" data-tip="Курсив" aria-label="Курсив"><i>К</i></button><button type="button" class="rt-btn" data-cmd="underline" data-tip="Подчёркнутый" aria-label="Подчёркнутый"><u>Ч</u></button><button type="button" class="rt-btn rt-code-btn" data-tip="Блок кода" aria-label="Блок кода">&lt;/&gt;</button>
       <select class="rt-select rt-style" title="Стиль абзаца"><option value="">Стили</option><option value="p">Обычный текст</option><option value="h2">Заголовок 2</option><option value="h3">Заголовок 3</option><option value="h4">Заголовок 4</option><option value="blockquote">Цитата</option></select>
-      <label class="rt-btn rt-color-wrap" title="Цвет текста">A<input type="color" class="rt-color" value="#ff5a36"></label>
+      <label class="rt-btn rt-color-wrap" data-tip="Цвет текста" aria-label="Цвет текста">A<input type="color" class="rt-color" value="#ff5a36"></label>
       <span class="rt-sep"></span>
-      <button type="button" class="rt-btn" data-cmd="insertUnorderedList" title="Маркированный список">${ICON_LIST_UL_A}</button><button type="button" class="rt-btn" data-cmd="insertOrderedList" title="Нумерованный список">${ICON_LIST_OL_A}</button>
-      <button type="button" class="rt-btn rt-quote-btn" title="Цитата">${ICON_QUOTE_A}</button>
+      <button type="button" class="rt-btn" data-cmd="insertUnorderedList" data-tip="Маркированный список" aria-label="Маркированный список">${ICON_LIST_UL_A}</button><button type="button" class="rt-btn" data-cmd="insertOrderedList" data-tip="Нумерованный список" aria-label="Нумерованный список">${ICON_LIST_OL_A}</button>
+      <button type="button" class="rt-btn rt-quote-btn" data-tip="Цитата" aria-label="Цитата">${ICON_QUOTE_A}</button>
       <span class="rt-sep"></span>
-      <button type="button" class="rt-btn" data-cmd="justifyLeft" title="По левому краю">${ICON_ALIGN_L_A}</button><button type="button" class="rt-btn" data-cmd="justifyCenter" title="По центру">${ICON_ALIGN_C_A}</button><button type="button" class="rt-btn" data-cmd="justifyRight" title="По правому краю">${ICON_ALIGN_R_A}</button>
+      <button type="button" class="rt-btn" data-cmd="justifyLeft" data-tip="По левому краю" aria-label="По левому краю">${ICON_ALIGN_L_A}</button><button type="button" class="rt-btn" data-cmd="justifyCenter" data-tip="По центру" aria-label="По центру">${ICON_ALIGN_C_A}</button><button type="button" class="rt-btn" data-cmd="justifyRight" data-tip="По правому краю" aria-label="По правому краю">${ICON_ALIGN_R_A}</button>
       <span class="rt-sep"></span>
-      <button type="button" class="rt-btn rt-link-btn" title="Вставить ссылку">${ICON_LINK_A}</button><button type="button" class="rt-btn" data-cmd="unlink" title="Убрать ссылку">${ICON_UNLINK_A}</button>
-      <button type="button" class="rt-btn rt-img-btn" title="Добавить изображение">${ICON_IMAGE_A}</button><input type="file" class="rt-img-input" accept="image/*" hidden>
-      <button type="button" class="rt-btn rt-file-btn" title="Прикрепить файл">${ICON_FILE_A}</button><input type="file" class="rt-file-input" hidden>
-      <button type="button" class="rt-btn rt-video-btn" title="Добавить видео по ссылке">${ICON_VIDEO_A}</button>
-      <button type="button" class="rt-btn rt-formula-btn" title="Вставить формулу или символ">Σ</button>
-      <button type="button" class="rt-btn rt-table-btn" title="Вставить таблицу">${ICON_TABLE_A}</button>
-      <span class="rt-sep"></span><button type="button" class="rt-btn rt-source-btn" title="Исходный код (HTML)">${ICON_CODE_A}</button>
+      <button type="button" class="rt-btn rt-link-btn" data-tip="Вставить ссылку" aria-label="Вставить ссылку">${ICON_LINK_A}</button><button type="button" class="rt-btn" data-cmd="unlink" data-tip="Убрать ссылку" aria-label="Убрать ссылку">${ICON_UNLINK_A}</button>
+      <button type="button" class="rt-btn rt-img-btn" data-tip="Добавить изображение" aria-label="Добавить изображение">${ICON_IMAGE_A}</button><input type="file" class="rt-img-input" accept="image/*" hidden>
+      <button type="button" class="rt-btn rt-file-btn" data-tip="Прикрепить файл" aria-label="Прикрепить файл">${ICON_FILE_A}</button><input type="file" class="rt-file-input" hidden>
+      <button type="button" class="rt-btn rt-video-btn" data-tip="Добавить видео по ссылке" aria-label="Добавить видео по ссылке">${ICON_VIDEO_A}</button>
+      <button type="button" class="rt-btn rt-formula-btn" data-tip="Вставить формулу или символ" aria-label="Вставить формулу или символ">Σ</button>
+      <button type="button" class="rt-btn rt-table-btn" data-tip="Вставить таблицу" aria-label="Вставить таблицу">${ICON_TABLE_A}</button>
+      <span class="rt-sep"></span><button type="button" class="rt-btn rt-source-btn" data-tip="Исходный код (HTML)" aria-label="Исходный код (HTML)">${ICON_CODE_A}</button>
     </div>`;
 }
 

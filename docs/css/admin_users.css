@@ -10,9 +10,9 @@
 .au-table tr:last-child td{border-bottom:none}
 .au-table tr:hover td{background:var(--s2)}
 
-.au-user{display:flex;align-items:center;gap:var(--space-2)}
+.au-user{display:flex;align-items:center;gap:var(--space-2);color:inherit;font:inherit}
 .au-avatar{width:28px;height:28px;border-radius:var(--r-badge);display:flex;align-items:center;justify-content:center;font-size:var(--text-caption-1-size);font-weight:800;color:var(--on-accent);background:linear-gradient(135deg,var(--amber),var(--amber-dim));flex-shrink:0}
-.au-username{font-family:var(--display);font-weight:700;font-size:var(--text-body-1-size)}
+.au-username{font-family:var(--display);font-weight:700;font-size:var(--text-body-1-size);color:var(--text)}
 
 .au-table select,.au-table input[type="number"]{background:var(--s2);border:var(--bw) solid var(--border);border-radius:var(--r-xs);color:var(--text);font-family:var(--mono);font-size:var(--text-caption-2-size);padding:var(--space-1) var(--space-2)}
 .au-table select:focus,.au-table input[type="number"]:focus{outline:none;border-color:var(--amber)}

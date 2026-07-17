@@ -3,95 +3,59 @@
 // ══════════════════════════════════════
 
 // ══════════════════════════════════════
-//   СЛОВАРЬ ЗВУКОРЕЖИССЁРА
+//   СЛОВАРЬ ЗВУКОРЕЖИССЁРА — категории и термины теперь в базе (таблицы
+//   glossary_categories/glossary_terms), редактируются из панели
+//   администратора. Здесь только загрузка и рендер на Главной.
 // ══════════════════════════════════════
-const GLOSS_CATS = {
-  eq:'Эквализация', dynamics:'Динамика', loudness:'Громкость',
-  space:'Пространство', recording:'Запись и сведение', mastering:'Мастеринг',
-};
-const GLOSSARY = [
-  {term:'Q-фактор', cat:'eq', def:'Ширина полосы EQ-фильтра вокруг центральной частоты. Узкий Q — точечная правка (убрать резонанс), широкий Q — мягкая тональная коррекция.'},
-  {term:'Полочный фильтр (Shelf)', cat:'eq', def:'Поднимает или срезает всё выше/ниже заданной частоты плоской «полкой», а не колоколом. Хорош для общей тональной балансировки.'},
-  {term:'Колокольный фильтр (Bell)', cat:'eq', def:'Поднимает или срезает узкий диапазон вокруг центральной частоты — самый частый тип EQ-фильтра, «горб» или «яма» на графике.'},
-  {term:'High-pass / Low-pass фильтр', cat:'eq', def:'High-pass срезает всё ниже заданной частоты (убирает гул), Low-pass — всё выше (убирает шипение и лишний воздух).'},
-  {term:'Резонанс', cat:'eq', def:'Нежелательный подъём на узкой частоте — из-за помещения, инструмента или самого фильтра. Обычно вырезается узким колоколом на слух.'},
-  {term:'Сибилянты', cat:'eq', def:'Резкие свистящие звуки речи и вокала («с», «ш», «ц») в районе 5–9 кГц. Убираются де-эссером или точечным вырезом EQ.'},
-
-  {term:'Attack (атака)', cat:'dynamics', def:'Как быстро компрессор или лимитер начинает сжимать сигнал после того, как он превысил порог (threshold).'},
-  {term:'Release (восстановление)', cat:'dynamics', def:'Как быстро компрессор перестаёт сжимать сигнал после того, как он опустился ниже порога.'},
-  {term:'Ratio (степень сжатия)', cat:'dynamics', def:'Во сколько раз уменьшается превышение порога. При 4:1 превышение на 4 дБ на выходе станет превышением всего на 1 дБ.'},
-  {term:'Threshold (порог)', cat:'dynamics', def:'Уровень громкости, начиная с которого компрессор, лимитер или гейт начинают работать.'},
-  {term:'Knee (колено)', cat:'dynamics', def:'Мягкий (soft knee) или резкий (hard knee) переход компрессора в режим сжатия возле порога — влияет на то, насколько «незаметно» работает компрессия.'},
-  {term:'Sidechain', cat:'dynamics', def:'Компрессор реагирует не на сам сигнал, а на другой — например, бас автоматически «подкачивается» под удар кика, освобождая ему место.'},
-  {term:'Лимитер', cat:'dynamics', def:'Компрессор с очень высоким ratio (обычно ∞:1) — не даёт сигналу превысить заданный потолок громкости.'},
-  {term:'Гейт (Noise Gate)', cat:'dynamics', def:'Заглушает сигнал ниже порога — убирает шум между фразами вокала или наводки на дорожке в паузах.'},
-
-  {term:'LUFS', cat:'loudness', def:'Единица измерения воспринимаемой громкости всего трека (в отличие от пиковой). Стриминги нормализуют треки именно по LUFS, не по пикам.'},
-  {term:'dBFS', cat:'loudness', def:'Единица измерения уровня сигнала относительно цифрового максимума. 0 dBFS — потолок, выше только клиппинг.'},
-  {term:'True Peak', cat:'loudness', def:'Реальный пик сигнала после цифро-аналогового преобразования — может быть выше, чем показывает обычный измеритель (Inter-Sample Peak).'},
-  {term:'Динамический диапазон', cat:'loudness', def:'Разница между самым тихим и самым громким местом трека. «Зажатый» перекомпрессированный трек имеет маленький диапазон.'},
-  {term:'Война громкости (Loudness War)', cat:'loudness', def:'Гонка за максимально громким мастерингом в ущерб динамике трека. Нормализация громкости в стримингах во многом обесценила эту гонку.'},
-  {term:'Headroom (запас)', cat:'loudness', def:'Расстояние в дБ между текущим пиковым уровнем сигнала и цифровым потолком 0 dBFS.'},
-
-  {term:'Панорама (Pan)', cat:'space', def:'Положение звука между левым и правым каналом стерео-поля.'},
-  {term:'Pan Law', cat:'space', def:'Правило, по которому меняется громкость звука при панорамировании к центру или краям, чтобы моно-сумма звучала ровно по громкости.'},
-  {term:'Эффект Хааса (Haas Effect)', cat:'space', def:'Если один и тот же сигнал приходит в оба уха с задержкой 1–30 мс, мозг слышит один источник, но «шире». Основа многих техник расширения стерео.'},
-  {term:'Реверберация', cat:'space', def:'Множество отражений звука от поверхностей помещения, создающие ощущение пространства и объёма.'},
-  {term:'Задержка (Delay)', cat:'space', def:'Повтор сигнала через заданное время. В отличие от реверберации, повторы отчётливые и раздельные, а не размытые.'},
-  {term:'Моно-совместимость', cat:'space', def:'Звучит ли микс нормально, если свести стерео в один канал. Важно для клубных систем, ТВ и части стриминговых сценариев.'},
-
-  {term:'Фантомное питание (+48V)', cat:'recording', def:'Напряжение, которое микшер или аудиоинтерфейс подаёт на конденсаторный микрофон через XLR-кабель.'},
-  {term:'Proximity Effect', cat:'recording', def:'Усиление низких частот, когда источник (обычно голос) подносят близко к направленному микрофону.'},
-  {term:'DI-бокс', cat:'recording', def:'Устройство, согласующее сигнал инструмента (гитара, бас) с линейным входом интерфейса напрямую, без микрофона.'},
-  {term:'Гейн-стейджинг', cat:'recording', def:'Выстраивание правильного уровня сигнала на каждом этапе цепи — запись, плагины, мастер-шина — чтобы избежать лишнего шума и клиппинга.'},
-
-  {term:'Дизеринг (Dither)', cat:'mastering', def:'Добавление контролируемого шума при понижении битности (например, с 24 до 16 бит), чтобы избежать искажений квантования.'},
-  {term:'Нормализация', cat:'mastering', def:'Приведение громкости трека к заданному уровню — пиковому или по LUFS.'},
-  {term:'Каскад обработки (Chain)', cat:'mastering', def:'Порядок, в котором сигнал проходит через плагины: например EQ → компрессор → лимитер.'},
-];
-let glossCat='all';
-const GLOSS_ICON_PATHS={
-  eq:'<line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/>',
-  dynamics:'<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
-  loudness:'<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>',
-  space:'<path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/>',
-  recording:'<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/>',
-  mastering:'<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/>',
-};
-function glossIcon(cat){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+(GLOSS_ICON_PATHS[cat]||GLOSS_ICON_PATHS.eq)+'</svg>';}
-function setGlossCat(cat,btn){
-  glossCat=cat;
-  document.querySelectorAll('#glossCats .gloss-cat-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  renderGlossary();
+let glossCategories=[], glossTerms=[], glossLoaded=false, glossLoading=null;
+const GLOSS_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><path d="M9 3v18"/></svg>';
+async function loadGlossary(){
+  if(glossLoading)return glossLoading;
+  glossLoading=(async()=>{
+    const [{data:cats},{data:terms}]=await Promise.all([
+      SB.from('glossary_categories').select('*').order('order_index',{ascending:true}),
+      SB.from('glossary_terms').select('*').order('order_index',{ascending:true}),
+    ]);
+    glossCategories=cats||[];
+    glossTerms=terms||[];
+    glossLoaded=true;
+    const sel=document.getElementById('glossCatSelect');
+    if(sel){
+      sel.innerHTML='<option value="all">Все категории</option>'+
+        glossCategories.map(c=>'<option value="'+c.id+'">'+escapeGlossHtml(c.title)+'</option>').join('');
+    }
+  })();
+  return glossLoading;
 }
-function renderGlossCats(){
-  const wrap=document.getElementById('glossCats');
-  if(wrap.dataset.built)return;
-  wrap.dataset.built='1';
-  const cats=[['all','Все']].concat(Object.entries(GLOSS_CATS));
-  wrap.innerHTML=cats.map(([key,label],i)=>
-    '<button type="button" class="gloss-cat-btn'+(i===0?' active':'')+'" onclick="setGlossCat(\''+key+'\',this)">'+label+'</button>'
-  ).join('');
+function escapeGlossHtml(s){
+  const d=document.createElement('div');d.textContent=s||'';return d.innerHTML;
 }
-function renderGlossary(){
-  renderGlossCats();
-  const q=(document.getElementById('glossSearch').value||'').trim().toLowerCase();
+async function renderGlossary(){
   const grid=document.getElementById('glossGrid');
-  const items=GLOSSARY.filter(g=>{
-    if(glossCat!=='all'&&g.cat!==glossCat)return false;
+  if(!glossLoaded){
+    grid.innerHTML='<div class="empty">Загружаем словарь…</div>';
+    await loadGlossary();
+  }
+  const catSel=document.getElementById('glossCatSelect');
+  const glossCat=catSel?catSel.value:'all';
+  const q=(document.getElementById('glossSearch').value||'').trim().toLowerCase();
+  const catTitle=id=>{const c=glossCategories.find(c=>c.id===id);return c?c.title:'';};
+  const items=glossTerms.filter(g=>{
+    if(glossCat!=='all'&&g.category_id!==glossCat)return false;
     if(!q)return true;
-    return g.term.toLowerCase().includes(q)||g.def.toLowerCase().includes(q);
+    const plain=(g.term+' '+g.definition).toLowerCase();
+    return plain.includes(q);
   });
   if(!items.length){
-    grid.innerHTML='<div class="empty" style="grid-column:1/-1">Ничего не нашлось — попробуй другое слово или выбери «Все»</div>';
+    grid.innerHTML='<div class="empty" style="grid-column:1/-1">Ничего не нашлось — попробуй другое слово или выбери «Все категории»</div>';
     return;
   }
   grid.innerHTML=items.map(g=>
-    '<div class="gloss-card"><div class="gloss-term">'+glossIcon(g.cat)+'<span>'+g.term+'</span></div>'+
-    '<div class="gloss-cat-tag">'+GLOSS_CATS[g.cat]+'</div>'+
-    '<div class="gloss-def">'+g.def+'</div></div>'
+    '<div class="gloss-card"><div class="gloss-term">'+GLOSS_ICON+'<span>'+escapeGlossHtml(g.term)+'</span></div>'+
+    (g.category_id?'<div class="gloss-cat-tag">'+escapeGlossHtml(catTitle(g.category_id))+'</div>':'')+
+    '<div class="gloss-def gloss-rich-content">'+(window.sanitizeRichHtml?sanitizeRichHtml(g.definition||''):'')+'</div></div>'
   ).join('');
+  if(window.animateChildren)animateChildren(grid);
 }
 
 const FREQ_BANDS = [

@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="css/index.css">
 <link rel="stylesheet" href="css/animations.css">
 <link rel="stylesheet" href="css/notifications.css">
+<link rel="stylesheet" href="css/rich_text.css">
 <script>
 (function(){
   try {
@@ -322,12 +323,16 @@
     <div class="sec-header"><h2 class="sec-title">Словарь звукорежиссёра</h2></div>
     <p class="page-sub" style="margin:-16px 0 0">Базовые термины, которые встретятся в уроках, тренажёрах и разборах треков. Ищи по названию или по смыслу.</p>
 
-    <div class="gloss-search">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-      <input type="text" id="glossSearch" placeholder="Например: LUFS, компрессор, Q-фактор…" oninput="renderGlossary()">
+    <div class="gloss-toolbar">
+      <div class="gloss-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="text" id="glossSearch" placeholder="Например: LUFS, компрессор, Q-фактор…" oninput="renderGlossary()">
+      </div>
+      <select class="gloss-cat-select" id="glossCatSelect" onchange="renderGlossary()">
+        <option value="all">Все категории</option>
+      </select>
     </div>
-    <div class="gloss-cats" id="glossCats"></div>
-    <div class="gloss-grid" id="glossGrid"></div>
+    <div class="gloss-grid" id="glossGrid"><div class="empty">Загружаем словарь…</div></div>
   </div>
 </div>
 
@@ -360,6 +365,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="js/animations.js"></script>
 <script src="js/notifications.js"></script>
+<script src="js/content_filter.js"></script>
+<script src="js/rich_text.js"></script>
 <script src="js/main.js"></script>
 <script src="js/theme.js"></script>
 <script src="js/hero_wave.js"></script>

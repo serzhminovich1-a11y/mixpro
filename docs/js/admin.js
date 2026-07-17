@@ -73,6 +73,7 @@ async function loadSection(name){
   loadedSections.add(name);
   if (name === 'overview') await renderOverview();
   if (name === 'courses') await renderCoursesAdmin();
+  if (name === 'glossary') await renderGlossaryAdmin();
   if (name === 'assignments') await renderAssignmentQueue();
   if (name === 'verify') await renderVerifyQueue();
   if (name === 'reports') await renderReportsQueue();
@@ -916,6 +917,207 @@ async function renderCoursesAdmin(){
     const sections = (allSections || []).filter(s => s.course_id === c.id);
     wrap.appendChild(courseAdminBlock(c, lessons, assignments, sections));
   });
+}
+
+/* ══════════════════════════════════════
+   СЛОВАРЬ (категории + термины, видны всем на Главной)
+   ══════════════════════════════════════ */
+async function renderGlossaryAdmin(){
+  const root = document.getElementById('glossaryAdminRoot');
+  const [{ data: cats }, { data: terms }] = await Promise.all([
+    SB.from('glossary_categories').select('*').order('order_index', { ascending: true }),
+    SB.from('glossary_terms').select('*').order('order_index', { ascending: true }),
+  ]);
+  const categories = cats || [];
+  const allTerms = terms || [];
+  root.innerHTML = '';
+  root.appendChild(glossaryProgramEditor(categories, allTerms));
+}
+
+function glossaryProgramEditor(categories, allTerms){
+  const wrap = document.createElement('div');
+  wrap.className = 'course-program-editor';
+  wrap.innerHTML = `<div class="course-program-toolbar"><div><div class="course-program-kicker">Категории и термины</div><div class="course-program-sub">Создавай категории и добавляй в них термины — так же, как разделы и уроки в курсе.</div></div><button type="button" class="program-add-btn addGlossCatBtn">+ Создать категорию</button></div>`;
+  wrap.querySelector('.addGlossCatBtn').addEventListener('click', () => createGlossaryCategory());
+
+  categories.forEach((cat, i) => {
+    const terms = allTerms.filter(t => t.category_id === cat.id);
+    wrap.appendChild(glossaryCategorySection(cat, terms, i, categories.length, categories));
+  });
+
+  const uncategorized = allTerms.filter(t => !t.category_id || !categories.some(c => c.id === t.category_id));
+  if (uncategorized.length) {
+    const legacy = document.createElement('div');
+    legacy.className = 'course-program-legacy';
+    legacy.innerHTML = '<div class="course-program-legacy-title">Термины без категории</div>';
+    uncategorized.forEach(t => legacy.appendChild(glossaryTermRow(t, categories)));
+    wrap.appendChild(legacy);
+  }
+  if (!categories.length && !uncategorized.length) {
+    const empty = document.createElement('div');
+    empty.className = 'empty';
+    empty.style.padding = '22px 0 12px';
+    empty.textContent = 'Пока нет ни одной категории — создай первую выше.';
+    wrap.appendChild(empty);
+  }
+  return wrap;
+}
+
+function glossaryCategorySection(cat, terms, index, total, allCategories){
+  const group = document.createElement('div');
+  group.className = 'course-program-section';
+  const count = terms.length;
+  group.innerHTML = `
+    <div class="course-program-section-head">
+      <div><span class="course-program-index">${index + 1}.</span><span class="course-program-title">${escapeHtml(cat.title)}</span><span class="course-program-count">${count} ${count === 1 ? 'термин' : count < 5 ? 'термина' : 'терминов'}</span></div>
+      <div class="course-program-actions">
+        <button type="button" class="icon-btn catUp" title="Поднять категорию">${ICON_UP_A}</button><button type="button" class="icon-btn catDown" title="Опустить категорию">${ICON_DOWN_A}</button>
+        <button type="button" class="icon-btn catEdit" title="Переименовать категорию">${ICON_PENCIL_A}</button><button type="button" class="icon-btn catDelete" title="Удалить категорию">${ICON_TRASH_A}</button>
+      </div>
+    </div>`;
+  const [upBtn, downBtn, editBtn, delBtn] = group.querySelectorAll('.icon-btn');
+  upBtn.disabled = index === 0;
+  downBtn.disabled = index === total - 1;
+  upBtn.addEventListener('click', () => moveGlossaryCategory(allCategories, index, -1));
+  downBtn.addEventListener('click', () => moveGlossaryCategory(allCategories, index, 1));
+  editBtn.addEventListener('click', () => renameGlossaryCategory(cat));
+  delBtn.addEventListener('click', () => deleteGlossaryCategory(cat, terms));
+
+  const termsWrap = document.createElement('div');
+  termsWrap.className = 'course-program-lessons';
+  terms.forEach(t => termsWrap.appendChild(glossaryTermRow(t, allCategories)));
+  termsWrap.appendChild(glossaryTermCreateForm(cat.id));
+  group.appendChild(termsWrap);
+  return group;
+}
+
+function glossaryTermRow(term, categories){
+  const wrap = document.createElement('div');
+  const row = document.createElement('div');
+  row.className = 'admin-lesson-row';
+  row.innerHTML = `
+    <span class="admin-lesson-main"><span>${escapeHtml(term.term)}</span></span>
+    <span style="display:flex;align-items:center;gap:8px">
+      <button type="button" class="icon-btn" title="Редактировать термин">${ICON_PENCIL_A}</button>
+      <button type="button" class="icon-btn" title="Удалить термин">${ICON_TRASH_A}</button>
+    </span>`;
+  const [editBtn, delBtn] = row.querySelectorAll('.icon-btn');
+  delBtn.addEventListener('click', () => handleDeleteGlossaryTerm(term));
+
+  const editPanel = document.createElement('div');
+  editPanel.className = 'admin-steps-panel';
+  editPanel.style.display = 'none';
+  let built = false;
+  editBtn.addEventListener('click', () => {
+    const opening = editPanel.style.display === 'none';
+    editPanel.style.display = opening ? 'block' : 'none';
+    if (opening && !built) { built = true; buildGlossaryTermEditForm(term, categories, editPanel); }
+  });
+
+  wrap.appendChild(row);
+  wrap.appendChild(editPanel);
+  return wrap;
+}
+
+function buildGlossaryTermEditForm(term, categories, panel){
+  const catOptions = categories.map(c => `<option value="${c.id}" ${c.id === term.category_id ? 'selected' : ''}>${escapeHtml(c.title)}</option>`).join('');
+  panel.innerHTML = `
+    <div class="admin-step-form">
+      <div class="field"><label>Термин</label><input type="text" class="gtTitle" value="${escapeAttr(term.term)}"></div>
+      <div class="field"><label>Категория</label><select class="gtCat"><option value="">Без категории</option>${catOptions}</select></div>
+      <div class="field"><label>Описание</label>${courseRichEditorHtml('gtDef', term.definition || '')}</div>
+      <button type="button" class="submit-btn gtSaveBtn">Сохранить</button>
+      <div class="form-status gtStatus"></div>
+    </div>`;
+  makeRichEditor(panel.querySelector('.course-rich-editor'), { full: true, onImageUpload: async file => (await uploadCourseAsset(file)).url, onFileUpload: uploadCourseAsset });
+  panel.querySelector('.gtSaveBtn').addEventListener('click', () => handleSaveGlossaryTerm(term, panel));
+}
+
+async function handleSaveGlossaryTerm(term, panel){
+  const statusEl = panel.querySelector('.gtStatus');
+  const saveBtn = panel.querySelector('.gtSaveBtn');
+  const title = panel.querySelector('.gtTitle').value.trim();
+  if (!title) { statusEl.textContent = 'Укажи название термина'; statusEl.className = 'form-status error'; return; }
+  const catId = panel.querySelector('.gtCat').value || null;
+  const html = sanitizeRichHtml(panel.querySelector('.rt-editable').innerHTML);
+  saveBtn.disabled = true;
+  const { error } = await SB.from('glossary_terms').update({ term: title, category_id: catId, definition: html }).eq('id', term.id);
+  saveBtn.disabled = false;
+  if (error) { statusEl.textContent = 'Ошибка: ' + error.message; statusEl.className = 'form-status error'; return; }
+  statusEl.textContent = 'Сохранено!';
+  statusEl.className = 'form-status ok';
+  setTimeout(renderGlossaryAdmin, 500);
+}
+
+function glossaryTermCreateForm(categoryId){
+  const form = document.createElement('div');
+  form.className = 'program-add-lesson';
+  form.innerHTML = `
+    <div class="field"><input type="text" class="gtNewTitle" placeholder="Новый термин"></div>
+    ${courseRichEditorHtml('gtNewDef', '')}
+    <button type="button" class="program-add-btn gtAddBtn">+ Добавить термин</button><div class="form-status gtNewStatus"></div>`;
+  makeRichEditor(form.querySelector('.course-rich-editor'), { full: true, onImageUpload: async file => (await uploadCourseAsset(file)).url, onFileUpload: uploadCourseAsset });
+  form.querySelector('.gtAddBtn').addEventListener('click', () => handleAddGlossaryTerm(categoryId, form));
+  return form;
+}
+
+async function handleAddGlossaryTerm(categoryId, form){
+  const statusEl = form.querySelector('.gtNewStatus');
+  const btn = form.querySelector('.gtAddBtn');
+  const title = form.querySelector('.gtNewTitle').value.trim();
+  if (!title) { statusEl.textContent = 'Укажи название термина'; statusEl.className = 'form-status error'; return; }
+  const html = sanitizeRichHtml(form.querySelector('.rt-editable').innerHTML);
+  btn.disabled = true;
+  const { count } = await SB.from('glossary_terms').select('id', { count: 'exact', head: true }).eq('category_id', categoryId);
+  const { error } = await SB.from('glossary_terms').insert({ category_id: categoryId, term: title, definition: html, order_index: count || 0 });
+  btn.disabled = false;
+  if (error) { statusEl.textContent = 'Ошибка: ' + error.message; statusEl.className = 'form-status error'; return; }
+  statusEl.textContent = 'Термин добавлен!';
+  statusEl.className = 'form-status ok';
+  setTimeout(renderGlossaryAdmin, 500);
+}
+
+async function createGlossaryCategory(){
+  const title = prompt('Название категории:', 'Новая категория');
+  if (!title || !title.trim()) return;
+  const { count } = await SB.from('glossary_categories').select('id', { count: 'exact', head: true });
+  const { error } = await SB.from('glossary_categories').insert({ title: title.trim(), order_index: count || 0 });
+  if (error) { alert('Не удалось создать категорию: ' + error.message); return; }
+  renderGlossaryAdmin();
+}
+
+async function renameGlossaryCategory(cat){
+  const title = prompt('Название категории:', cat.title);
+  if (!title || !title.trim() || title.trim() === cat.title) return;
+  const { error } = await SB.from('glossary_categories').update({ title: title.trim() }).eq('id', cat.id);
+  if (error) { alert('Не удалось переименовать: ' + error.message); return; }
+  renderGlossaryAdmin();
+}
+
+async function deleteGlossaryCategory(cat, terms){
+  if (!confirm(`Удалить категорию «${cat.title}»? Термины останутся, но выйдут из этой категории.`)) return;
+  if (terms.length) await SB.from('glossary_terms').update({ category_id: null }).eq('category_id', cat.id);
+  const { error } = await SB.from('glossary_categories').delete().eq('id', cat.id);
+  if (error) { alert('Не удалось удалить: ' + error.message); return; }
+  renderGlossaryAdmin();
+}
+
+async function moveGlossaryCategory(categories, index, direction){
+  const otherIndex = index + direction;
+  if (otherIndex < 0 || otherIndex >= categories.length) return;
+  const current = categories[index], other = categories[otherIndex];
+  await Promise.all([
+    SB.from('glossary_categories').update({ order_index: other.order_index }).eq('id', current.id),
+    SB.from('glossary_categories').update({ order_index: current.order_index }).eq('id', other.id),
+  ]);
+  renderGlossaryAdmin();
+}
+
+async function handleDeleteGlossaryTerm(term){
+  if (!confirm(`Удалить термин «${term.term}»?`)) return;
+  const { error } = await SB.from('glossary_terms').delete().eq('id', term.id);
+  if (error) { alert('Не удалось удалить: ' + error.message); return; }
+  renderGlossaryAdmin();
 }
 
 /* ══════════════════════════════════════

@@ -734,7 +734,7 @@ async function init() {
   const { data: { session } } = await SB.auth.getSession();
   if (!session) { location.href = 'auth.html'; return; }
   currentUid = session.user.id;
-  SB.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', currentUid);
+  SB.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', currentUid).then(({ error }) => { if (error) console.error('last_seen_at update failed:', error); });
 
   const [{ data: profile }, { data: myFollows }] = await Promise.all([
     SB.from('profiles').select('username, role').eq('id', currentUid).single(),

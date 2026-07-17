@@ -146,7 +146,7 @@ async function init() {
   if (!session) { location.href = 'auth.html'; return; }
 
   const myUid = session.user.id;
-  SB.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', myUid);
+  SB.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', myUid).then(({ error }) => { if (error) console.error('last_seen_at update failed:', error); });
   const uid = new URLSearchParams(location.search).get('user') || myUid;
   const isOwn = uid === myUid;
 

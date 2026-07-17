@@ -1622,7 +1622,7 @@ async function init() {
   if (!session) { location.href = 'auth.html'; return; }
   currentUid = session.user.id;
   currentSession = session;
-  SB.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', currentUid);
+  SB.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', currentUid).then(({ error }) => { if (error) console.error('last_seen_at update failed:', error); });
 
   const { data: profile } = await SB.from('profiles').select('role').eq('id', currentUid).single();
   currentRole = profile ? profile.role : null;

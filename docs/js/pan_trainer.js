@@ -63,7 +63,7 @@ async function sbInit(){
   const{data:{session}}=await SB.auth.getSession();
   if(session){
     sbUser=session.user;
-    SB.from('profiles').update({last_seen_at:new Date().toISOString()}).eq('id',sbUser.id);
+    SB.from('profiles').update({last_seen_at:new Date().toISOString()}).eq('id',sbUser.id).then(({error})=>{if(error)console.error('last_seen_at update failed:',error);});
     const{data:p}=await SB.from('profiles').select('*').eq('id',sbUser.id).single();
     sbProfile=p;
     if(p){

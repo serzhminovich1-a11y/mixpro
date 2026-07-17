@@ -16,7 +16,7 @@ async function init() {
   const { data: { session } } = await SB.auth.getSession();
   if (session) {
     myUserId = session.user.id;
-    SB.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', myUserId);
+    SB.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', myUserId).then(({ error }) => { if (error) console.error('last_seen_at update failed:', error); });
     const { data: p } = await SB.from('profiles').select('username, role').eq('id', myUserId).single();
     if (p) {
       myUsername = p.username;

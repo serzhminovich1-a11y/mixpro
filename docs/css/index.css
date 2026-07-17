@@ -14,31 +14,44 @@
 html{scroll-behavior:smooth}
 body{background:radial-gradient(1200px 600px at 82% -10%,var(--bg-glow-1),transparent),radial-gradient(900px 500px at 0% 100%,var(--bg-glow-2),transparent),var(--bg);color:var(--text);font-family:var(--sans);font-size:var(--text-body-2-size);line-height:1.6;min-height:100vh;overflow-x:hidden;transition:background-color .25s}
 
-/* ── NAV ── */
-nav{position:sticky;top:0;z-index:100;background:var(--nav-bg);backdrop-filter:blur(16px);border-bottom:var(--bw) solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:var(--space-0) var(--space-8);height:58px}
-.nav-logo{font-family:var(--display);font-weight:700;font-size:var(--text-body-3-size);color:var(--text);text-decoration:none;letter-spacing:-0.5px;display:flex;align-items:center;gap:var(--space-2)}
+/* ── NAV ──
+   Единый язык для всех пунктов-ссылок (.nav-tab/.nav-link-btn): чистый
+   заглавный текст с плавной подсветкой цвета и выезжающим подчёркиванием
+   вместо прежних одинаковых пилюль-кнопок на каждый пункт — раньше все
+   8+ элементов шапки визуально спорили друг с другом за внимание.
+   Из "громких" элементов остаётся только один — .nav-link-btn-primary. */
+nav{position:sticky;top:0;z-index:100;background:var(--nav-bg);backdrop-filter:blur(16px);border-bottom:var(--bw) solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:var(--space-0) var(--space-8);height:64px;box-shadow:0 18px 32px -28px rgba(0,0,0,.6)}
+.nav-logo{font-family:var(--display);font-weight:800;font-size:var(--text-body-2-size);color:var(--text);text-decoration:none;letter-spacing:-.2px;display:flex;align-items:center;gap:var(--space-3);transition:opacity .18s ease}
+.nav-logo:hover{opacity:.82}
 .nav-logo span{color:var(--amber)}
-.nav-logo-badge{width:26px;height:26px;border-radius:var(--r-badge);background:var(--amber);color:var(--on-accent);font-family:var(--display);font-weight:800;font-size:var(--text-body-1-size);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.nav-tabs{display:flex;align-items:center;gap:var(--space-2)}
-.nav-tab{font-family:var(--display);font-size:var(--text-body-1-size);font-weight:500;padding:var(--space-2) var(--space-4);border-radius:var(--r-pill);border:var(--bw) solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:.15s}
-.nav-tab:hover{color:var(--text);background:var(--s2);border-color:var(--border-hi)}
-.nav-tab.active{color:var(--on-accent);background:var(--amber);border-color:transparent;font-weight:700}
-.nav-right{display:flex;align-items:center;gap:var(--space-4)}
-.nav-links{display:flex;align-items:center;gap:var(--space-2)}
-.nav-divider{width:1px;height:22px;background:var(--border)}
-.nav-account{display:flex;align-items:center;gap:var(--space-2)}
-.nav-link-btn{font-family:var(--display);font-size:var(--text-body-1-size);font-weight:500;padding:var(--space-2) var(--space-4);border-radius:var(--r-pill);border:var(--bw) solid var(--border);background:transparent;color:var(--muted);text-decoration:none;transition:.15s;display:inline-flex;align-items:center}
-.nav-link-btn:hover{color:var(--text);background:var(--s2);border-color:var(--border-hi)}
+.nav-logo-badge{width:32px;height:32px;border-radius:var(--r-badge);background:var(--amber-glow);border:var(--bw) solid var(--amber-glow-strong);color:var(--amber);font-family:var(--display);font-weight:800;font-size:var(--text-body-1-size);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:box-shadow .18s ease}
+.nav-logo:hover .nav-logo-badge{box-shadow:0 0 0 5px var(--amber-glow)}
+.nav-tabs{display:flex;align-items:center;gap:var(--space-5)}
+.nav-tab{position:relative;font-family:var(--display);font-size:var(--text-caption-2-size);font-weight:600;text-transform:uppercase;letter-spacing:.07em;padding:var(--space-2) 0;border:none;background:none;color:var(--muted);cursor:pointer;transition:color .16s ease}
+.nav-tab::after{content:'';position:absolute;left:0;right:0;bottom:-3px;height:2px;border-radius:2px;background:var(--amber);transform:scaleX(0);transform-origin:center;transition:transform .22s cubic-bezier(.2,.8,.3,1)}
+.nav-tab:hover{color:var(--text)}
+.nav-tab:hover::after{transform:scaleX(.55)}
+.nav-tab.active{color:var(--text);font-weight:700}
+.nav-tab.active::after{transform:scaleX(1)}
+.nav-right{display:flex;align-items:center;gap:var(--space-5)}
+.nav-links{display:flex;align-items:center;gap:var(--space-5)}
+.nav-divider{width:var(--bw);height:20px;background:var(--border)}
+.nav-account{display:flex;align-items:center;gap:var(--space-3)}
+.nav-link-btn{position:relative;font-family:var(--display);font-size:var(--text-caption-2-size);font-weight:600;text-transform:uppercase;letter-spacing:.07em;padding:var(--space-2) 0;border:none;background:none;color:var(--muted);text-decoration:none;transition:color .16s ease;display:inline-flex;align-items:center}
+.nav-link-btn::after{content:'';position:absolute;left:0;right:0;bottom:-3px;height:2px;border-radius:2px;background:var(--amber);transform:scaleX(0);transform-origin:center;transition:transform .22s cubic-bezier(.2,.8,.3,1)}
+.nav-link-btn:hover{color:var(--text)}
+.nav-link-btn:hover::after{transform:scaleX(.55)}
 .nav-link-btn.danger{cursor:pointer;font-family:var(--display)}
-.nav-link-btn.danger:hover{color:var(--red);border-color:var(--red);background:var(--red-glow)}
-.nav-link-btn-primary{font-family:var(--display);font-size:var(--text-body-1-size);font-weight:700;padding:var(--space-2) var(--space-5);border-radius:var(--r-pill);border:none;background:var(--amber);color:var(--on-accent);text-decoration:none;transition:.15s}
-.nav-link-btn-primary:hover{opacity:.88;transform:translateY(-1px)}
-.nav-vip-btn{font-family:var(--display);font-size:var(--text-caption-2-size);font-weight:700;padding:var(--space-2) var(--space-4);border-radius:var(--r-pill);border:var(--bw) solid var(--amber);background:transparent;color:var(--amber);cursor:pointer;transition:.15s;letter-spacing:.03em}
+.nav-link-btn.danger:hover{color:var(--red)}
+.nav-link-btn.danger:hover::after{background:var(--red)}
+.nav-link-btn-primary{font-family:var(--display);font-size:var(--text-caption-2-size);font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:var(--space-2) var(--space-5);border-radius:var(--r-pill);border:none;background:var(--amber);color:var(--on-accent);text-decoration:none;transition:transform .16s ease,box-shadow .16s ease;box-shadow:0 0 0 0 transparent}
+.nav-link-btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 20px -8px var(--amber-glow-strong)}
+.nav-vip-btn{font-family:var(--display);font-size:var(--text-caption-2-size);font-weight:700;text-transform:uppercase;padding:var(--space-1) var(--space-3);border-radius:var(--r-pill);border:var(--bw) solid var(--amber);background:transparent;color:var(--amber);cursor:pointer;transition:.16s;letter-spacing:.04em}
 .nav-vip-btn:hover{background:var(--amber-glow)}
 .nav-vip-btn.unlocked{border-color:var(--green);color:var(--green);background:var(--green-glow-soft)}
-.nav-admin-btn{font-family:var(--display);font-size:var(--text-caption-2-size);font-weight:700;padding:var(--space-2) var(--space-3) var(--space-2) var(--space-3);border-radius:var(--r-pill);border:var(--bw) solid transparent;background:var(--gold);color:var(--on-gold);text-decoration:none;transition:.15s;letter-spacing:.03em;display:inline-flex;align-items:center;gap:var(--space-1)}
-.nav-admin-btn svg{width:14px;height:14px;flex-shrink:0}
-.nav-admin-btn:hover{opacity:.88}
+.nav-admin-btn{font-family:var(--display);font-size:var(--text-caption-2-size);font-weight:700;text-transform:uppercase;padding:var(--space-1) var(--space-3);border-radius:var(--r-pill);border:var(--bw) solid var(--gold);background:transparent;color:var(--gold);text-decoration:none;transition:.16s;letter-spacing:.04em;display:inline-flex;align-items:center;gap:var(--space-1)}
+.nav-admin-btn svg{width:13px;height:13px;flex-shrink:0}
+.nav-admin-btn:hover{background:var(--gold);color:var(--on-gold)}
 
 /* ── ПЕРЕКЛЮЧАТЕЛЬ ТЕМ ── */
 .theme-picker{position:relative}

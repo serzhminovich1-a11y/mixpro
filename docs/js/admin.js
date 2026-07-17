@@ -186,7 +186,14 @@ function fullRichToolbarHtml(){
       <span class="rt-sep"></span>
       <button type="button" class="rt-btn" data-cmd="bold" data-tip="Жирный" aria-label="Жирный"><b>Ж</b></button><button type="button" class="rt-btn" data-cmd="italic" data-tip="Курсив" aria-label="Курсив"><i>К</i></button><button type="button" class="rt-btn" data-cmd="underline" data-tip="Подчёркнутый" aria-label="Подчёркнутый"><u>Ч</u></button><button type="button" class="rt-btn rt-code-btn" data-tip="Блок кода" aria-label="Блок кода">&lt;/&gt;</button>
       <select class="rt-select rt-style" title="Стиль абзаца"><option value="">Стили</option><option value="p">Обычный текст</option><option value="h2">Заголовок 2</option><option value="h3">Заголовок 3</option><option value="h4">Заголовок 4</option><option value="blockquote">Цитата</option></select>
-      <label class="rt-btn rt-color-wrap" data-tip="Цвет текста" aria-label="Цвет текста">A<input type="color" class="rt-color" value="#ff5a36"></label>
+      <div class="rt-color-wrap">
+        <button type="button" class="rt-btn rt-color-btn" data-tip="Цвет текста" aria-label="Цвет текста">A</button>
+        <div class="rt-color-pop" hidden>
+          <div class="rt-color-row rt-color-presets"></div>
+          <div class="rt-color-row rt-color-recent"></div>
+          <label class="rt-color-custom" title="Свой цвет">+<input type="color" class="rt-color" value="#ff5a36"></label>
+        </div>
+      </div>
       <span class="rt-sep"></span>
       <button type="button" class="rt-btn" data-cmd="insertUnorderedList" data-tip="Маркированный список" aria-label="Маркированный список">${ICON_LIST_UL_A}</button><button type="button" class="rt-btn" data-cmd="insertOrderedList" data-tip="Нумерованный список" aria-label="Нумерованный список">${ICON_LIST_OL_A}</button>
       <button type="button" class="rt-btn rt-quote-btn" data-tip="Цитата" aria-label="Цитата">${ICON_QUOTE_A}</button>

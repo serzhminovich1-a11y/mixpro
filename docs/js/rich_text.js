@@ -189,16 +189,93 @@ function makeRichEditor(container, opts){
   if (sizeSel) sizeSel.addEventListener('change', () => { if (sizeSel.value) applyCmd('fontSize', sizeSel.value); sizeSel.value = ''; });
   if (!opts.full) return editable;
 
-  // ── Стили абзаца (обычный/заголовки/цитата) ──
+  // ── Стили абзаца (обычный/заголовки/цитата) — показываем в закрытом
+  // списке, каким стилем реально оформлен абзац под курсором, а не всегда
+  // "Стили"-заглушку. ──
   const styleSel = toolbar.querySelector('.rt-style');
-  if (styleSel) styleSel.addEventListener('change', () => {
-    if (styleSel.value) applyCmd('formatBlock', '<' + styleSel.value + '>');
+  const STYLE_TAG_TO_VALUE = { H2: 'h2', H3: 'h3', H4: 'h4', BLOCKQUOTE: 'blockquote', P: 'p' };
+  function updateStyleSelect(){
+    if (!styleSel) return;
+    const sel = window.getSelection();
+    if (!sel.rangeCount || !editable.contains(sel.anchorNode)) return;
+    let node = sel.anchorNode;
+    if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
+    while (node && node !== editable) {
+      const value = STYLE_TAG_TO_VALUE[node.tagName];
+      if (value) { styleSel.value = value; return; }
+      node = node.parentElement;
+    }
     styleSel.value = '';
-  });
+  }
+  if (styleSel) {
+    styleSel.addEventListener('change', () => {
+      if (styleSel.value) applyCmd('formatBlock', '<' + styleSel.value + '>');
+      updateStyleSelect();
+    });
+    editable.addEventListener('mouseup', updateStyleSelect);
+    editable.addEventListener('keyup', updateStyleSelect);
+  }
 
-  // ── Цвет текста — нативный color-picker, спрятанный под кнопкой "А" ──
+  // ── Цвет текста — палитра готовых цветов + недавно использованные
+  // (запоминаются в этом браузере) + свой цвет через нативный пикер. ──
+  const colorWrap = toolbar.querySelector('.rt-color-wrap');
+  const colorBtn = toolbar.querySelector('.rt-color-btn');
+  const colorPop = toolbar.querySelector('.rt-color-pop');
   const colorInput = toolbar.querySelector('.rt-color');
-  if (colorInput) colorInput.addEventListener('input', () => applyCmd('foreColor', colorInput.value));
+  const PRESET_COLORS = ['#ff5a36', '#facc15', '#4ade80', '#22d3ee', '#60a5fa', '#a78bfa', '#f472b6', '#eef0fb'];
+  const RECENT_COLORS_KEY = 'mixpro_recent_colors';
+  function getRecentColors(){
+    try { return JSON.parse(localStorage.getItem(RECENT_COLORS_KEY) || '[]'); } catch (e) { return []; }
+  }
+  function rememberColor(hex){
+    let recent = getRecentColors().filter(c => c.toLowerCase() !== hex.toLowerCase());
+    recent.unshift(hex);
+    try { localStorage.setItem(RECENT_COLORS_KEY, JSON.stringify(recent.slice(0, 8))); } catch (e) { /* приватный режим — не критично */ }
+  }
+  function swatchesHtml(colors){
+    return colors.map(c => `<button type="button" class="rt-color-swatch" style="background:${c}" data-color="${c}" title="${c}"></button>`).join('');
+  }
+  function renderColorPop(){
+    if (!colorPop) return;
+    const presetsRow = colorPop.querySelector('.rt-color-presets');
+    const recentRow = colorPop.querySelector('.rt-color-recent');
+    if (presetsRow) presetsRow.innerHTML = swatchesHtml(PRESET_COLORS);
+    const recent = getRecentColors();
+    if (recentRow) recentRow.innerHTML = recent.length ? swatchesHtml(recent) : '';
+  }
+  function applyColor(hex){
+    editable.focus();
+    restoreSelection();
+    document.execCommand('foreColor', false, hex);
+    saveSelection();
+  }
+  if (colorBtn && colorPop && colorWrap) {
+    colorBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      saveSelection();
+      const opening = colorPop.hasAttribute('hidden');
+      if (opening) { renderColorPop(); colorPop.removeAttribute('hidden'); }
+      else colorPop.setAttribute('hidden', '');
+    });
+    colorPop.addEventListener('click', (e) => {
+      const sw = e.target.closest('.rt-color-swatch');
+      if (!sw) return;
+      applyColor(sw.dataset.color);
+      rememberColor(sw.dataset.color);
+      renderColorPop();
+      colorPop.setAttribute('hidden', '');
+    });
+    document.addEventListener('click', (e) => { if (!colorWrap.contains(e.target)) colorPop.setAttribute('hidden', ''); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') colorPop.setAttribute('hidden', ''); });
+  }
+  if (colorInput) {
+    colorInput.addEventListener('input', () => applyColor(colorInput.value));
+    colorInput.addEventListener('change', () => {
+      rememberColor(colorInput.value);
+      renderColorPop();
+      if (colorPop) colorPop.setAttribute('hidden', '');
+    });
+  }
 
   // ── Ссылка / убрать ссылку (unlink — обычная data-cmd кнопка, отдельно не нужна) ──
   const linkBtn = toolbar.querySelector('.rt-link-btn');
@@ -220,6 +297,62 @@ function makeRichEditor(container, opts){
   if (codeBtn) codeBtn.addEventListener('click', () => applyCmd('formatBlock', '<pre>'));
   const quoteBtn = toolbar.querySelector('.rt-quote-btn');
   if (quoteBtn) quoteBtn.addEventListener('click', () => applyCmd('formatBlock', '<blockquote>'));
+
+  // ── Внутри блока кода Enter по умолчанию у браузера ведёт себя
+  // непредсказуемо (может разбить <pre> на несколько блоков). Делаем
+  // предсказуемо: обычный Enter — новая строка внутри того же блока кода;
+  // Enter на уже пустой строке в конце — выход из кода в обычный абзац,
+  // чтобы можно было продолжить текст дальше по теме. ──
+  editable.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' || e.shiftKey) return;
+    const sel = window.getSelection();
+    if (!sel.rangeCount) return;
+    let node = sel.anchorNode;
+    if (node && node.nodeType === Node.TEXT_NODE) node = node.parentElement;
+    const pre = node && node.closest ? node.closest('pre') : null;
+    if (!pre || !editable.contains(pre)) return;
+
+    const range = sel.getRangeAt(0);
+    const beforeRange = document.createRange();
+    beforeRange.selectNodeContents(pre);
+    beforeRange.setEnd(range.startContainer, range.startOffset);
+    const beforeCursor = beforeRange.toString();
+    const afterRange = document.createRange();
+    afterRange.selectNodeContents(pre);
+    afterRange.setStart(range.endContainer, range.endOffset);
+    const afterCursor = afterRange.toString();
+    const lastLine = beforeCursor.split('\n').pop();
+
+    e.preventDefault();
+    if (lastLine === '' && beforeCursor.includes('\n') && afterCursor.trim() === '') {
+      const newContent = beforeCursor.slice(0, -1);
+      if (newContent === '') pre.remove(); else pre.textContent = newContent;
+      const p = document.createElement('p');
+      p.innerHTML = '<br>';
+      if (pre.parentNode) pre.after(p); else editable.appendChild(p);
+      const newRange = document.createRange();
+      newRange.selectNodeContents(p);
+      newRange.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(newRange);
+      saveSelection();
+      updateStyleSelect();
+    } else {
+      // execCommand('insertText','\n') превращает перевод строки в <br>,
+      // из-за чего его не видно в Range.toString() и вся логика выше
+      // ломается — вставляем текстовый узел с настоящим \n напрямую,
+      // white-space:pre-wrap у <pre> и так отрисует его переносом строки.
+      range.deleteContents();
+      const textNode = document.createTextNode('\n');
+      range.insertNode(textNode);
+      const newRange = document.createRange();
+      newRange.setStartAfter(textNode);
+      newRange.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(newRange);
+      saveSelection();
+    }
+  });
 
   // ── Картинка — загрузка в Storage через колбэк, вставка по готовому URL ──
   const imgBtn = toolbar.querySelector('.rt-img-btn');

@@ -4,10 +4,10 @@
    урока (теория) в панели администратора.
    ══════════════════════════════════════ */
 .rt-toolbar{display:flex;align-items:center;gap:var(--space-1);flex-wrap:wrap}
-.rt-toolbar .rt-btn,.rt-toolbar .rt-color-wrap,.rt-toolbar .rt-select{height:30px;box-sizing:border-box;border-radius:var(--r-xs);border:var(--bw) solid var(--border);background-color:var(--s2);color:var(--muted2);font-family:var(--display);font-weight:400;letter-spacing:normal;margin:0;cursor:pointer;transition:background-color .16s ease,border-color .16s ease,color .16s ease,transform .16s ease;flex-shrink:0;position:relative}
+.rt-toolbar .rt-btn,.rt-toolbar .rt-select{height:30px;box-sizing:border-box;border-radius:var(--r-xs);border:var(--bw) solid var(--border);background-color:var(--s2);color:var(--muted2);font-family:var(--display);font-weight:400;letter-spacing:normal;margin:0;cursor:pointer;transition:background-color .16s ease,border-color .16s ease,color .16s ease,transform .16s ease;flex-shrink:0;position:relative}
 .rt-toolbar .rt-btn{width:30px;font-size:var(--text-body-1-size);display:flex;align-items:center;justify-content:center;padding:0}
-.rt-toolbar .rt-btn:hover,.rt-toolbar .rt-color-wrap:hover,.rt-toolbar .rt-select:hover{color:var(--text);border-color:var(--amber-glow-strong);background-color:var(--amber-glow);transform:translateY(-1px)}
-.rt-toolbar .rt-btn:active,.rt-toolbar .rt-color-wrap:active,.rt-toolbar .rt-select:active{transform:translateY(0)}
+.rt-toolbar .rt-btn:hover,.rt-toolbar .rt-select:hover{color:var(--text);border-color:var(--amber-glow-strong);background-color:var(--amber-glow);transform:translateY(-1px)}
+.rt-toolbar .rt-btn:active,.rt-toolbar .rt-select:active{transform:translateY(0)}
 .rt-toolbar .rt-btn.active{color:var(--amber);border-color:var(--amber);background-color:var(--amber-glow)}
 .rt-sep{width:1px;height:20px;align-self:center;background:var(--border);margin:0 var(--space-1);flex-shrink:0}
 .rt-toolbar .rt-select{width:auto;font-size:var(--text-caption-1-size);padding:0 22px 0 var(--space-2);max-width:126px;appearance:none;-webkit-appearance:none;-moz-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23888' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center;background-size:9px 6px}
@@ -27,8 +27,17 @@
 
 /* ── Расширенный тулбар конструктора теории (opts.full в makeRichEditor) ── */
 .rt-toolbar-full{row-gap:var(--space-1)}
-.rt-toolbar .rt-color-wrap{width:30px;font-weight:800;overflow:hidden;display:flex;align-items:center;justify-content:center}
-.rt-toolbar .rt-color{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:none;padding:0}
+.rt-color-wrap{position:relative;flex-shrink:0}
+.rt-color-wrap .rt-color-btn{font-weight:800}
+.rt-color-pop{position:absolute;top:calc(100% + 6px);left:0;z-index:45;background:var(--elev2);border:var(--bw) solid var(--border);border-radius:var(--r-sm);padding:var(--space-2);box-shadow:var(--shadow-lift);display:flex;flex-direction:column;gap:var(--space-2);width:max-content}
+.rt-color-pop[hidden]{display:none}
+.rt-color-row{display:flex;flex-wrap:wrap;gap:6px;max-width:120px}
+.rt-color-row:empty{display:none}
+.rt-color-swatch{width:20px;height:20px;border-radius:var(--r-xs);border:var(--bw) solid var(--border);cursor:pointer;padding:0;transition:transform .12s ease,border-color .12s ease}
+.rt-color-swatch:hover{transform:scale(1.15);border-color:var(--text)}
+.rt-color-custom{display:flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:var(--r-xs);border:var(--bw) dashed var(--border-hi);color:var(--muted2);font-weight:800;font-size:13px;cursor:pointer;position:relative;overflow:hidden;flex-shrink:0}
+.rt-color-custom:hover{color:var(--text);border-color:var(--amber-glow-strong)}
+.rt-color-custom input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:none;padding:0}
 .rt-source{display:block;width:100%;min-height:180px;background:var(--elev2);border:var(--bw) solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--mono);font-size:var(--text-caption-2-size);padding:var(--space-2) var(--space-3);resize:vertical;margin-top:var(--space-2)}
 
 /* ── Содержимое: заголовки/списки/цитата/ссылки/картинки/таблицы —
@@ -41,8 +50,8 @@
 .rt-editable ul,.rt-editable ol{margin:var(--space-2) 0 var(--space-3);padding-left:var(--space-6)}
 .rt-editable li{margin-bottom:var(--space-1)}
 .rt-editable blockquote{margin:var(--space-3) 0;padding:var(--space-2) var(--space-4);border-left:3px solid var(--amber);color:var(--muted2);font-style:italic}
-.rt-editable pre,.rt-editable code{font-family:var(--mono);font-size:var(--text-caption-1-size)}
-.rt-editable pre{margin:var(--space-3) 0;padding:var(--space-3);border-radius:var(--r-sm);background:var(--elev2);border:var(--bw) solid var(--border);white-space:pre-wrap;color:var(--text)}
+.rt-editable pre,.rt-editable code{font-family:var(--mono);font-size:var(--text-body-1-size)}
+.rt-editable pre{margin:var(--space-3) 0;padding:var(--space-3);border-radius:var(--r-sm);background:var(--elev2);border:var(--bw) solid var(--border);white-space:pre-wrap;line-height:1.5;color:var(--text)}
 .rt-editable .rt-formula{display:inline-block;padding:var(--space-half) var(--space-2);border-radius:var(--r-xs);background:var(--s2);color:var(--amber);font-family:var(--mono);font-size:var(--text-caption-1-size)}
 .rt-editable a{color:var(--amber);text-decoration:underline;word-break:break-word}
 .rt-editable img{max-width:100%;border-radius:var(--r-md);margin:var(--space-2) 0;display:block}

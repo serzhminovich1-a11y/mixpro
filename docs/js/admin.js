@@ -34,8 +34,12 @@ const ICON_ALIGN_R_A = aIcon('<line x1="21" x2="3" y1="6" y2="6"/><line x1="21" 
 const ICON_LINK_A = aIcon('<path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="M15 7h2a5 5 0 1 1 0 10h-2"/><line x1="8" x2="16" y1="12" y2="12"/>');
 const ICON_UNLINK_A = aIcon('<path d="M9 17H7A5 5 0 0 1 7 7"/><path d="M15 7h2a5 5 0 0 1 3.9 8.11"/><line x1="8" x2="16" y1="12" y2="12"/><line x1="3" x2="21" y1="3" y2="21"/>');
 const ICON_IMAGE_A = aIcon('<rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>');
+const ICON_FILE_A = aIcon('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/>');
 const ICON_TABLE_A = aIcon('<path d="M12 3v18"/><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/>');
 const ICON_CODE_A = aIcon('<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>');
+const ICON_UNDO_A = aIcon('<path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 6 6v1"/>');
+const ICON_REDO_A = aIcon('<path d="m15 14 5-5-5-5"/><path d="M20 9H10a6 6 0 0 0-6 6v1"/>');
+const ICON_QUOTE_A = aIcon('<path d="M3 21c3 0 6-2 6-6V7H3v8h3c0 1.5-1 3-3 3zM15 21c3 0 6-2 6-6V7h-6v8h3c0 1.5-1 3-3 3z"/>');
 
 async function logout() {
   await SB.auth.signOut();
@@ -160,16 +164,47 @@ function tusUploadFile({ file, bucket, path, onProgress }){
   });
 }
 
-// Картинка внутри текста теории — отдельный публичный бакет 'lesson-content'
-// (не 'lessons': тот приватный, для видео, см. 006_storage_lessons.sql).
-async function uploadTheoryImage(file){
-  if (!file.type || !file.type.startsWith('image/')) throw new Error('Нужен файл изображения');
-  if (file.size > 5 * 1024 * 1024) throw new Error('Максимум 5 МБ');
-  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
-  const path = `${currentUid}/${Date.now()}.${ext}`;
-  const { error } = await SB.storage.from('lesson-content').upload(path, file);
-  if (error) throw error;
-  return SB.storage.from('lesson-content').getPublicUrl(path).data.publicUrl;
+// Общий публичный бакет для материалов, встроенных в описание курса и теорию:
+// изображения, документы, аудио и короткие видео. Видео целого урока остаётся
+// в закрытом бакете lessons и добавляется отдельным полем ниже.
+async function uploadCourseAsset(file){
+  if (file.size > 100 * 1024 * 1024) throw new Error('Максимальный размер вложения — 100 МБ');
+  const safeName = (file.name || 'file').replace(/[^a-zA-Z0-9._-]/g, '_');
+  const path = `${currentUid}/${Date.now()}_${safeName}`;
+  await tusUploadFile({ file, bucket: 'course-assets', path });
+  return {
+    url: SB.storage.from('course-assets').getPublicUrl(path).data.publicUrl,
+    name: file.name || 'Файл',
+    type: file.type || '',
+  };
+}
+
+function fullRichToolbarHtml(){
+  return `
+    <div class="rt-toolbar rt-toolbar-full">
+      <button type="button" class="rt-btn" data-cmd="undo" title="Отменить">${ICON_UNDO_A}</button><button type="button" class="rt-btn" data-cmd="redo" title="Повторить">${ICON_REDO_A}</button>
+      <span class="rt-sep"></span>
+      <button type="button" class="rt-btn" data-cmd="bold" title="Жирный"><b>Ж</b></button><button type="button" class="rt-btn" data-cmd="italic" title="Курсив"><i>К</i></button><button type="button" class="rt-btn" data-cmd="underline" title="Подчёркнутый"><u>Ч</u></button><button type="button" class="rt-btn rt-code-btn" title="Блок кода">&lt;/&gt;</button>
+      <select class="rt-select rt-style" title="Стиль абзаца"><option value="">Стили</option><option value="p">Обычный текст</option><option value="h2">Заголовок 2</option><option value="h3">Заголовок 3</option><option value="h4">Заголовок 4</option><option value="blockquote">Цитата</option></select>
+      <label class="rt-btn rt-color-wrap" title="Цвет текста">A<input type="color" class="rt-color" value="#ff5a36"></label>
+      <span class="rt-sep"></span>
+      <button type="button" class="rt-btn" data-cmd="insertUnorderedList" title="Маркированный список">${ICON_LIST_UL_A}</button><button type="button" class="rt-btn" data-cmd="insertOrderedList" title="Нумерованный список">${ICON_LIST_OL_A}</button>
+      <button type="button" class="rt-btn rt-quote-btn" title="Цитата">${ICON_QUOTE_A}</button>
+      <span class="rt-sep"></span>
+      <button type="button" class="rt-btn" data-cmd="justifyLeft" title="По левому краю">${ICON_ALIGN_L_A}</button><button type="button" class="rt-btn" data-cmd="justifyCenter" title="По центру">${ICON_ALIGN_C_A}</button><button type="button" class="rt-btn" data-cmd="justifyRight" title="По правому краю">${ICON_ALIGN_R_A}</button>
+      <span class="rt-sep"></span>
+      <button type="button" class="rt-btn rt-link-btn" title="Вставить ссылку">${ICON_LINK_A}</button><button type="button" class="rt-btn" data-cmd="unlink" title="Убрать ссылку">${ICON_UNLINK_A}</button>
+      <button type="button" class="rt-btn rt-img-btn" title="Добавить изображение">${ICON_IMAGE_A}</button><input type="file" class="rt-img-input" accept="image/*" hidden>
+      <button type="button" class="rt-btn rt-file-btn" title="Прикрепить файл">${ICON_FILE_A}</button><input type="file" class="rt-file-input" hidden>
+      <button type="button" class="rt-btn rt-video-btn" title="Добавить видео по ссылке">${ICON_VIDEO_A}</button>
+      <button type="button" class="rt-btn rt-formula-btn" title="Вставить формулу или символ">Σ</button>
+      <button type="button" class="rt-btn rt-table-btn" title="Вставить таблицу">${ICON_TABLE_A}</button>
+      <span class="rt-sep"></span><button type="button" class="rt-btn rt-source-btn" title="Исходный код (HTML)">${ICON_CODE_A}</button>
+    </div>`;
+}
+
+function courseRichEditorHtml(className, value){
+  return `<div class="course-rich-editor">${fullRichToolbarHtml()}<div class="rt-editable rt-editable-large ${className}" contenteditable="true" data-placeholder="Расскажите о курсе, добавьте материалы и полезные ссылки">${sanitizeRichHtml(value || '')}</div><div class="rt-editor-hint">Текст, ссылки, изображения, файлы и видео — всё в одном описании.</div></div>`;
 }
 
 async function handleCreateCourse(e){
@@ -182,7 +217,7 @@ async function handleCreateCourse(e){
 
   const { error } = await SB.from('courses').insert({
     title: document.getElementById('cTitle').value.trim(),
-    description: document.getElementById('cDesc').value.trim(),
+    description: sanitizeRichHtml(document.getElementById('cDesc').innerHTML),
     category: document.getElementById('cCategory').value.trim(),
     difficulty_level: document.getElementById('cDifficulty').value,
     created_by: currentUid,
@@ -197,6 +232,7 @@ async function handleCreateCourse(e){
   status.textContent = 'Курс создан!';
   status.className = 'form-status ok';
   document.getElementById('courseForm').reset();
+  document.getElementById('cDesc').innerHTML = '';
   renderCoursesAdmin();
 }
 
@@ -233,10 +269,10 @@ function lessonAdminRow(l){
   const row = document.createElement('div');
   row.className = 'admin-lesson-row';
   row.innerHTML = `
-    <span>${l.order_index + 1}. ${escapeHtml(l.title)}</span>
+    <span class="admin-lesson-main">${l.cover_image_url ? `<img class="admin-lesson-cover" src="${escapeAttr(l.cover_image_url)}" alt="">` : '<span class="admin-lesson-cover admin-lesson-cover-empty">▶</span>'}<span>${l.order_index + 1}. ${escapeHtml(l.title)}</span></span>
     <span style="display:flex;align-items:center;gap:8px">
       <span>${l.content_url ? ICON_VIDEO_A + ' видео есть' : '— без видео'}</span>
-      <button type="button" class="icon-btn" title="Шаги урока (тесты, теория)">${ICON_STEPS_A}</button>
+      <button type="button" class="icon-btn" title="Редактировать содержание урока">${ICON_STEPS_A}</button>
       <button type="button" class="icon-btn" title="Переименовать">${ICON_PENCIL_A}</button>
       <button type="button" class="icon-btn" title="Удалить урок">${ICON_TRASH_A}</button>
     </span>`;
@@ -289,38 +325,7 @@ function stepFieldsHtml(type){
   switch (type) {
     case 'theory':
       return `
-        <div class="rt-toolbar rt-toolbar-full">
-          <select class="rt-select rt-style" title="Стиль абзаца">
-            <option value="">Стиль</option>
-            <option value="p">Обычный текст</option>
-            <option value="h2">Заголовок 2</option>
-            <option value="h3">Заголовок 3</option>
-            <option value="h4">Заголовок 4</option>
-            <option value="blockquote">Цитата</option>
-          </select>
-          <span class="rt-sep"></span>
-          <button type="button" class="rt-btn" data-cmd="bold" title="Жирный"><b>Ж</b></button>
-          <button type="button" class="rt-btn" data-cmd="italic" title="Курсив"><i>К</i></button>
-          <button type="button" class="rt-btn" data-cmd="underline" title="Подчёркнутый"><u>Ч</u></button>
-          <button type="button" class="rt-btn" data-cmd="strikeThrough" title="Зачёркнутый"><s>З</s></button>
-          <label class="rt-btn rt-color-wrap" title="Цвет текста">A<input type="color" class="rt-color" value="#ff5a36"></label>
-          <span class="rt-sep"></span>
-          <button type="button" class="rt-btn" data-cmd="insertUnorderedList" title="Маркированный список">${ICON_LIST_UL_A}</button>
-          <button type="button" class="rt-btn" data-cmd="insertOrderedList" title="Нумерованный список">${ICON_LIST_OL_A}</button>
-          <span class="rt-sep"></span>
-          <button type="button" class="rt-btn" data-cmd="justifyLeft" title="По левому краю">${ICON_ALIGN_L_A}</button>
-          <button type="button" class="rt-btn" data-cmd="justifyCenter" title="По центру">${ICON_ALIGN_C_A}</button>
-          <button type="button" class="rt-btn" data-cmd="justifyRight" title="По правому краю">${ICON_ALIGN_R_A}</button>
-          <span class="rt-sep"></span>
-          <button type="button" class="rt-btn rt-link-btn" title="Вставить ссылку">${ICON_LINK_A}</button>
-          <button type="button" class="rt-btn" data-cmd="unlink" title="Убрать ссылку">${ICON_UNLINK_A}</button>
-          <button type="button" class="rt-btn rt-img-btn" title="Вставить картинку">${ICON_IMAGE_A}</button>
-          <input type="file" class="rt-img-input" accept="image/*" style="display:none">
-          <button type="button" class="rt-btn rt-table-btn" title="Вставить таблицу">${ICON_TABLE_A}</button>
-          <span class="rt-sep"></span>
-          <button type="button" class="rt-btn rt-source-btn" title="Исходный код (HTML)">${ICON_CODE_A}</button>
-        </div>
-        <div class="rt-editable sTheoryHtml" contenteditable="true" style="width:100%;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;min-height:180px" data-placeholder="Текст теории"></div>`;
+        <div class="course-rich-editor">${fullRichToolbarHtml()}<div class="rt-editable rt-editable-large sTheoryHtml" contenteditable="true" data-placeholder="Текст теории"></div><div class="rt-editor-hint">Добавляйте текст, ссылки, файлы и видео прямо по ходу урока.</div></div>`;
     case 'quiz_single':
     case 'quiz_multi':
       return `
@@ -504,7 +509,7 @@ async function renderStepsPanel(lesson, panel){
   const fieldsWrap = formWrap.querySelector('.sFields');
   function renderFields(){
     fieldsWrap.innerHTML = stepFieldsHtml(typeSelect.value);
-    if (typeSelect.value === 'theory') makeRichEditor(fieldsWrap, { full: true, onImageUpload: uploadTheoryImage });
+    if (typeSelect.value === 'theory') makeRichEditor(fieldsWrap, { full: true, onImageUpload: async file => (await uploadCourseAsset(file)).url, onFileUpload: uploadCourseAsset });
   }
   typeSelect.addEventListener('change', renderFields);
   renderFields();
@@ -542,6 +547,7 @@ function formatMb(bytes){ return (bytes / 1048576).toFixed(1); }
 async function handleAddLesson(courseId, form){
   const titleInput = form.querySelector('.lTitle');
   const fileInput = form.querySelector('.lFile');
+  const coverInput = form.querySelector('.lCover');
   const statusEl = form.querySelector('.lStatus');
   const btn = form.querySelector('.lBtn');
   const progressWrap = form.querySelector('.upload-progress');
@@ -549,6 +555,7 @@ async function handleAddLesson(courseId, form){
   const progressLabel = form.querySelector('.upload-progress-label');
   const title = titleInput.value.trim();
   const file = fileInput.files[0];
+  const cover = coverInput && coverInput.files[0];
   if (!title) return;
 
   btn.disabled = true;
@@ -559,6 +566,14 @@ async function handleAddLesson(courseId, form){
   const orderIndex = count || 0;
 
   let contentUrl = null;
+  let coverImageUrl = null;
+  if (cover) {
+    try { coverImageUrl = (await uploadCourseAsset(cover)).url; }
+    catch (err) {
+      statusEl.textContent = 'Не удалось загрузить обложку: ' + (err && err.message ? err.message : err);
+      statusEl.className = 'form-status error'; btn.disabled = false; return;
+    }
+  }
   if (file) {
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
     const path = `${courseId}/${Date.now()}_${safeName}`;
@@ -589,6 +604,8 @@ async function handleAddLesson(courseId, form){
     course_id: courseId,
     title,
     content_url: contentUrl,
+    section_id: form.dataset.sectionId || null,
+    cover_image_url: coverImageUrl,
     order_index: orderIndex,
   });
 
@@ -602,6 +619,7 @@ async function handleAddLesson(courseId, form){
   statusEl.className = 'form-status ok';
   titleInput.value = '';
   fileInput.value = '';
+  if (coverInput) coverInput.value = '';
   renderCoursesAdmin();
 }
 
@@ -659,7 +677,123 @@ async function handleAddAssignment(courseId, form){
   renderCoursesAdmin();
 }
 
-function courseAdminBlock(course, lessons, assignments){
+function lessonCreateForm(courseId, sectionId){
+  const form = document.createElement('div');
+  form.className = 'program-add-lesson';
+  if (sectionId) form.dataset.sectionId = sectionId;
+  form.innerHTML = `
+    <div class="field"><input type="text" class="lTitle" placeholder="Название урока"></div>
+    <div class="program-add-assets">
+      <label class="program-file-label">Обложка<input type="file" class="lCover" accept="image/*"></label>
+      <label class="program-file-label">Видео урока<input type="file" class="lFile" accept="video/*"></label>
+    </div>
+    <div class="upload-progress"><div class="upload-progress-bar"><div class="upload-progress-fill"></div></div><div class="upload-progress-label"></div></div>
+    <button type="button" class="program-add-btn lBtn">+ Добавить урок</button><div class="form-status lStatus"></div>`;
+  form.querySelector('.lBtn').addEventListener('click', () => handleAddLesson(courseId, form));
+  return form;
+}
+
+async function createCourseSection(courseId){
+  const title = prompt('Название раздела курса:', 'Новый раздел');
+  if (!title || !title.trim()) return;
+  const { count } = await SB.from('course_sections').select('id', { count: 'exact', head: true }).eq('course_id', courseId);
+  const { error } = await SB.from('course_sections').insert({ course_id: courseId, title: title.trim(), order_index: count || 0 });
+  if (error) { alert('Не удалось создать раздел: ' + error.message); return; }
+  renderCoursesAdmin();
+}
+
+async function renameCourseSection(section){
+  const title = prompt('Название раздела:', section.title);
+  if (!title || !title.trim() || title.trim() === section.title) return;
+  const { error } = await SB.from('course_sections').update({ title: title.trim() }).eq('id', section.id);
+  if (error) { alert('Не удалось переименовать раздел: ' + error.message); return; }
+  renderCoursesAdmin();
+}
+
+async function deleteCourseSection(section, lessons){
+  if (!confirm(`Удалить раздел «${section.title}»? Уроки останутся в курсе, но выйдут из этого раздела.`)) return;
+  if (lessons.length) await SB.from('lessons').update({ section_id: null }).eq('section_id', section.id);
+  const { error } = await SB.from('course_sections').delete().eq('id', section.id);
+  if (error) { alert('Не удалось удалить раздел: ' + error.message); return; }
+  renderCoursesAdmin();
+}
+
+async function moveCourseSection(sections, index, direction){
+  const otherIndex = index + direction;
+  if (otherIndex < 0 || otherIndex >= sections.length) return;
+  const current = sections[index], other = sections[otherIndex];
+  await Promise.all([
+    SB.from('course_sections').update({ order_index: other.order_index }).eq('id', current.id),
+    SB.from('course_sections').update({ order_index: current.order_index }).eq('id', other.id),
+  ]);
+  renderCoursesAdmin();
+}
+
+function courseProgramSection(courseId, section, lessons, index, totalSections){
+  const group = document.createElement('div');
+  group.className = 'course-program-section';
+  const count = lessons.length;
+  group.innerHTML = `
+    <div class="course-program-section-head">
+      <div><span class="course-program-index">${index + 1}.</span><span class="course-program-title">${escapeHtml(section.title)}</span><span class="course-program-count">${count} ${count === 1 ? 'урок' : count < 5 ? 'урока' : 'уроков'}</span></div>
+      <div class="course-program-actions">
+        <button type="button" class="icon-btn sectionUp" title="Поднять раздел">${ICON_UP_A}</button><button type="button" class="icon-btn sectionDown" title="Опустить раздел">${ICON_DOWN_A}</button>
+        <button type="button" class="icon-btn sectionEdit" title="Переименовать раздел">${ICON_PENCIL_A}</button><button type="button" class="icon-btn sectionDelete" title="Удалить раздел">${ICON_TRASH_A}</button>
+      </div>
+    </div>`;
+  const [upBtn, downBtn, editBtn, deleteBtn] = group.querySelectorAll('.icon-btn');
+  upBtn.disabled = index === 0;
+  downBtn.disabled = index === totalSections - 1;
+  upBtn.addEventListener('click', () => moveCourseSection(section._allSections, index, -1));
+  downBtn.addEventListener('click', () => moveCourseSection(section._allSections, index, 1));
+  editBtn.addEventListener('click', () => renameCourseSection(section));
+  deleteBtn.addEventListener('click', () => deleteCourseSection(section, lessons));
+  const lessonsWrap = document.createElement('div');
+  lessonsWrap.className = 'course-program-lessons';
+  lessons.forEach(l => lessonsWrap.appendChild(lessonAdminRow(l)));
+  lessonsWrap.appendChild(lessonCreateForm(courseId, section.id));
+  group.appendChild(lessonsWrap);
+  return group;
+}
+
+function courseProgramEditor(courseId, sections, lessons){
+  const program = document.createElement('div');
+  program.className = 'course-program-editor';
+  program.innerHTML = `<div class="course-program-toolbar"><div><div class="course-program-kicker">Программа курса</div><div class="course-program-sub">Создавай разделы и уроки, добавляй обложки, видео и интерактивный контент.</div></div><button type="button" class="program-add-btn addSectionBtn">+ Создать раздел</button></div>`;
+  program.querySelector('.addSectionBtn').addEventListener('click', () => createCourseSection(courseId));
+
+  if (!sections.length) {
+    if (lessons.length) {
+      const legacy = document.createElement('div');
+      legacy.className = 'course-program-legacy';
+      legacy.innerHTML = '<div class="course-program-legacy-title">Уроки без раздела — создай раздел для новой структуры</div>';
+      lessons.forEach(l => legacy.appendChild(lessonAdminRow(l)));
+      program.appendChild(legacy);
+    } else {
+      const empty = document.createElement('div');
+      empty.className = 'empty';
+      empty.style.padding = '22px 0 12px';
+      empty.textContent = 'Начни с раздела: например, «Введение» или «Практика».';
+      program.appendChild(empty);
+    }
+    return program;
+  }
+  sections.forEach(s => { s._allSections = sections; });
+  sections.forEach((section, index) => {
+    program.appendChild(courseProgramSection(courseId, section, lessons.filter(l => l.section_id === section.id), index, sections.length));
+  });
+  const ungrouped = lessons.filter(l => !l.section_id);
+  if (ungrouped.length) {
+    const legacy = document.createElement('div');
+    legacy.className = 'course-program-legacy';
+    legacy.innerHTML = '<div class="course-program-legacy-title">Уроки без раздела</div>';
+    ungrouped.forEach(l => legacy.appendChild(lessonAdminRow(l)));
+    program.appendChild(legacy);
+  }
+  return program;
+}
+
+function courseAdminBlock(course, lessons, assignments, sections){
   const block = document.createElement('div');
   block.className = 'admin-course-block';
 
@@ -684,7 +818,7 @@ function courseAdminBlock(course, lessons, assignments){
     head.innerHTML = `
       <div style="display:flex;flex-direction:column;gap:8px;font-weight:400">
         <div class="field"><input type="text" class="ceTitle" value="${escapeAttr(course.title)}"></div>
-        <div class="field"><textarea class="ceDesc">${escapeHtml(course.description || '')}</textarea></div>
+        <div class="field">${courseRichEditorHtml('ceDesc', course.description || '')}</div>
         <div class="form-row">
           <div class="field"><input type="text" class="ceCategory" value="${escapeAttr(course.category || '')}"></div>
           <div class="field"><select class="ceDifficulty">
@@ -700,6 +834,7 @@ function courseAdminBlock(course, lessons, assignments){
         <div class="form-status ceStatus"></div>
       </div>`;
     head.querySelector('.ceDifficulty').value = course.difficulty_level || 'beginner';
+    makeRichEditor(head.querySelector('.course-rich-editor'), { full: true, onImageUpload: async file => (await uploadCourseAsset(file)).url, onFileUpload: uploadCourseAsset });
     head.querySelector('.ceCancel').addEventListener('click', renderHeadView);
     head.querySelector('.ceSave').addEventListener('click', handleSaveCourse);
   }
@@ -712,7 +847,7 @@ function courseAdminBlock(course, lessons, assignments){
     saveBtn.disabled = true;
     const updated = {
       title,
-      description: head.querySelector('.ceDesc').value.trim(),
+      description: sanitizeRichHtml(head.querySelector('.ceDesc').innerHTML),
       category: head.querySelector('.ceCategory').value.trim(),
       difficulty_level: head.querySelector('.ceDifficulty').value,
     };
@@ -729,23 +864,7 @@ function courseAdminBlock(course, lessons, assignments){
 
   renderHeadView();
 
-  lessons.forEach(l => block.appendChild(lessonAdminRow(l)));
-
-  const formWrap = document.createElement('div');
-  formWrap.style.cssText = 'padding:14px 18px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px';
-  formWrap.innerHTML = `
-    <div class="form-row">
-      <div class="field"><input type="text" class="lTitle" placeholder="Название урока"></div>
-    </div>
-    <div class="field"><input type="file" class="lFile" accept="video/*"></div>
-    <div class="upload-progress">
-      <div class="upload-progress-bar"><div class="upload-progress-fill"></div></div>
-      <div class="upload-progress-label"></div>
-    </div>
-    <button type="button" class="submit-btn lBtn">Добавить урок</button>
-    <div class="form-status lStatus"></div>`;
-  formWrap.querySelector('.lBtn').addEventListener('click', () => handleAddLesson(course.id, formWrap));
-  block.appendChild(formWrap);
+  block.appendChild(courseProgramEditor(course.id, sections, lessons));
 
   const aDivider = document.createElement('div');
   aDivider.style.cssText = 'padding:10px 18px;border-top:1px solid var(--border);font-family:var(--mono);font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:.06em';
@@ -778,15 +897,17 @@ async function renderCoursesAdmin(){
     wrap.innerHTML = '<div class="empty">Курсов пока нет — создай первый выше</div>';
     return;
   }
-  const [{ data: allLessons }, { data: allAssignments }] = await Promise.all([
+  const [{ data: allLessons }, { data: allAssignments }, { data: allSections }] = await Promise.all([
     SB.from('lessons').select('*').order('order_index', { ascending: true }),
     SB.from('assignments').select('*').order('created_at', { ascending: true }),
+    SB.from('course_sections').select('*').order('order_index', { ascending: true }),
   ]);
   wrap.innerHTML = '';
   courses.forEach(c => {
     const lessons = (allLessons || []).filter(l => l.course_id === c.id);
     const assignments = (allAssignments || []).filter(a => a.course_id === c.id);
-    wrap.appendChild(courseAdminBlock(c, lessons, assignments));
+    const sections = (allSections || []).filter(s => s.course_id === c.id);
+    wrap.appendChild(courseAdminBlock(c, lessons, assignments, sections));
   });
 }
 
@@ -1167,6 +1288,9 @@ async function init() {
   });
 
   document.getElementById('courseForm').addEventListener('submit', handleCreateCourse);
+  const createCourseEditor = document.getElementById('cDescEditor');
+  createCourseEditor.innerHTML = `${fullRichToolbarHtml()}<div class="rt-editable rt-editable-large" id="cDesc" contenteditable="true" data-placeholder="Расскажите о курсе: чему научится студент, для кого он и какие материалы будут внутри"></div><div class="rt-editor-hint">Можно форматировать текст, вставлять ссылки, изображения, файлы и видео. Поле растёт вместе с содержимым.</div>`;
+  makeRichEditor(createCourseEditor, { full: true, onImageUpload: async file => (await uploadCourseAsset(file)).url, onFileUpload: uploadCourseAsset });
 
   const initialSection = (location.hash || '#overview').slice(1);
   const validSections = Array.from(document.querySelectorAll('.admin-nav-item[data-section]'))

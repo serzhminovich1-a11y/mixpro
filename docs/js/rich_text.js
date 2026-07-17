@@ -9,8 +9,8 @@ const RICH_ALLOWED_TAGS = new Set([
   // Расширенный набор для конструктора теории урока (Stepik-подобный редактор) —
   // те же теги допускаются и в постах Ленты, потому что sanitizeRichHtml общий
   // на обе поверхности, но панель Ленты кнопок для них просто не показывает.
-  'H2', 'H3', 'H4', 'UL', 'OL', 'LI', 'BLOCKQUOTE', 'A', 'IMG',
-  'TABLE', 'THEAD', 'TBODY', 'TR', 'TD', 'TH', 'HR',
+  'H2', 'H3', 'H4', 'UL', 'OL', 'LI', 'BLOCKQUOTE', 'PRE', 'CODE', 'A', 'IMG',
+  'TABLE', 'THEAD', 'TBODY', 'TR', 'TD', 'TH', 'HR', 'VIDEO', 'AUDIO', 'IFRAME',
 ]);
 const RICH_ALLOWED_STYLE_PROPS = ['font-family', 'font-size', 'text-decoration', 'color', 'text-align'];
 const RICH_FONT_SIZE_MAP = { '1': '10px', '2': '12px', '3': '15px', '4': '17px', '5': '19px', '6': '24px', '7': '30px' };
@@ -39,6 +39,15 @@ function isSafeUrl(url){
   const u = String(url || '').trim();
   if (!u) return false;
   return /^https?:\/\//i.test(u) || /^mailto:/i.test(u);
+}
+
+function isSafeEmbedUrl(url){
+  try {
+    const u = new URL(String(url || ''));
+    return (u.protocol === 'https:' && (
+      u.hostname === 'www.youtube-nocookie.com' || u.hostname === 'player.vimeo.com'
+    ));
+  } catch (e) { return false; }
 }
 
 // Разбирает произвольный HTML из contenteditable и пересобирает только из
@@ -90,6 +99,30 @@ function sanitizeRichNode(node){
       }
       return;
     }
+    if (tag === 'VIDEO' || tag === 'AUDIO') {
+      const src = child.getAttribute('src');
+      if (isSafeUrl(src)) {
+        const media = document.createElement(tag.toLowerCase());
+        media.setAttribute('src', src);
+        media.setAttribute('controls', '');
+        media.setAttribute('preload', 'metadata');
+        out.appendChild(media);
+      }
+      return;
+    }
+    if (tag === 'IFRAME') {
+      const src = child.getAttribute('src');
+      if (isSafeEmbedUrl(src)) {
+        const frame = document.createElement('iframe');
+        frame.setAttribute('src', src);
+        frame.setAttribute('title', 'Видео');
+        frame.setAttribute('loading', 'lazy');
+        frame.setAttribute('allowfullscreen', '');
+        frame.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
+        out.appendChild(frame);
+      }
+      return;
+    }
     if (!RICH_ALLOWED_TAGS.has(tag)) { appendSanitizedChildren(child, out); return; }
     const el = document.createElement(tag.toLowerCase());
     if (tag === 'A') {
@@ -98,12 +131,14 @@ function sanitizeRichNode(node){
         el.setAttribute('href', href);
         el.setAttribute('target', '_blank');
         el.setAttribute('rel', 'noopener noreferrer nofollow');
+        if (child.classList.contains('rt-attachment')) el.classList.add('rt-attachment');
       }
     }
     if (RICH_STYLEABLE_TAGS.has(tag)) {
       const safeStyle = extractSafeStyle(child.getAttribute('style'));
       if (safeStyle) el.setAttribute('style', safeStyle);
     }
+    if (tag === 'SPAN' && child.classList.contains('rt-formula')) el.classList.add('rt-formula');
     appendSanitizedChildren(child, el);
     out.appendChild(el);
   });
@@ -174,7 +209,17 @@ function makeRichEditor(container, opts){
     const trimmed = url.trim();
     if (!/^https?:\/\//i.test(trimmed)) { alert('Ссылка должна начинаться с http:// или https://'); return; }
     applyCmd('createLink', trimmed);
+    // createLink оставляет весь текст ссылки выделенным (а не курсор после неё) —
+    // без схлопывания следующий инструмент (картинка/видео/таблица) заменит
+    // собой только что созданную ссылку вместо вставки после неё.
+    const sel = window.getSelection();
+    if (sel.rangeCount > 0) { sel.collapseToEnd(); saveSelection(); }
   });
+
+  const codeBtn = toolbar.querySelector('.rt-code-btn');
+  if (codeBtn) codeBtn.addEventListener('click', () => applyCmd('formatBlock', '<pre>'));
+  const quoteBtn = toolbar.querySelector('.rt-quote-btn');
+  if (quoteBtn) quoteBtn.addEventListener('click', () => applyCmd('formatBlock', '<blockquote>'));
 
   // ── Картинка — загрузка в Storage через колбэк, вставка по готовому URL ──
   const imgBtn = toolbar.querySelector('.rt-img-btn');
@@ -195,6 +240,65 @@ function makeRichEditor(container, opts){
       imgBtn.disabled = false;
     });
   }
+
+  // ── Файл — загружаем в Storage и вставляем подходящий элемент: картинку,
+  // видео, аудио или компактную карточку скачивания. ──
+  const fileBtn = toolbar.querySelector('.rt-file-btn');
+  const fileInput = toolbar.querySelector('.rt-file-input');
+  function insertUploadedAsset(asset){
+    const type = String(asset.type || '').toLowerCase();
+    const name = String(asset.name || 'Файл').replace(/[<>&"]/g, '');
+    let html;
+    if (type.startsWith('image/')) html = '<img src="' + asset.url + '" alt="' + name + '">';
+    else if (type.startsWith('video/')) html = '<video controls preload="metadata" src="' + asset.url + '"></video><p><br></p>';
+    else if (type.startsWith('audio/')) html = '<audio controls preload="metadata" src="' + asset.url + '"></audio><p><br></p>';
+    else html = '<p><a class="rt-attachment" href="' + asset.url + '" target="_blank" rel="noopener noreferrer">↧ ' + name + '</a></p>';
+    editable.focus(); restoreSelection(); document.execCommand('insertHTML', false, html); saveSelection();
+  }
+  if (fileBtn && fileInput) {
+    fileBtn.addEventListener('click', () => { saveSelection(); fileInput.click(); });
+    fileInput.addEventListener('change', async () => {
+      const file = fileInput.files[0]; fileInput.value = '';
+      if (!file || !opts.onFileUpload) return;
+      fileBtn.disabled = true;
+      try { insertUploadedAsset(await opts.onFileUpload(file)); }
+      catch (e) { alert('Не удалось загрузить файл: ' + (e && e.message ? e.message : e)); }
+      fileBtn.disabled = false;
+    });
+  }
+
+  // ── Видео по внешней ссылке: YouTube/Vimeo получают безопасный embed,
+  // прямая ссылка на файл открывается нативным video-плеером. ──
+  const videoBtn = toolbar.querySelector('.rt-video-btn');
+  if (videoBtn) videoBtn.addEventListener('click', () => {
+    saveSelection();
+    const raw = prompt('Ссылка на YouTube, Vimeo или прямой видеофайл (.mp4, .webm)');
+    if (!raw) return;
+    const url = raw.trim();
+    let html = '';
+    try {
+      const u = new URL(url);
+      let id = '';
+      if (u.hostname === 'youtu.be') id = u.pathname.slice(1);
+      if (u.hostname.endsWith('youtube.com')) id = u.searchParams.get('v') || (u.pathname.match(/\/embed\/([^/?]+)/) || [])[1] || '';
+      if (id && /^[\w-]{6,}$/.test(id)) html = '<iframe src="https://www.youtube-nocookie.com/embed/' + id + '"></iframe><p><br></p>';
+      else if (u.hostname.endsWith('vimeo.com') && /^\/[0-9]+/.test(u.pathname)) html = '<iframe src="https://player.vimeo.com/video/' + u.pathname.slice(1).split('/')[0] + '"></iframe><p><br></p>';
+      else if (/\.(mp4|webm|ogg)(\?.*)?$/i.test(u.pathname + u.search)) html = '<video controls preload="metadata" src="' + url + '"></video><p><br></p>';
+    } catch (e) { /* validation below */ }
+    if (!html) { alert('Подойдёт ссылка на YouTube, Vimeo или прямой файл .mp4/.webm.'); return; }
+    editable.focus(); restoreSelection(); document.execCommand('insertHTML', false, html); saveSelection();
+  });
+
+  const formulaBtn = toolbar.querySelector('.rt-formula-btn');
+  if (formulaBtn) formulaBtn.addEventListener('click', () => {
+    saveSelection();
+    const formula = prompt('Формула или математический символ (можно ввести LaTeX):', '');
+    if (!formula || !formula.trim()) return;
+    const safeFormula = formula.trim().replace(/[<>&"]/g, '');
+    editable.focus(); restoreSelection();
+    document.execCommand('insertHTML', false, '<span class="rt-formula">Σ ' + safeFormula + '</span>');
+    saveSelection();
+  });
 
   // ── Таблица — вставляем стартовую сетку 3×3, дальше редактируется как текст ──
   const tableBtn = toolbar.querySelector('.rt-table-btn');

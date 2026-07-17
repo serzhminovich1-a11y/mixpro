@@ -9,6 +9,12 @@ const ICON_MANAGE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
 let currentUid = null;
 let canManageCourses = false;
 
+function courseSummary(html){
+  const el = document.createElement('div');
+  el.innerHTML = window.sanitizeRichHtml ? sanitizeRichHtml(html || '') : (html || '');
+  return (el.textContent || '').trim().replace(/\s+/g, ' ');
+}
+
 function courseCard(c){
   const wrap = document.createElement('div');
   wrap.className = 'course-card-wrap';
@@ -19,7 +25,7 @@ function courseCard(c){
   a.innerHTML = `
     <div class="course-cat">${c.category || 'курс'} · ${c.difficulty_level || ''}</div>
     <div class="course-title">${c.title}</div>
-    <div class="course-desc">${c.description || ''}</div>`;
+    <div class="course-desc">${courseSummary(c.description)}</div>`;
   wrap.appendChild(a);
 
   if (canManageCourses) {
@@ -57,9 +63,22 @@ function lessonRow(l, idx, status){
   const done = status === 'completed';
   a.innerHTML = `
     <div class="lesson-idx">${idx + 1}</div>
+    ${l.cover_image_url ? `<img class="lesson-cover" src="${l.cover_image_url}" alt="">` : ''}
     <div class="lesson-title">${l.title}</div>
     <div class="lesson-status ${done ? 'done' : ''}">${done ? ICON_CHECK_SM + ' Пройдено' : 'Не пройдено'}</div>`;
   return a;
+}
+
+function courseSectionBlock(section, index, lessons, progressMap, offset){
+  const block = document.createElement('section');
+  block.className = 'course-section-block';
+  const completed = lessons.filter(l => progressMap.get(l.id) === 'completed').length;
+  block.innerHTML = `<div class="course-section-head"><div><span class="course-section-number">${index + 1}.</span><span>${section.title}</span></div><span class="course-section-progress">${completed}/${lessons.length}</span></div>`;
+  const rows = document.createElement('div');
+  rows.className = 'course-section-lessons';
+  lessons.forEach((lesson, lessonIndex) => rows.appendChild(lessonRow(lesson, offset + lessonIndex, progressMap.get(lesson.id))));
+  block.appendChild(rows);
+  return block;
 }
 
 async function renderCourseView(courseId){
@@ -67,9 +86,10 @@ async function renderCourseView(courseId){
   // параллельно, а не после списка уроков
   const assignmentsPromise = renderAssignments(courseId);
 
-  const [{ data: course }, { data: lessons }] = await Promise.all([
+  const [{ data: course }, { data: lessons }, { data: sections }] = await Promise.all([
     SB.from('courses').select('*').eq('id', courseId).single(),
     SB.from('lessons').select('*').eq('course_id', courseId).order('order_index', { ascending: true }),
+    SB.from('course_sections').select('*').eq('course_id', courseId).order('order_index', { ascending: true }),
   ]);
   if (!course) {
     document.getElementById('courseTitle').textContent = 'Курс не найден';
@@ -77,7 +97,9 @@ async function renderCourseView(courseId){
     return;
   }
   document.getElementById('courseTitle').textContent = course.title;
-  document.getElementById('courseDesc').textContent = course.description || '';
+  const desc = document.getElementById('courseDesc');
+  desc.className = 'course-rich-content';
+  desc.innerHTML = window.sanitizeRichHtml ? sanitizeRichHtml(course.description || '') : '';
 
   const list = document.getElementById('lessonList');
   const certBanner = document.getElementById('certBanner');
@@ -91,7 +113,23 @@ async function renderCourseView(courseId){
     const progressMap = new Map((progress || []).map(p => [p.lesson_id, p.status]));
 
     list.innerHTML = '';
-    lessons.forEach((l, idx) => list.appendChild(lessonRow(l, idx, progressMap.get(l.id))));
+    let offset = 0;
+    const renderedSections = sections || [];
+    let visibleSectionIndex = 0;
+    renderedSections.forEach(section => {
+      const sectionLessons = lessons.filter(l => l.section_id === section.id);
+      if (!sectionLessons.length) return;
+      list.appendChild(courseSectionBlock(section, visibleSectionIndex++, sectionLessons, progressMap, offset));
+      offset += sectionLessons.length;
+    });
+    const ungrouped = lessons.filter(l => !l.section_id);
+    if (ungrouped.length) {
+      if (renderedSections.length) {
+        list.appendChild(courseSectionBlock({ title: 'Дополнительные материалы' }, visibleSectionIndex, ungrouped, progressMap, offset));
+      } else {
+        ungrouped.forEach((l, idx) => list.appendChild(lessonRow(l, idx, progressMap.get(l.id))));
+      }
+    }
     if (window.animateChildren) animateChildren(list);
 
     const allDone = lessons.every(l => progressMap.get(l.id) === 'completed');

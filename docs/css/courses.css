@@ -32,6 +32,16 @@ nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-con
 .course-cat{font-family:var(--mono);font-size:var(--text-caption-1-size);letter-spacing:.08em;text-transform:uppercase;color:var(--amber)}
 .course-title{font-family:var(--display);font-size:var(--text-body-2-size);font-weight:700;color:var(--text)}
 .course-desc{font-size:var(--text-body-1-size);color:var(--muted2);line-height:1.5}
+.course-rich-content{font-size:var(--text-body-1-size);color:var(--muted2);line-height:1.65}
+.course-rich-content h2,.course-rich-content h3{color:var(--text);font-family:var(--display);margin:var(--space-4) 0 var(--space-2)}
+.course-rich-content p{margin:0 0 var(--space-2)}
+.course-rich-content ul,.course-rich-content ol{padding-left:var(--space-5);margin:var(--space-2) 0 var(--space-3)}
+.course-rich-content blockquote{margin:var(--space-3) 0;padding:var(--space-2) var(--space-4);border-left:3px solid var(--amber);background:var(--s2);color:var(--text)}
+.course-rich-content a{color:var(--amber)}
+.course-rich-content img{display:block;max-width:100%;border-radius:var(--r-md);margin:var(--space-3) 0}
+.course-rich-content video,.course-rich-content iframe{display:block;width:min(100%,760px);aspect-ratio:16/9;border:0;border-radius:var(--r-md);background:#000;margin:var(--space-3) 0}
+.course-rich-content audio{display:block;width:min(100%,620px);margin:var(--space-3) 0}
+.course-rich-content .rt-attachment{display:inline-flex;padding:var(--space-2) var(--space-3);border:var(--bw) solid var(--amber-glow-strong);border-radius:var(--r-sm);background:var(--amber-glow);font-weight:700;text-decoration:none}
 .course-meta{font-family:var(--mono);font-size:var(--text-caption-2-size);color:var(--muted);margin-top:auto;padding-top:var(--space-2)}
 
 /* Баннер о получении сертификата за курс */
@@ -47,6 +57,13 @@ nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-con
 .lesson-title{font-family:var(--display);font-size:var(--text-body-1-size);font-weight:700;color:var(--text);flex:1}
 .lesson-status{font-family:var(--mono);font-size:var(--text-caption-2-size);color:var(--muted2);flex-shrink:0}
 .lesson-status.done{color:var(--green)}
+.lesson-cover{width:38px;height:38px;object-fit:cover;border-radius:var(--r-xs);border:var(--bw) solid var(--border);flex-shrink:0}
+.course-section-block{border:var(--bw) solid var(--border-hi);border-radius:var(--r-md);overflow:hidden;background:linear-gradient(180deg,var(--surf-top),var(--surf-bot)),var(--bg);box-shadow:var(--shadow-lift)}
+.course-section-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);padding:var(--space-3) var(--space-4);border-left:4px solid var(--green);font-family:var(--display);font-size:var(--text-body-2-size);font-weight:800;color:var(--text)}
+.course-section-number{font-family:var(--mono);color:var(--muted2);margin-right:var(--space-2)}
+.course-section-progress{font-family:var(--mono);font-size:var(--text-caption-1-size);font-weight:500;color:var(--green);padding:var(--space-half) var(--space-2);border-radius:var(--r-pill);background:var(--green-glow)}
+.course-section-lessons{padding-left:var(--space-5);border-left:4px solid var(--green);margin-left:var(--space-4);margin-bottom:var(--space-3)}
+.course-section-lessons .lesson-row{border-left:0;border-right:0;border-radius:0;box-shadow:none;background:transparent}
 
 /* Admin forms */
 .form-card{background:linear-gradient(180deg,var(--surf-top),var(--surf-bot)),var(--bg);border:var(--bw) solid var(--border);border-radius:var(--r-card);padding:var(--space-5);display:flex;flex-direction:column;gap:var(--space-3);box-shadow:var(--shadow-lift)}

@@ -54,6 +54,33 @@ button.stat-box:hover{border-color:var(--amber-glow-strong);box-shadow:var(--sha
 .admin-step-badge{font-family:var(--mono);font-size:var(--text-caption-1-size);letter-spacing:.04em;color:var(--amber);padding:var(--space-half) var(--space-2);border-radius:20px;border:var(--bw) solid var(--amber-glow-strong);flex-shrink:0}
 .admin-step-form{display:flex;flex-direction:column;gap:var(--space-3);padding:var(--space-4);border-radius:var(--r-md);border:var(--bw) dashed var(--border-hi)}
 
+/* Конструктор программы курса: разделы и уроки в формате редактора курса. */
+.course-program-editor{border-top:var(--bw) solid var(--border);background:rgba(0,0,0,.1);padding:var(--space-5);display:flex;flex-direction:column;gap:var(--space-4)}
+.course-program-toolbar{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--space-4)}
+.course-program-kicker{font-family:var(--display);font-size:var(--text-body-2-size);font-weight:800;color:var(--text)}
+.course-program-sub{font-size:var(--text-caption-2-size);color:var(--muted2);margin-top:var(--space-1);line-height:1.45}
+.program-add-btn{font-family:var(--display);font-weight:700;font-size:var(--text-caption-1-size);padding:var(--space-2) var(--space-3);border-radius:var(--r-sm);border:var(--bw) solid var(--green);background:var(--green);color:var(--on-accent);cursor:pointer;transition:.16s;white-space:nowrap}
+.program-add-btn:hover{filter:brightness(1.08);transform:translateY(-1px)}
+.course-program-section{border:var(--bw) solid var(--border-hi);border-radius:var(--r-md);overflow:hidden;background:var(--bg);box-shadow:var(--shadow-lift);animation:program-section-in .25s ease both}
+.course-program-section-head{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);padding:var(--space-3) var(--space-4);border-left:4px solid var(--green);background:linear-gradient(90deg,var(--green-glow),transparent)}
+.course-program-index{font-family:var(--mono);font-size:var(--text-body-1-size);font-weight:700;color:var(--muted2);margin-right:var(--space-2)}
+.course-program-title{font-family:var(--display);font-size:var(--text-body-2-size);font-weight:800;color:var(--text)}
+.course-program-count{font-family:var(--mono);font-size:var(--text-caption-2-size);color:var(--muted);margin-left:var(--space-2)}
+.course-program-actions{display:flex;gap:var(--space-1);flex-shrink:0}
+.course-program-lessons{padding-left:var(--space-5);border-left:4px solid var(--green);margin-left:var(--space-4)}
+.course-program-lessons .admin-lesson-row{background:transparent}
+.admin-lesson-main{display:flex;align-items:center;gap:var(--space-3);min-width:0}
+.admin-lesson-cover{display:block;width:42px;height:42px;border-radius:var(--r-xs);object-fit:cover;flex-shrink:0;border:var(--bw) solid var(--border)}
+.admin-lesson-cover-empty{display:inline-flex;align-items:center;justify-content:center;background:var(--s2);color:var(--amber);font-size:12px}
+.program-add-lesson{margin:var(--space-3) var(--space-3) var(--space-3) 0;padding:var(--space-3);border:var(--bw) dashed var(--border-hi);border-radius:var(--r-sm);display:flex;flex-direction:column;gap:var(--space-2);background:rgba(255,255,255,.015)}
+.program-add-assets{display:flex;gap:var(--space-2);flex-wrap:wrap}
+.program-file-label{display:inline-flex;align-items:center;gap:var(--space-2);font-family:var(--mono);font-size:var(--text-caption-2-size);color:var(--muted2);cursor:pointer;padding:var(--space-1) var(--space-2);border:var(--bw) solid var(--border);border-radius:var(--r-xs);background:var(--s2)}
+.program-file-label:hover{color:var(--text);border-color:var(--border-hi)}
+.program-file-label input{max-width:160px;font-family:var(--sans);font-size:10px;color:var(--muted)}
+.course-program-legacy{border:var(--bw) dashed var(--border);border-radius:var(--r-sm);overflow:hidden}
+.course-program-legacy-title{padding:var(--space-2) var(--space-3);font-family:var(--mono);font-size:var(--text-caption-2-size);color:var(--muted2);text-transform:uppercase;letter-spacing:.06em}
+@keyframes program-section-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
 @media(max-width:760px){
   .admin-shell{flex-direction:column}
   .admin-sidebar{width:100%;height:auto;position:static;flex-direction:row;overflow-x:auto;padding:var(--space-2);gap:var(--space-1)}
@@ -61,4 +88,11 @@ button.stat-box:hover{border-color:var(--amber-glow-strong);box-shadow:var(--sha
   .admin-sidebar-foot{display:none}
   .admin-nav-item{white-space:nowrap;width:auto}
   .admin-main{padding:var(--space-5)}
+  .course-program-editor{padding:var(--space-3)}
+  .course-program-toolbar{flex-direction:column}
+  .course-program-toolbar .program-add-btn{width:100%}
+  .course-program-section-head{align-items:flex-start}
+  .course-program-count{display:none}
+  .course-program-lessons{margin-left:var(--space-2);padding-left:var(--space-2)}
+  .admin-lesson-row{align-items:flex-start}
 }

@@ -1413,19 +1413,24 @@ const ICON_PROJECT_A = aIcon('<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" 
 const ICON_FLAG_A = aIcon('<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/>');
 const ACTIVITY_ICONS = { post: ICON_POST_A, comment: ICON_CLIPBOARD_A, game: ICON_GAME_A, submission: ICON_STEPS_A, project: ICON_PROJECT_A, verify: ICON_CHECK_A, report: ICON_FLAG_A };
 
+function formatExactDateTime(dateStr){
+  if (!dateStr) return '';
+  return new Date(dateStr).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
 function formatRelativeTime(dateStr){
-  if (!dateStr) return { label: 'никогда', cls: '' };
+  if (!dateStr) return { label: 'никогда', cls: '', exact: '' };
+  const exact = formatExactDateTime(dateStr);
   const min = Math.floor((Date.now() - new Date(dateStr).getTime()) / 60000);
-  if (min < 1) return { label: 'сейчас', cls: 'online' };
-  if (min < 5) return { label: min + ' мин назад', cls: 'online' };
-  if (min < 60) return { label: min + ' мин назад', cls: 'recent' };
+  if (min < 1) return { label: 'сейчас', cls: 'online', exact };
+  if (min < 5) return { label: min + ' мин назад', cls: 'online', exact };
+  if (min < 60) return { label: min + ' мин назад', cls: 'recent', exact };
   const hours = Math.floor(min / 60);
-  if (hours < 24) return { label: hours + ' ч назад', cls: 'recent' };
+  if (hours < 24) return { label: hours + ' ч назад', cls: 'recent', exact };
   const days = Math.floor(hours / 24);
-  if (days < 30) return { label: days + ' дн назад', cls: '' };
+  if (days < 30) return { label: days + ' дн назад', cls: '', exact };
   const months = Math.floor(days / 30);
-  if (months < 12) return { label: months + ' мес назад', cls: '' };
-  return { label: new Date(dateStr).toLocaleDateString('ru-RU'), cls: '' };
+  if (months < 12) return { label: months + ' мес назад', cls: '', exact };
+  return { label: new Date(dateStr).toLocaleDateString('ru-RU'), cls: '', exact };
 }
 
 function stripHtmlForPreview(html){
@@ -1522,7 +1527,7 @@ function renderUserDetailBody(u, data){
         <div class="aud-name">${escapeHtml(u.username || '(без имени)')}</div>
         <div class="aud-meta">
           <span class="aud-badge role-${escapeAttr(u.role)}">${escapeHtml(u.role)}</span>
-          <span><span class="au-seen-dot ${seen.cls}" style="display:inline-block;vertical-align:-1px"></span> Был(а): ${seen.label}</span>
+          <span><span class="au-seen-dot ${seen.cls}" style="display:inline-block;vertical-align:-1px"></span> Был(а): ${seen.label}${seen.exact ? ' (' + seen.exact + ')' : ''}</span>
           <span>Регистрация: ${registered}</span>
         </div>
       </div>
@@ -1561,7 +1566,7 @@ function userRow(u){
     <td><input type="number" class="au-xp" value="${u.xp || 0}" min="0"><span class="au-saved"></span></td>
     <td><select class="au-vstatus">${vOptions}</select><span class="au-saved"></span></td>
     <td><label class="au-vip-toggle"><input type="checkbox" class="au-vip" ${u.is_vip ? 'checked' : ''}><span class="au-saved"></span></label></td>
-    <td><button type="button" class="au-seen au-userOpenBtn" title="Открыть досье"><span class="au-seen-dot ${seen.cls}"></span>${seen.label}</button></td>
+    <td><button type="button" class="au-seen au-userOpenBtn" title="Открыть досье"><span class="au-seen-dot ${seen.cls}"></span><span><span class="au-seen-rel">${seen.label}</span>${seen.exact ? `<span class="au-seen-exact">${seen.exact}</span>` : ''}</span></button></td>
     <td class="au-date">${date}</td>
     <td>${isSelf ? '' : `<button type="button" class="icon-btn au-del" title="Удалить аккаунт">${ICON_TRASH_A}</button>`}</td>`;
 

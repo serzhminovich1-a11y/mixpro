@@ -146,7 +146,7 @@ async function init() {
   if (!session) { location.href = 'auth.html'; return; }
 
   const myUid = session.user.id;
-  SB.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', myUid).then(({ error }) => { if (error) console.error('last_seen_at update failed:', error); });
+  SB.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', myUid).select().then(({ data, error }) => { if (error) console.error('last_seen_at update failed:', error); else if (!data || !data.length) console.warn('last_seen_at: 0 строк обновлено — возможно, истекла сессия'); });
   const uid = new URLSearchParams(location.search).get('user') || myUid;
   const isOwn = uid === myUid;
 

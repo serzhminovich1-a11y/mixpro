@@ -289,7 +289,7 @@ async function init() {
   const { data: { session } } = await SB.auth.getSession();
   if (!session) { location.href = 'auth.html'; return; }
   currentUid = session.user.id;
-  SB.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', currentUid).then(({ error }) => { if (error) console.error('last_seen_at update failed:', error); });
+  SB.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', currentUid).select().then(({ data, error }) => { if (error) console.error('last_seen_at update failed:', error); else if (!data || !data.length) console.warn('last_seen_at: 0 строк обновлено — возможно, истекла сессия'); });
   viewedUid = new URLSearchParams(location.search).get('user') || currentUid;
   isOwn = viewedUid === currentUid;
 

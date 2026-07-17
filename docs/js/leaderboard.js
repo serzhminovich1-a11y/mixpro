@@ -16,7 +16,7 @@ async function init() {
   const { data: { session } } = await SB.auth.getSession();
   if (session) {
     myUserId = session.user.id;
-    SB.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', myUserId).then(({ error }) => { if (error) console.error('last_seen_at update failed:', error); });
+    SB.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', myUserId).select().then(({ data, error }) => { if (error) console.error('last_seen_at update failed:', error); else if (!data || !data.length) console.warn('last_seen_at: 0 строк обновлено — возможно, истекла сессия'); });
     const { data: p } = await SB.from('profiles').select('username, role').eq('id', myUserId).single();
     if (p) {
       myUsername = p.username;

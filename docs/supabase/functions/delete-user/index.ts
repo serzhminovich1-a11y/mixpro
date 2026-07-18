@@ -52,6 +52,23 @@ Deno.serve(async (req) => {
       throw new Error('Нельзя удалить самого себя');
     }
 
+    // В чёрный список email — иначе удалённый человек тут же регистрируется
+    // заново под тем же адресом (см. 031_ban_system.sql). Не критично для
+    // самого удаления — если тут что-то пойдёт не так, аккаунт всё равно
+    // должен удалиться, поэтому ошибки здесь не прерывают выполнение.
+    try {
+      const { data: target } = await admin.auth.admin.getUserById(user_id);
+      const email = target?.user?.email;
+      if (email) {
+        await admin.from('banned_emails').upsert({
+          email: email.toLowerCase(),
+          reason: 'Аккаунт удалён администратором',
+          banned_by: caller.id,
+          banned_at: new Date().toISOString(),
+        });
+      }
+    } catch (_e) { /* не критично */ }
+
     // Чистим данные явно (не полагаемся на каскады в старых таблицах),
     // затем удаляем сам логин.
     await admin.from('scores').delete().eq('user_id', user_id);

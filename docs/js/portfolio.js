@@ -297,9 +297,10 @@ async function init() {
   // строка, второй запрос за ней не нужен
   const [{ data: viewedProfile }, { data: myProfile }] = await Promise.all([
     SB.from('profiles').select('*').eq('id', viewedUid).single(),
-    isOwn ? Promise.resolve({ data: null }) : SB.from('profiles').select('role').eq('id', currentUid).single(),
+    isOwn ? Promise.resolve({ data: null }) : SB.from('profiles').select('role, is_banned, ban_reason').eq('id', currentUid).single(),
   ]);
   if (!viewedProfile) { location.href = 'auth.html'; return; }
+  if (window.enforceBanGate && enforceBanGate(SB, isOwn ? viewedProfile : myProfile)) return;
   currentRole = isOwn ? viewedProfile.role : (myProfile ? myProfile.role : null);
   if (['VERIFIED_PRO', 'MENTOR', 'ADMIN'].includes(currentRole)) {
     document.getElementById('adminLink').style.display = '';

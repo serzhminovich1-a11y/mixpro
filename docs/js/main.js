@@ -136,6 +136,7 @@ async function sbInit(){
   SB.from('profiles').update({last_seen_at:new Date().toISOString()}).eq('id',sbUser.id).select().then(({data,error})=>{if(error)console.error('last_seen_at update failed:',error);else if(!data||!data.length)console.warn('last_seen_at: 0 строк обновлено — возможно, истекла сессия');});
   const{data:p}=await SB.from('profiles').select('*').eq('id',sbUser.id).single();
   sbProfile=p;
+  if(window.enforceBanGate&&enforceBanGate(SB,p))return;
   if(p&&p.is_vip){
     vip=true;
     applyVip();

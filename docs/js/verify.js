@@ -85,7 +85,8 @@ async function init() {
   currentUid = session.user.id;
   SB.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', currentUid).select().then(({ data, error }) => { if (error) console.error('last_seen_at update failed:', error); else if (!data || !data.length) console.warn('last_seen_at: 0 строк обновлено — возможно, истекла сессия'); });
 
-  const { data: profile } = await SB.from('profiles').select('role, verification_status').eq('id', currentUid).single();
+  const { data: profile } = await SB.from('profiles').select('role, verification_status, is_banned, ban_reason').eq('id', currentUid).single();
+  if (window.enforceBanGate && enforceBanGate(SB, profile)) return;
   if (profile && ['MENTOR', 'ADMIN'].includes(profile.role)) {
     document.getElementById('reviewLink').style.display = '';
   }

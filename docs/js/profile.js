@@ -156,13 +156,14 @@ async function init() {
 
   // Моя роль — нужна для прав вроде "Оставить разбор" (это всегда про
   // того, кто СЕЙЧАС смотрит страницу, не про владельца профиля).
-  let myRole;
+  let myRole, myProfile;
   if (isOwn) {
     myRole = profile.role;
   } else {
-    const { data: myProfile } = await SB.from('profiles').select('role').eq('id', myUid).single();
+    ({ data: myProfile } = await SB.from('profiles').select('role, is_banned, ban_reason').eq('id', myUid).single());
     myRole = myProfile ? myProfile.role : null;
   }
+  if (window.enforceBanGate && enforceBanGate(SB, isOwn ? profile : myProfile)) return;
   const viewerCtx = { currentUid: myUid, currentRole: myRole, isOwn };
 
   renderLevelXp(profile.xp);

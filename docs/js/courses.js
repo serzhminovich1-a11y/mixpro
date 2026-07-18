@@ -249,10 +249,11 @@ async function init() {
   // грузим его параллельно с уроками/списком курсов, а не перед ними
   // Promise.resolve() оборачивает builder в обычный промис — иначе
   // await в двух местах (тут и в renderCourseList) выполнит запрос дважды
-  const profilePromise = Promise.resolve(SB.from('profiles').select('role').eq('id', currentUid).single());
+  const profilePromise = Promise.resolve(SB.from('profiles').select('role, is_banned, ban_reason').eq('id', currentUid).single());
   const viewPromise = courseId ? renderCourseView(courseId) : renderCourseList(profilePromise);
 
   const { data: profile } = await profilePromise;
+  if (window.enforceBanGate && enforceBanGate(SB, profile)) return;
   const canAuthor = profile && ['VERIFIED_PRO', 'MENTOR', 'ADMIN'].includes(profile.role);
   if (canAuthor) {
     document.getElementById('adminLink').style.display = '';

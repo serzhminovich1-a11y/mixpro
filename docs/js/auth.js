@@ -20,9 +20,18 @@ async function doLogin() {
   
   btn.disabled = true; msg.className='msg'; msg.textContent='Входим...';
   
-  const { error } = await SB.auth.signInWithPassword({ email, password: pass });
+  const { data: loginData, error } = await SB.auth.signInWithPassword({ email, password: pass });
   if (error) { msg.className='msg err'; msg.textContent=error.message; btn.disabled=false; return; }
-  
+
+  const { data: p } = await SB.from('profiles').select('is_banned, ban_reason').eq('id', loginData.user.id).single();
+  if (p && p.is_banned) {
+    await SB.auth.signOut();
+    msg.className='msg err';
+    msg.textContent='Доступ к этому аккаунту заблокирован администрацией' + (p.ban_reason ? ': ' + p.ban_reason : '');
+    btn.disabled=false;
+    return;
+  }
+
   msg.className='msg ok'; msg.textContent='Успешно! Перенаправляем...';
   setTimeout(() => location.href='profile.html', 800);
 }
@@ -43,6 +52,9 @@ async function doRegister() {
   const { data: existing, error: checkErr } = await SB.from('profiles').select('id').eq('username', name).maybeSingle();
   if (checkErr) { msg.className='msg err'; msg.textContent='Ошибка проверки никнейма'; btn.disabled=false; return; }
   if (existing) { msg.className='msg err'; msg.textContent='Этот никнейм уже занят'; btn.disabled=false; return; }
+
+  const { data: banned } = await SB.rpc('is_email_banned', { check_email: email });
+  if (banned) { msg.className='msg err'; msg.textContent='Регистрация с этим email недоступна'; btn.disabled=false; return; }
 
   const { data, error } = await SB.auth.signUp({ email, password: pass });
   if (error) { msg.className='msg err'; msg.textContent=error.message; btn.disabled=false; return; }

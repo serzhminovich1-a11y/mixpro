@@ -50,10 +50,11 @@ async function init() {
 
   const [{ data: lesson }, { data: profile }, { data: existingProgress }] = await Promise.all([
     SB.from('lessons').select('*').eq('id', currentLessonId).single(),
-    SB.from('profiles').select('username, role').eq('id', currentUid).single(),
+    SB.from('profiles').select('username, role, is_banned, ban_reason').eq('id', currentUid).single(),
     SB.from('lesson_progress').select('status').eq('user_id', currentUid).eq('lesson_id', currentLessonId).maybeSingle(),
   ]);
 
+  if (window.enforceBanGate && enforceBanGate(SB, profile)) return;
   if (!lesson) { location.href = 'courses.html'; return; }
 
   if (profile && ['VERIFIED_PRO', 'MENTOR', 'ADMIN'].includes(profile.role)) {

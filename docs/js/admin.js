@@ -17,6 +17,8 @@ function escapeHtml(s){ return String(s == null ? '' : s).replace(/[&<>]/g, c =>
 function aIcon(path){ return `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`; }
 const ICON_PENCIL_A = aIcon('<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/>');
 const ICON_TRASH_A = aIcon('<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/>');
+const ICON_BAN_A = aIcon('<circle cx="12" cy="12" r="10"/><line x1="4.9" y1="4.9" x2="19.1" y2="19.1"/>');
+const ICON_UNBAN_A = aIcon('<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>');
 const ICON_VIDEO_A = aIcon('<path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/>');
 const ICON_HEADPHONES_A = aIcon('<path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H4a1 1 0 0 1-1-1v-6a9 9 0 0 1 18 0v6a1 1 0 0 1-1 1h-2a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/>');
 const ICON_CHECK_A = aIcon('<path d="M20 6 9 17l-5-5"/>');
@@ -1394,6 +1396,39 @@ async function saveField(userId, field, value, el){
   if (field === 'verification_status' && value === 'rejected') notifyUser(SB, { userId, actorId: currentUid, type: 'verification_rejected' });
 }
 
+async function handleToggleBan(u, tr, btn){
+  const banning = !u.is_banned;
+  let reason = null;
+  if (banning) {
+    reason = prompt(`За что банить "${u.username}"? (необязательно, видно только вам в панели)`, '');
+    if (reason === null) return; // отменил prompt
+  } else {
+    const sure = confirm(`Разбанить "${u.username}"? Человек снова сможет войти.`);
+    if (!sure) return;
+  }
+
+  btn.disabled = true;
+  const { error: profErr } = await SB.from('profiles').update({
+    is_banned: banning,
+    ban_reason: banning ? (reason || null) : null,
+    banned_at: banning ? new Date().toISOString() : null,
+  }).eq('id', u.id);
+  if (profErr) {
+    alert('Не удалось изменить статус бана: ' + profErr.message);
+    btn.disabled = false;
+    return;
+  }
+
+  const { error: fnErr } = await SB.functions.invoke('ban-user', { body: { user_id: u.id, action: banning ? 'ban' : 'unban', reason } });
+  if (fnErr) {
+    alert((banning ? 'Забанен' : 'Разбанен') + ', но не удалось обновить чёрный список email: ' + (fnErr.message || fnErr) + '\n\nЧеловек всё равно не сможет войти под старым аккаунтом, но email может остаться свободным для повторной регистрации.');
+  }
+
+  u.is_banned = banning;
+  u.ban_reason = banning ? (reason || null) : null;
+  tr.replaceWith(userRow(u));
+}
+
 async function handleDeleteUser(u, tr){
   const sure = confirm(`Удалить аккаунт "${u.username}" насовсем?\n\nЧеловек больше не сможет зайти, все его данные (профиль, очки, проекты) удалятся. Это нельзя отменить.`);
   if (!sure) return;
@@ -1569,15 +1604,17 @@ function userRow(u){
   const isSelf = u.id === currentUid;
   const seen = formatRelativeTime(u.last_seen_at);
 
+  if (u.is_banned) tr.classList.add('au-row-banned');
+
   tr.innerHTML = `
-    <td><button type="button" class="au-user au-userOpenBtn" style="background:none;border:none;cursor:pointer;padding:0;text-align:left" title="Открыть досье"><div class="au-avatar" style="background:${escapeAttr(u.avatar_color || '')}">${initials}</div><div class="au-username">${escapeHtml(u.username || '(без имени)')}</div></button></td>
+    <td><button type="button" class="au-user au-userOpenBtn" style="background:none;border:none;cursor:pointer;padding:0;text-align:left" title="Открыть досье"><div class="au-avatar" style="background:${escapeAttr(u.avatar_color || '')}">${initials}</div><div class="au-username">${escapeHtml(u.username || '(без имени)')}${u.is_banned ? '<span class="au-ban-badge">ЗАБАНЕН</span>' : ''}</div></button></td>
     <td><select class="au-role role-${u.role}">${roleOptions}</select><span class="au-saved"></span></td>
     <td><input type="number" class="au-xp" value="${u.xp || 0}" min="0"><span class="au-saved"></span></td>
     <td><select class="au-vstatus">${vOptions}</select><span class="au-saved"></span></td>
     <td><label class="au-vip-toggle"><input type="checkbox" class="au-vip" ${u.is_vip ? 'checked' : ''}><span class="au-saved"></span></label></td>
     <td><button type="button" class="au-seen au-userOpenBtn" title="Открыть досье"><span class="au-seen-dot ${seen.cls}"></span><span><span class="au-seen-rel">${seen.label}</span>${seen.exact ? `<span class="au-seen-exact">${seen.exact}</span>` : ''}</span></button></td>
     <td class="au-date">${date}</td>
-    <td>${isSelf ? '' : `<button type="button" class="icon-btn au-del" title="Удалить аккаунт">${ICON_TRASH_A}</button>`}</td>`;
+    <td class="au-actions">${isSelf ? '' : `<button type="button" class="icon-btn au-ban" title="${u.is_banned ? 'Разбанить' : 'Забанить'}">${u.is_banned ? ICON_UNBAN_A : ICON_BAN_A}</button><button type="button" class="icon-btn au-del" title="Удалить аккаунт">${ICON_TRASH_A}</button>`}</td>`;
 
   tr.querySelectorAll('.au-userOpenBtn').forEach(btn => btn.addEventListener('click', () => openUserDetail(u)));
 
@@ -1599,6 +1636,8 @@ function userRow(u){
   });
   const delBtn = tr.querySelector('.au-del');
   if (delBtn) delBtn.addEventListener('click', () => handleDeleteUser(u, tr));
+  const banBtn = tr.querySelector('.au-ban');
+  if (banBtn) banBtn.addEventListener('click', () => handleToggleBan(u, tr, banBtn));
 
   return tr;
 }
@@ -1633,7 +1672,8 @@ async function init() {
   currentSession = session;
   SB.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', currentUid).select().then(({ data, error }) => { if (error) console.error('last_seen_at update failed:', error); else if (!data || !data.length) console.warn('last_seen_at: 0 строк обновлено — возможно, истекла сессия'); });
 
-  const { data: profile } = await SB.from('profiles').select('role').eq('id', currentUid).single();
+  const { data: profile } = await SB.from('profiles').select('role, is_banned, ban_reason').eq('id', currentUid).single();
+  if (window.enforceBanGate && enforceBanGate(SB, profile)) return;
   currentRole = profile ? profile.role : null;
   document.getElementById('loading').style.display = 'none';
 

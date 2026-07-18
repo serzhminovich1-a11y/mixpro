@@ -25,6 +25,13 @@
 .au-del:hover{color:var(--red);border-color:var(--red)}
 .au-del:disabled{opacity:.4;cursor:default}
 
+.au-actions{display:flex;align-items:center;gap:var(--space-2)}
+.au-ban:hover{color:var(--red);border-color:var(--red)}
+.au-ban:disabled{opacity:.4;cursor:default}
+.au-row-banned td{opacity:.55}
+.au-row-banned:hover td{opacity:.85}
+.au-ban-badge{display:inline-block;margin-left:var(--space-2);padding:1px 7px;border-radius:var(--r-badge);background:rgba(248,113,113,.14);border:var(--bw) solid var(--red);color:var(--red);font-family:var(--mono);font-size:9px;font-weight:800;letter-spacing:.06em;vertical-align:middle}
+
 .au-vip-toggle{display:inline-flex;align-items:center;gap:var(--space-1);cursor:pointer}
 .au-vip{appearance:none;-webkit-appearance:none;width:34px;height:19px;border-radius:var(--r-pill);background:var(--s2);border:var(--bw) solid var(--border);position:relative;cursor:pointer;flex-shrink:0;transition:background .15s,border-color .15s}
 .au-vip::after{content:'';position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:var(--r-badge);background:var(--muted2);transition:transform .15s,background .15s}

@@ -737,9 +737,10 @@ async function init() {
   SB.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', currentUid).select().then(({ data, error }) => { if (error) console.error('last_seen_at update failed:', error); else if (!data || !data.length) console.warn('last_seen_at: 0 строк обновлено — возможно, истекла сессия'); });
 
   const [{ data: profile }, { data: myFollows }] = await Promise.all([
-    SB.from('profiles').select('username, role').eq('id', currentUid).single(),
+    SB.from('profiles').select('username, role, is_banned, ban_reason').eq('id', currentUid).single(),
     SB.from('follows').select('following_id').eq('follower_id', currentUid),
   ]);
+  if (window.enforceBanGate && enforceBanGate(SB, profile)) return;
   currentUsername = profile ? profile.username : null;
   currentRole = profile ? profile.role : null;
   if (['VERIFIED_PRO', 'MENTOR', 'ADMIN'].includes(currentRole)) {

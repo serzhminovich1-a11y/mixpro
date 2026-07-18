@@ -15,6 +15,8 @@
   const ICON_REACTION = nIcon('<path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/>');
   const ICON_REVIEW = nIcon('<path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z"/><path d="m9 12 2 2 4-4"/>');
   const ICON_FOLLOW = nIcon('<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/>');
+  const ICON_SHIELD = nIcon('<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>');
+  const ICON_CROWN = nIcon('<path d="M2.5 19h19l-1.9-9.4a.5.5 0 0 0-.8-.27L15 13 12.4 6.2a.5.5 0 0 0-.8 0L9 13 5.2 9.33a.5.5 0 0 0-.8.27z"/>');
 
   const TYPE_META = {
     post_comment:    { icon: ICON_COMMENT,  text: u => `${u} оставил(а) комментарий к вашему посту`, href: () => 'feed.html' },
@@ -23,6 +25,10 @@
     project_reaction:{ icon: ICON_REACTION, text: u => `${u} отреагировал(а) на ваш трек`,            href: () => 'portfolio.html' },
     project_review:  { icon: ICON_REVIEW,   text: u => `${u} оставил(а) разбор на ваш трек`,          href: () => 'portfolio.html' },
     follow:          { icon: ICON_FOLLOW,   text: u => `${u} теперь подписан(а) на вас`,              href: (n) => 'profile.html?user=' + n.actor_id },
+    role_changed:            { icon: ICON_SHIELD, text: () => 'Администратор изменил вашу роль на платформе', href: () => 'profile.html' },
+    vip_granted:              { icon: ICON_CROWN,  text: () => 'Вам открыт VIP-доступ 🎉',                       href: () => 'profile.html' },
+    verification_approved:   { icon: ICON_REVIEW, text: () => 'Заявка на верификацию одобрена — теперь у вас статус Certified Engineer', href: () => 'profile.html' },
+    verification_rejected:   { icon: ICON_REVIEW, text: () => 'Заявка на верификацию отклонена',                href: () => 'verify.html' },
   };
 
   function escapeHtml(s){ return String(s == null ? '' : s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }

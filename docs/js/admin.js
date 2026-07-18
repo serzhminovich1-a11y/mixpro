@@ -1234,12 +1234,12 @@ function verifyRequestCard(r){
     </div>
     <div class="form-status rStatus"></div>`;
 
-  card.querySelector('.approveBtn').addEventListener('click', () => handleVerifyReview(r.id, true, card));
-  card.querySelector('.rejectBtn').addEventListener('click', () => handleVerifyReview(r.id, false, card));
+  card.querySelector('.approveBtn').addEventListener('click', () => handleVerifyReview(r.id, true, card, r.user_id));
+  card.querySelector('.rejectBtn').addEventListener('click', () => handleVerifyReview(r.id, false, card, r.user_id));
   return card;
 }
 
-async function handleVerifyReview(requestId, approve, card){
+async function handleVerifyReview(requestId, approve, card, targetUserId){
   const statusEl = card.querySelector('.rStatus');
   card.querySelectorAll('button').forEach(b => b.disabled = true);
   const { error } = await SB.rpc('approve_verification_request', {
@@ -1252,6 +1252,7 @@ async function handleVerifyReview(requestId, approve, card){
     card.querySelectorAll('button').forEach(b => b.disabled = false);
     return;
   }
+  if (window.notifyUser && targetUserId) notifyUser(SB, { userId: targetUserId, actorId: currentUid, type: approve ? 'verification_approved' : 'verification_rejected' });
   card.style.opacity = '.4';
   statusEl.innerHTML = approve ? ICON_CHECK_A + ' Подтверждено' : 'Отклонено';
   statusEl.className = 'form-status ' + (approve ? 'ok' : 'error');
@@ -1383,6 +1384,14 @@ async function saveField(userId, field, value, el){
     return;
   }
   flashSaved(el);
+  if (!window.notifyUser) return;
+  // Раньше выдача роли/VIP/верификации отсюда никак не доходила до самого
+  // человека — уведомления слал только feed.js. Доводим до него через тот
+  // же общий notifyUser(), что и комментарии/реакции.
+  if (field === 'role') notifyUser(SB, { userId, actorId: currentUid, type: 'role_changed' });
+  if (field === 'is_vip' && value) notifyUser(SB, { userId, actorId: currentUid, type: 'vip_granted' });
+  if (field === 'verification_status' && value === 'approved') notifyUser(SB, { userId, actorId: currentUid, type: 'verification_approved' });
+  if (field === 'verification_status' && value === 'rejected') notifyUser(SB, { userId, actorId: currentUid, type: 'verification_rejected' });
 }
 
 async function handleDeleteUser(u, tr){

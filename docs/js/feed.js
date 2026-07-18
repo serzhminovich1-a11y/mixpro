@@ -747,6 +747,7 @@ async function init() {
     document.getElementById('adminLink').style.display = '';
   }
   mountNotifications(SB, document.getElementById('notifMount'), currentUid);
+  if (window.mountPmInbox) mountPmInbox(SB, document.getElementById('pmMount'), currentUid);
   followingSet = new Set((myFollows || []).map(f => f.following_id));
 
   document.getElementById('loading').style.display = 'none';

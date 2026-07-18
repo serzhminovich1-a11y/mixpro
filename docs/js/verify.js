@@ -91,6 +91,7 @@ async function init() {
     document.getElementById('reviewLink').style.display = '';
   }
   mountNotifications(SB, document.getElementById('notifMount'), currentUid);
+  if (window.mountPmInbox) mountPmInbox(SB, document.getElementById('pmMount'), currentUid);
 
   document.getElementById('verifyForm').addEventListener('submit', handleSubmit);
   await renderStatus(profile);

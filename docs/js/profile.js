@@ -175,6 +175,7 @@ async function init() {
     document.getElementById('adminUsersLink').style.display = '';
   }
   mountNotifications(SB, document.getElementById('notifMount'), myUid);
+  if (window.mountPmInbox) mountPmInbox(SB, document.getElementById('pmMount'), myUid);
 
   if (!isOwn) {
     document.getElementById('shopPresets').style.display = 'none';
@@ -220,6 +221,12 @@ async function init() {
     const view = document.getElementById('signatureView');
     view.style.display = '';
     view.textContent = '«' + profile.bio + '»';
+  }
+
+  if (!isOwn) {
+    const msgLink = document.getElementById('messageUserLink');
+    msgLink.style.display = '';
+    msgLink.href = 'messages.html?to=' + uid;
   }
 
   // Все очки пользователя

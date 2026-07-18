@@ -1,0 +1,38 @@
+/* ══════════════════════════════════════
+   ЛИЧНЫЕ СООБЩЕНИЯ — список переписок ⇄ сама переписка (через ?to=)
+   ══════════════════════════════════════ */
+.wrap{max-width:640px;margin:0 auto;padding:32px 20px 80px;display:flex;flex-direction:column;gap:var(--space-5)}
+.card{background:linear-gradient(180deg,var(--surf-top),var(--surf-bot)),var(--bg);border:var(--bw) solid var(--border);border-radius:var(--r-card);box-shadow:var(--shadow-lift)}
+.sec-h{font-family:var(--display);font-size:var(--text-body-2-size);font-weight:700;color:var(--text);margin-bottom:var(--space-3);display:flex;align-items:center;gap:var(--space-2)}
+.sec-h::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--border-hi),transparent)}
+.back-link{font-family:var(--mono);font-size:var(--text-caption-2-size);color:var(--muted2);text-decoration:none;display:inline-flex;align-items:center;gap:var(--space-1);width:fit-content}
+.back-link:hover{color:var(--text)}
+.loading{text-align:center;padding:var(--space-10);color:var(--muted2);font-family:var(--mono);font-size:var(--text-body-1-size)}
+.empty{text-align:center;padding:var(--space-8);color:var(--muted);font-size:var(--text-body-1-size)}
+
+.conv-list{display:flex;flex-direction:column;gap:var(--space-2)}
+.conv-row{background:linear-gradient(180deg,var(--surf-top),var(--surf-bot)),var(--bg);border:var(--bw) solid var(--border);border-radius:var(--r-md);padding:var(--space-3) var(--space-4);display:flex;align-items:center;gap:var(--space-3);text-decoration:none;transition:.18s ease}
+.conv-row:hover{border-color:var(--border-hi)}
+.conv-row.unread{border-color:var(--amber-glow-strong)}
+.conv-avatar{width:38px;height:38px;border-radius:var(--r-badge);display:flex;align-items:center;justify-content:center;font-size:var(--text-body-1-size);font-weight:800;color:var(--on-accent);background:linear-gradient(135deg,var(--amber),var(--amber-dim));flex-shrink:0}
+.conv-main{flex:1;min-width:0}
+.conv-name{font-family:var(--display);font-weight:700;font-size:var(--text-body-1-size);color:var(--text);display:flex;align-items:center;gap:6px}
+.conv-dot{width:7px;height:7px;border-radius:50%;background:var(--amber)}
+.conv-preview{color:var(--muted2);font-size:var(--text-caption-1-size);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.conv-time{font-family:var(--mono);font-size:var(--text-caption-2-size);color:var(--muted2);flex-shrink:0}
+
+.conv-header{display:flex;align-items:center;gap:var(--space-3)}
+.conv-header-name{font-family:var(--display);font-weight:800;font-size:var(--text-body-2-size);color:var(--text)}
+
+.msg-list{display:flex;flex-direction:column;gap:var(--space-2);padding:var(--space-4);min-height:200px;max-height:60vh;overflow-y:auto}
+.msg-bubble{max-width:75%;padding:var(--space-2) var(--space-3);border-radius:var(--r-md);font-size:var(--text-body-1-size);line-height:1.5;word-break:break-word;white-space:pre-wrap}
+.msg-bubble.mine{align-self:flex-end;background:linear-gradient(135deg,var(--amber),var(--amber-dim));color:var(--on-accent)}
+.msg-bubble.theirs{align-self:flex-start;background:var(--s2);border:var(--bw) solid var(--border);color:var(--text)}
+.msg-time{font-family:var(--mono);font-size:9px;opacity:.7;margin-top:3px;display:block}
+.msg-report-link{color:inherit;opacity:.85;text-decoration:underline}
+
+.msg-composer{display:flex;gap:var(--space-2);padding:var(--space-3) var(--space-4);border-top:var(--bw) solid var(--border)}
+.msg-composer textarea{flex:1;resize:none;background:var(--s2);border:var(--bw) solid var(--border);border-radius:var(--r-sm);padding:var(--space-2) var(--space-3);color:var(--text);font-family:var(--sans);font-size:var(--text-body-1-size);min-height:40px;max-height:120px}
+.msg-composer textarea:focus{outline:none;border-color:var(--amber)}
+.msg-send-btn{background:linear-gradient(135deg,var(--amber),var(--amber-dim));color:var(--on-accent);border:none;border-radius:var(--r-pill);padding:0 var(--space-5);font-family:var(--sans);font-weight:700;font-size:var(--text-body-1-size);cursor:pointer;flex-shrink:0}
+.msg-send-btn:disabled{opacity:.5;cursor:default}

@@ -26,6 +26,7 @@ async function init() {
         document.getElementById('adminLink').style.display = '';
       }
       mountNotifications(SB, document.getElementById('notifMount'), myUserId);
+      if (window.mountPmInbox) mountPmInbox(SB, document.getElementById('pmMount'), myUserId);
     }
   }
   load();

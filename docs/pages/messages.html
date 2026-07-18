@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MIXPRO — Сообщения</title>
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400..900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/themes.css">
+<script>
+(function(){
+  try {
+    var t = localStorage.getItem("mixpro_theme");
+    if (t && t !== "default") document.documentElement.setAttribute("data-theme", t);
+  } catch(e){}
+})();
+</script>
+<link rel="stylesheet" href="../css/messages.css">
+<link rel="stylesheet" href="../css/animations.css">
+<link rel="stylesheet" href="../css/notifications.css">
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">MIX<span>PRO</span></a>
+  <div class="nav-links">
+    <a href="admin.html" class="nav-btn accent" id="adminLink" style="display:none">Админ</a>
+    <div id="pmMount"></div>
+    <div id="notifMount"></div>
+    <a href="profile.html" class="nav-btn primary">Профиль</a>
+    <button class="nav-btn danger" onclick="logout()">Выйти</button>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div id="loading" class="loading">Загружаем сообщения...</div>
+
+  <!-- Список переписок -->
+  <div id="listView" style="display:none">
+    <div class="sec-h">Сообщения</div>
+    <div class="conv-list" id="convList"></div>
+  </div>
+
+  <!-- Одна переписка -->
+  <div id="convView" style="display:none">
+    <a href="messages.html" class="back-link">← Все сообщения</a>
+    <div class="card">
+      <div style="padding:var(--space-4)" class="conv-header">
+        <div class="conv-avatar" id="convAvatar"></div>
+        <div class="conv-header-name" id="convName">—</div>
+      </div>
+      <div class="msg-list" id="msgList"></div>
+      <form class="msg-composer" id="msgForm">
+        <textarea id="msgInput" maxlength="4000" placeholder="Написать сообщение…" rows="1"></textarea>
+        <button type="submit" class="msg-send-btn" id="msgSendBtn">Отправить</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="../js/animations.js"></script>
+<script src="../js/notifications.js"></script>
+<script src="../js/pm_inbox.js"></script>
+<script src="../js/ban_gate.js"></script>
+<script src="../js/messages.js"></script>
+</body>
+</html>

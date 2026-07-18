@@ -61,6 +61,7 @@ async function init() {
     document.getElementById('adminLink').style.display = '';
   }
   mountNotifications(SB, document.getElementById('notifMount'), currentUid);
+  if (window.mountPmInbox) mountPmInbox(SB, document.getElementById('pmMount'), currentUid);
 
   const { data: course } = await SB.from('courses').select('id, title').eq('id', lesson.course_id).single();
 

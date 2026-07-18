@@ -130,6 +130,7 @@ async function init(){
     document.getElementById('adminLink').style.display = '';
   }
   mountNotifications(SB, document.getElementById('notifMount'), currentUid);
+  if (window.mountPmInbox) mountPmInbox(SB, document.getElementById('pmMount'), currentUid);
 
   document.getElementById('loading').style.display = 'none';
 

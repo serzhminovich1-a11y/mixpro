@@ -306,6 +306,7 @@ async function init() {
     document.getElementById('adminLink').style.display = '';
   }
   mountNotifications(SB, document.getElementById('notifMount'), currentUid);
+  if (window.mountPmInbox) mountPmInbox(SB, document.getElementById('pmMount'), currentUid);
 
   document.getElementById('portAvatar').style.background = viewedProfile.avatar_color || '#4ade80';
   document.getElementById('portAvatar').textContent = viewedProfile.username.slice(0, 2).toUpperCase();

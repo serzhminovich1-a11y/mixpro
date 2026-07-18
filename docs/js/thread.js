@@ -389,8 +389,10 @@ async function init(){
     document.getElementById('adminLink').style.display = '';
   }
   mountNotifications(SB, document.getElementById('notifMount'), currentUid);
+  if (window.mountPmInbox) mountPmInbox(SB, document.getElementById('pmMount'), currentUid);
 
-  SB.rpc('increment_thread_view', { p_thread_id: threadId });
+  // SB.rpc(...) — ленивый билдер, запрос не уйдёт без await/.then().
+  SB.rpc('increment_thread_view', { p_thread_id: threadId }).then(() => {});
 
   setupReplyComposer();
   await loadThread();

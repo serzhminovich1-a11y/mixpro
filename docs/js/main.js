@@ -148,6 +148,8 @@ async function sbInit(){
   }
   const notifMount=document.getElementById('notifMount');
   if(notifMount&&window.mountNotifications)mountNotifications(SB,notifMount,sbUser.id);
+  const pmMount=document.getElementById('pmMount');
+  if(pmMount&&window.mountPmInbox)mountPmInbox(SB,pmMount,sbUser.id);
 }
 
 

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MIXPRO — Барахолка</title>
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400..900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/tokens.css">
+<link rel="stylesheet" href="../css/themes.css">
+<script>
+(function(){
+  try {
+    var t = localStorage.getItem("mixpro_theme");
+    if (t && t !== "default") document.documentElement.setAttribute("data-theme", t);
+  } catch(e){}
+})();
+</script>
+<link rel="stylesheet" href="../css/marketplace.css">
+<link rel="stylesheet" href="../css/animations.css">
+<link rel="stylesheet" href="../css/notifications.css">
+</head>
+<body>
+<nav>
+  <a href="../index.html" class="logo">MIX<span>PRO</span></a>
+  <div class="nav-links">
+    <a href="../index.html" class="nav-btn">Главная</a>
+    <a href="feed.html" class="nav-btn">Лента</a>
+    <a href="courses.html" class="nav-btn">Курсы</a>
+    <a href="forum.html" class="nav-btn">Форум</a>
+    <a href="marketplace.html" class="nav-btn current">Барахолка</a>
+    <a href="leaderboard.html" class="nav-btn">Рейтинг</a>
+    <a href="portfolio.html" class="nav-btn">Портфолио</a>
+  </div>
+  <div class="nav-links">
+    <a href="admin.html" class="nav-btn accent" id="adminLink" style="display:none">Админ</a>
+    <div id="pmMount"></div>
+    <div id="notifMount"></div>
+    <a href="profile.html" class="nav-btn primary">Профиль</a>
+    <button class="nav-btn danger" onclick="logout()">Выйти</button>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div id="loading" class="loading">Загружаем барахолку...</div>
+
+  <!-- Список объявлений -->
+  <div id="listView" style="display:none">
+    <div class="mkt-toolbar">
+      <div>
+        <div class="sec-h">Барахолка</div>
+        <div class="page-sub">Купля-продажа оборудования между участниками сообщества</div>
+      </div>
+      <button type="button" class="btn-primary" id="newListingBtn">+ Разместить объявление</button>
+    </div>
+
+    <div class="mkt-filters">
+      <select id="categoryFilter">
+        <option value="">Все категории</option>
+        <option value="mics">Микрофоны</option>
+        <option value="monitors">Мониторы/акустика</option>
+        <option value="interfaces">Аудиоинтерфейсы</option>
+        <option value="headphones">Наушники</option>
+        <option value="outboard">Аутборд</option>
+        <option value="midi">MIDI-контроллеры</option>
+        <option value="software">Плагины/софт</option>
+        <option value="furniture">Мебель/акустическая обработка</option>
+        <option value="other">Разное</option>
+      </select>
+    </div>
+
+    <form class="card mkt-new-form" id="newListingForm">
+      <input type="text" id="nlTitle" placeholder="Название (например: Shure SM7B, почти новый)" maxlength="150">
+      <div class="mkt-form-row3">
+        <input type="number" id="nlPrice" placeholder="Цена" min="0" step="1">
+        <select id="nlCondition">
+          <option value="used">Б/у</option>
+          <option value="new">Новое</option>
+        </select>
+        <select id="nlCategory">
+          <option value="mics">Микрофоны</option>
+          <option value="monitors">Мониторы/акустика</option>
+          <option value="interfaces">Аудиоинтерфейсы</option>
+          <option value="headphones">Наушники</option>
+          <option value="outboard">Аутборд</option>
+          <option value="midi">MIDI-контроллеры</option>
+          <option value="software">Плагины/софт</option>
+          <option value="furniture">Мебель/акустическая обработка</option>
+          <option value="other">Разное</option>
+        </select>
+      </div>
+      <textarea id="nlDesc" placeholder="Опишите состояние, комплектацию, причину продажи..."></textarea>
+      <div class="mkt-image-picker" id="nlImagePicker">
+        <button type="button" class="mkt-image-add" id="nlImageAddBtn">+<span>Фото</span></button>
+        <input type="file" id="nlImageInput" accept="image/*" multiple hidden>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div class="form-status" id="nlStatus"></div>
+        <button type="submit" class="btn-primary" id="nlSubmit">Разместить</button>
+      </div>
+    </form>
+
+    <div class="mkt-grid" id="listingGrid"></div>
+  </div>
+
+  <!-- Карточка объявления -->
+  <div id="detailView" style="display:none">
+    <a href="marketplace.html" class="back-link">← Все объявления</a>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px" id="detailGrid">
+      <div class="mkt-detail-gallery">
+        <div class="mkt-detail-main-img" id="detailMainImg">Нет фото</div>
+        <div class="mkt-detail-thumbs" id="detailThumbs"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="mkt-detail-title" id="detailTitle">—</div>
+        <div class="mkt-detail-price" id="detailPrice"></div>
+        <div class="mkt-detail-meta" id="detailMeta"></div>
+        <div class="mkt-detail-desc" id="detailDesc"></div>
+        <div class="mkt-seller-row">
+          <div class="mkt-seller-avatar" id="sellerAvatar"></div>
+          <span id="sellerName">—</span>
+        </div>
+        <div class="mkt-detail-actions" id="detailActions"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="../js/animations.js"></script>
+<script src="../js/content_filter.js"></script>
+<script src="../js/rich_text.js"></script>
+<script src="../js/notifications.js"></script>
+<script src="../js/pm_inbox.js"></script>
+<script src="../js/ban_gate.js"></script>
+<script src="../js/marketplace.js"></script>
+</body>
+</html>

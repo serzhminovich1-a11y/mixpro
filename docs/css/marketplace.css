@@ -1,0 +1,71 @@
+/* ══════════════════════════════════════
+   БАРАХОЛКА — сетка объявлений ⇄ карточка объявления (через ?listing=)
+   ══════════════════════════════════════ */
+.wrap{max-width:1000px;margin:0 auto;padding:32px 20px 80px;display:flex;flex-direction:column;gap:var(--space-5)}
+.card{background:linear-gradient(180deg,var(--surf-top),var(--surf-bot)),var(--bg);border:var(--bw) solid var(--border);border-radius:var(--r-card);box-shadow:var(--shadow-lift)}
+.sec-h{font-family:var(--display);font-size:var(--text-body-2-size);font-weight:700;color:var(--text);margin-bottom:var(--space-3);display:flex;align-items:center;gap:var(--space-2)}
+.sec-h::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--border-hi),transparent)}
+.page-sub{color:var(--muted2);font-size:var(--text-body-1-size);margin-top:-14px}
+.back-link{font-family:var(--mono);font-size:var(--text-caption-2-size);color:var(--muted2);text-decoration:none;display:inline-flex;align-items:center;gap:var(--space-1);width:fit-content}
+.back-link:hover{color:var(--text)}
+.loading{text-align:center;padding:var(--space-10);color:var(--muted2);font-family:var(--mono);font-size:var(--text-body-1-size)}
+.empty{text-align:center;padding:var(--space-8);color:var(--muted);font-size:var(--text-body-1-size)}
+.btn-primary{background:linear-gradient(135deg,var(--amber),var(--amber-dim));color:var(--on-accent);border:none;border-radius:var(--r-pill);padding:var(--space-2) var(--space-5);font-family:var(--sans);font-weight:700;font-size:var(--text-body-1-size);cursor:pointer;transition:.15s}
+.btn-primary:hover{filter:brightness(1.08)}
+.btn-primary:disabled{opacity:.5;cursor:default}
+.form-status{font-size:var(--text-caption-1-size);color:var(--muted2)}
+.form-status.error{color:var(--red)}
+.form-status.ok{color:var(--green)}
+
+.mkt-toolbar{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);flex-wrap:wrap}
+.mkt-filters{display:flex;gap:var(--space-2);flex-wrap:wrap}
+.mkt-filters select{background:var(--s2);border:var(--bw) solid var(--border);border-radius:var(--r-sm);padding:var(--space-2) var(--space-3);color:var(--text);font-family:var(--sans);font-size:var(--text-caption-2-size)}
+
+/* ── Сетка объявлений ── */
+.mkt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:var(--space-3)}
+.mkt-card{background:linear-gradient(180deg,var(--surf-top),var(--surf-bot)),var(--bg);border:var(--bw) solid var(--border);border-radius:var(--r-card);overflow:hidden;text-decoration:none;transition:.18s ease;box-shadow:var(--shadow-lift);display:flex;flex-direction:column}
+.mkt-card:hover{border-color:var(--amber-glow-strong);box-shadow:var(--shadow-lift-hover);transform:translateY(-1px)}
+.mkt-card-img{width:100%;aspect-ratio:4/3;background:var(--s2) center/cover no-repeat;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.mkt-card-body{padding:var(--space-3);display:flex;flex-direction:column;gap:4px}
+.mkt-card-title{font-family:var(--display);font-weight:700;font-size:var(--text-body-1-size);color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mkt-card-price{font-family:var(--mono);font-weight:800;font-size:var(--text-body-1-size);color:var(--amber)}
+.mkt-card-meta{font-family:var(--mono);font-size:var(--text-caption-2-size);color:var(--muted2);display:flex;justify-content:space-between}
+.mkt-badge-sold{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.7);color:#fff;font-family:var(--mono);font-size:9px;font-weight:800;letter-spacing:.05em;padding:2px 8px;border-radius:var(--r-badge)}
+.mkt-card-img-wrap{position:relative}
+
+/* ── Форма нового объявления ── */
+.mkt-new-form{padding:var(--space-5);display:none;flex-direction:column;gap:var(--space-3)}
+.mkt-new-form.open{display:flex}
+.mkt-new-form input[type="text"],.mkt-new-form input[type="number"],.mkt-new-form select,.mkt-new-form textarea{background:var(--s2);border:var(--bw) solid var(--border);border-radius:var(--r-sm);padding:var(--space-3);color:var(--text);font-family:var(--sans);font-size:var(--text-body-1-size)}
+.mkt-new-form textarea{min-height:80px;resize:vertical}
+.mkt-form-row{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3)}
+.mkt-form-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--space-3)}
+
+/* ── Виджет загрузки нескольких фото ── */
+.mkt-image-picker{display:flex;flex-wrap:wrap;gap:var(--space-2)}
+.mkt-image-thumb{position:relative;width:78px;height:78px;border-radius:var(--r-sm);overflow:hidden;border:var(--bw) solid var(--border);background:var(--s2) center/cover no-repeat}
+.mkt-image-thumb button{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;border:none;background:rgba(0,0,0,.7);color:#fff;cursor:pointer;font-size:11px;line-height:1;display:flex;align-items:center;justify-content:center}
+.mkt-image-add{width:78px;height:78px;border-radius:var(--r-sm);border:var(--bw) dashed var(--border);background:transparent;color:var(--muted2);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:10px;transition:.15s}
+.mkt-image-add:hover{border-color:var(--amber);color:var(--amber)}
+.mkt-image-add:disabled{opacity:.4;cursor:default}
+
+/* ── Карточка объявления ── */
+.mkt-detail-gallery{display:flex;flex-direction:column;gap:var(--space-2)}
+.mkt-detail-main-img{width:100%;aspect-ratio:4/3;border-radius:var(--r-card);background:var(--s2) center/cover no-repeat;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.mkt-detail-thumbs{display:flex;gap:var(--space-2);flex-wrap:wrap}
+.mkt-detail-thumbs img{width:56px;height:56px;border-radius:var(--r-xs);object-fit:cover;cursor:pointer;border:var(--bw) solid var(--border);transition:.15s}
+.mkt-detail-thumbs img.active{border-color:var(--amber)}
+.mkt-detail-title{font-family:var(--display);font-weight:800;font-size:var(--text-title-3-size,22px);color:var(--text)}
+.mkt-detail-price{font-family:var(--mono);font-weight:800;font-size:var(--text-header-2-size,26px);color:var(--amber)}
+.mkt-detail-meta{display:flex;gap:var(--space-3);flex-wrap:wrap;font-family:var(--mono);font-size:var(--text-caption-2-size);color:var(--muted2)}
+.mkt-detail-desc{color:var(--text);font-size:var(--text-body-1-size);line-height:1.6;white-space:pre-wrap}
+.mkt-detail-actions{display:flex;gap:var(--space-2);flex-wrap:wrap;align-items:center}
+.mkt-seller-row{display:flex;align-items:center;gap:var(--space-2)}
+.mkt-seller-avatar{width:32px;height:32px;border-radius:var(--r-badge);display:flex;align-items:center;justify-content:center;font-size:var(--text-caption-1-size);font-weight:800;color:var(--on-accent);background:linear-gradient(135deg,var(--amber),var(--amber-dim))}
+.nav-btn{-webkit-appearance:none;appearance:none;font-family:var(--display);font-weight:600;font-size:var(--text-caption-2-size);text-decoration:none;padding:var(--space-2) var(--space-4);border-radius:var(--r-pill);border:var(--bw) solid var(--border);background:transparent;color:var(--text);cursor:pointer;transition:.15s}
+.nav-btn:hover{border-color:var(--border-hi)}
+.nav-btn.danger:hover{color:var(--red);border-color:var(--red)}
+
+@media(max-width:640px){
+  .mkt-form-row,.mkt-form-row3{grid-template-columns:1fr}
+}

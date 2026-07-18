@@ -1404,8 +1404,9 @@ async function renderReportsQueue(){
   const projectCommentIds = [...new Set(reports.filter(r => r.content_type === 'project_comment').map(r => r.content_id))];
   const forumPostIds = [...new Set(reports.filter(r => r.content_type === 'forum_post').map(r => r.content_id))];
   const pmMessageIds = [...new Set(reports.filter(r => r.content_type === 'pm_message').map(r => r.content_id))];
+  const marketplaceIds = [...new Set(reports.filter(r => r.content_type === 'marketplace_listing').map(r => r.content_id))];
 
-  const [{ data: reporters }, { data: posts }, { data: comments }, { data: projectComments }, { data: forumPosts }, { data: pmMessages }] = await Promise.all([
+  const [{ data: reporters }, { data: posts }, { data: comments }, { data: projectComments }, { data: forumPosts }, { data: pmMessages }, { data: marketplaceListings }] = await Promise.all([
     reporterIds.length ? SB.from('profiles').select('id, username').in('id', reporterIds) : Promise.resolve({ data: [] }),
     postIds.length ? SB.from('posts').select('id, content, user_id').in('id', postIds) : Promise.resolve({ data: [] }),
     commentIds.length ? SB.from('post_comments').select('id, content, audio_url, user_id').in('id', commentIds) : Promise.resolve({ data: [] }),
@@ -1414,6 +1415,7 @@ async function renderReportsQueue(){
     // RLS (038_pm_moderation.sql) отдаёт эти строки ТОЛЬКО если по ним есть жалоба —
     // всю остальную переписку так прочитать нельзя, даже персоналу.
     pmMessageIds.length ? SB.from('pm_messages').select('id, content, sender_id').in('id', pmMessageIds) : Promise.resolve({ data: [] }),
+    marketplaceIds.length ? SB.from('marketplace_listings').select('id, title, description, price, currency, user_id').in('id', marketplaceIds) : Promise.resolve({ data: [] }),
   ]);
   const reporterMap = new Map((reporters || []).map(u => [u.id, u.username]));
   const postMap = new Map((posts || []).map(p => [p.id, p]));
@@ -1421,6 +1423,7 @@ async function renderReportsQueue(){
   const projectCommentMap = new Map((projectComments || []).map(c => [c.id, c]));
   const forumPostMap = new Map((forumPosts || []).map(c => [c.id, c]));
   const pmMessageMap = new Map((pmMessages || []).map(c => [c.id, { ...c, user_id: c.sender_id }]));
+  const marketplaceMap = new Map((marketplaceListings || []).map(c => [c.id, c]));
 
   queue.innerHTML = '';
   reports.forEach(r => {
@@ -1428,6 +1431,7 @@ async function renderReportsQueue(){
       : r.content_type === 'project_comment' ? projectCommentMap.get(r.content_id)
       : r.content_type === 'forum_post' ? forumPostMap.get(r.content_id)
       : r.content_type === 'pm_message' ? pmMessageMap.get(r.content_id)
+      : r.content_type === 'marketplace_listing' ? marketplaceMap.get(r.content_id)
       : commentMap.get(r.content_id);
     queue.appendChild(reportCard(r, content, reporterMap.get(r.reporter_id)));
   });
@@ -1437,11 +1441,13 @@ function reportCard(r, content, reporterName){
   const card = document.createElement('div');
   card.className = 'review-card';
   const date = new Date(r.created_at).toLocaleDateString('ru-RU');
-  const typeLabel = r.content_type === 'post' ? 'Пост' : r.content_type === 'project_comment' ? 'Комментарий (портфолио)' : r.content_type === 'forum_post' ? (content && content.is_op ? 'Тема форума' : 'Сообщение на форуме') : r.content_type === 'pm_message' ? 'Личное сообщение' : 'Комментарий';
+  const typeLabel = r.content_type === 'post' ? 'Пост' : r.content_type === 'project_comment' ? 'Комментарий (портфолио)' : r.content_type === 'forum_post' ? (content && content.is_op ? 'Тема форума' : 'Сообщение на форуме') : r.content_type === 'pm_message' ? 'Личное сообщение' : r.content_type === 'marketplace_listing' ? 'Объявление на барахолке' : 'Комментарий';
   let preview;
   const hasAudio = content && content.audio_url;
   if (!content) {
     preview = '<span style="color:var(--muted)">Контент уже удалён</span>';
+  } else if (r.content_type === 'marketplace_listing') {
+    preview = `<div><b>${escapeHtml(content.title)}</b> — ${Number(content.price).toLocaleString('ru-RU')} ${content.currency || 'RUB'}<div style="white-space:pre-wrap;margin-top:4px">${escapeHtml(content.description || '')}</div></div>`;
   } else if (hasAudio) {
     preview = `<div class="wp-mount"></div>`;
   } else {
@@ -1478,6 +1484,7 @@ async function handleResolveReport(r, card, action, content){
       : r.content_type === 'post' ? 'posts'
       : r.content_type === 'project_comment' ? 'project_comments'
       : r.content_type === 'forum_post' ? 'forum_posts'
+      : r.content_type === 'marketplace_listing' ? 'marketplace_listings'
       : r.content_type === 'pm_message' ? null // личные сообщения не удаляются отсюда — кнопки нет, сюда не попадём
       : 'post_comments';
     if (!table) { card.querySelectorAll('button').forEach(b => b.disabled = false); return; }
@@ -1652,15 +1659,18 @@ async function openUserDetail(u){
     SB.from('post_comments').select('id').eq('user_id', u.id),
   ]);
   const { data: allForumPosts } = await SB.from('forum_posts').select('id').eq('user_id', u.id);
+  const { data: allListings } = await SB.from('marketplace_listings').select('id').eq('user_id', u.id);
 
   const postIds = (allPosts || []).map(p => p.id);
   const commentIds = (allComments || []).map(c => c.id);
   const forumPostIds = (allForumPosts || []).map(p => p.id);
+  const listingIds = (allListings || []).map(l => l.id);
   let reportsAgainst = [];
   const reportQueries = [];
   if (postIds.length) reportQueries.push(SB.from('content_reports').select('id, reason, status, created_at, content_type').eq('content_type', 'post').in('content_id', postIds));
   if (commentIds.length) reportQueries.push(SB.from('content_reports').select('id, reason, status, created_at, content_type').eq('content_type', 'comment').in('content_id', commentIds));
   if (forumPostIds.length) reportQueries.push(SB.from('content_reports').select('id, reason, status, created_at, content_type').eq('content_type', 'forum_post').in('content_id', forumPostIds));
+  if (listingIds.length) reportQueries.push(SB.from('content_reports').select('id, reason, status, created_at, content_type').eq('content_type', 'marketplace_listing').in('content_id', listingIds));
   // RLS на pm_messages отдаёт как отправителю ТОЛЬКО те свои сообщения,
   // на которые уже есть жалоба (038_pm_moderation.sql) — так что здесь
   // physически невозможно случайно вытащить всю чужую переписку.
@@ -1691,7 +1701,7 @@ function renderUserDetailBody(u, data){
   (data.submissions || []).forEach(s => timeline.push({ t: s.submitted_at, icon: 'submission', text: `Сдал(а) задание — статус: ${escapeHtml(s.status)}${s.score != null ? ', ' + s.score + ' баллов' : ''}` }));
   (data.projects || []).forEach(p => timeline.push({ t: p.created_at, icon: 'project', text: 'Загрузил(а) проект в портфолио: ' + escapeHtml(p.title || '') }));
   (data.verifyReqs || []).forEach(v => timeline.push({ t: v.created_at, icon: 'verify', text: 'Заявка на верификацию — статус: ' + escapeHtml(v.status) }));
-  (data.reportsFiled || []).forEach(r => timeline.push({ t: r.created_at, icon: 'report', text: `Пожаловался(-ась) на ${r.content_type === 'post' ? 'пост' : r.content_type === 'forum_post' ? 'сообщение на форуме' : r.content_type === 'pm_message' ? 'личное сообщение' : 'комментарий'}${r.reason ? ': ' + escapeHtml(r.reason) : ''}` }));
+  (data.reportsFiled || []).forEach(r => timeline.push({ t: r.created_at, icon: 'report', text: `Пожаловался(-ась) на ${r.content_type === 'post' ? 'пост' : r.content_type === 'forum_post' ? 'сообщение на форуме' : r.content_type === 'pm_message' ? 'личное сообщение' : r.content_type === 'marketplace_listing' ? 'объявление на барахолке' : 'комментарий'}${r.reason ? ': ' + escapeHtml(r.reason) : ''}` }));
   timeline.sort((a, b) => new Date(b.t) - new Date(a.t));
 
   const stats = [
@@ -1718,7 +1728,7 @@ function renderUserDetailBody(u, data){
     <div class="aud-stats">${stats.map(s => `<div class="aud-stat"><div class="n">${s.n}</div><div class="l">${s.l}</div></div>`).join('')}</div>
     ${data.reportsAgainst.length ? `
       <div class="aud-section-title aud-flag">⚠ Жалобы на контент этого пользователя (${data.reportsAgainst.length})</div>
-      <div class="aud-timeline">${data.reportsAgainst.map(r => `<div class="aud-item"><div class="aud-item-icon">${ICON_FLAG_A}</div><div class="aud-item-body"><div class="aud-item-text">${r.content_type === 'post' ? 'Пост' : r.content_type === 'forum_post' ? 'Сообщение на форуме' : r.content_type === 'pm_message' ? 'Личное сообщение' : 'Комментарий'} — статус «${escapeHtml(r.status)}»${r.reason ? ': ' + escapeHtml(r.reason) : ''}</div><div class="aud-item-time">${new Date(r.created_at).toLocaleString('ru-RU')}</div></div></div>`).join('')}</div>
+      <div class="aud-timeline">${data.reportsAgainst.map(r => `<div class="aud-item"><div class="aud-item-icon">${ICON_FLAG_A}</div><div class="aud-item-body"><div class="aud-item-text">${r.content_type === 'post' ? 'Пост' : r.content_type === 'forum_post' ? 'Сообщение на форуме' : r.content_type === 'pm_message' ? 'Личное сообщение' : r.content_type === 'marketplace_listing' ? 'Объявление на барахолке' : 'Комментарий'} — статус «${escapeHtml(r.status)}»${r.reason ? ': ' + escapeHtml(r.reason) : ''}</div><div class="aud-item-time">${new Date(r.created_at).toLocaleString('ru-RU')}</div></div></div>`).join('')}</div>
     ` : ''}
     <div class="aud-section-title">Последние действия</div>
     <div class="aud-timeline">

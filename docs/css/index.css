@@ -23,8 +23,8 @@ body{background:radial-gradient(1200px 600px at 82% -10%,var(--bg-glow-1),transp
 nav{position:sticky;top:0;z-index:100;background:var(--nav-bg);backdrop-filter:blur(16px);border-bottom:var(--bw) solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:var(--space-0) var(--space-8);height:64px;box-shadow:0 18px 32px -28px rgba(0,0,0,.6)}
 .nav-logo{font-family:var(--display);font-weight:800;color:var(--text);text-decoration:none;letter-spacing:-.2px;display:flex;flex-direction:column;gap:2px;line-height:1;transition:opacity .18s ease}
 .nav-logo:hover{opacity:.82}
-.nav-logo-name{font-size:var(--text-body-2-size);letter-spacing:.01em}
-.nav-logo-sub{font-family:var(--mono);font-size:8px;font-weight:600;letter-spacing:.26em;color:var(--muted2);text-transform:uppercase;border-top:var(--bw) solid var(--border-hi);padding-top:3px;margin-top:1px}
+.nav-logo-name{font-size:var(--text-body-2-size);letter-spacing:.01em;text-align:center}
+.nav-logo-sub{font-family:var(--mono);font-size:8px;font-weight:600;letter-spacing:.26em;color:var(--muted2);text-transform:uppercase;text-align:center;border-top:var(--bw) solid var(--border-hi);padding-top:3px;margin-top:1px}
 .nav-tabs{display:flex;align-items:center;gap:var(--space-5)}
 .nav-tab{position:relative;font-family:var(--display);font-size:var(--text-caption-2-size);font-weight:600;text-transform:uppercase;letter-spacing:.07em;padding:var(--space-2) 0;border:none;background:none;color:var(--muted);cursor:pointer;transition:color .16s ease}
 .nav-tab::after{content:'';position:absolute;left:0;right:0;bottom:-3px;height:2px;border-radius:2px;background:var(--amber);transform:scaleX(0);transform-origin:center;transition:transform .22s cubic-bezier(.2,.8,.3,1)}

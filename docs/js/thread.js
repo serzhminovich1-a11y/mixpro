@@ -28,6 +28,7 @@ const ICON_PENCIL = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none"
 const ICON_QUOTE = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21c3 0 6-2 6-6V7H3v8h3c0 1.5-1 3-3 3zM15 21c3 0 6-2 6-6V7h-6v8h3c0 1.5-1 3-3 3z"/></svg>';
 const ICON_FLAG = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/></svg>';
 const ICON_BELL = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>';
+const ICON_THANKS = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/></svg>';
 
 async function logout(){ await SB.auth.signOut(); location.href = 'auth.html'; }
 
@@ -76,6 +77,30 @@ async function refreshPostReactions(postId, authorId){
   wrap.querySelectorAll('.emoji-pill').forEach(btn => {
     btn.addEventListener('click', () => toggleReaction(postId, btn.dataset.emoji, authorId));
   });
+}
+
+// ── "Спасибо" (репутация) — отдельно от эмодзи-реакций, по одному на пост от человека ──
+async function toggleThanks(postId, authorId, btn){
+  const { data: mine } = await SB.from('forum_thanks').select('id').eq('post_id', postId).eq('from_user_id', currentUid).maybeSingle();
+  btn.disabled = true;
+  if (mine) {
+    await SB.from('forum_thanks').delete().eq('id', mine.id);
+  } else {
+    const { error } = await SB.from('forum_thanks').insert({ post_id: postId, from_user_id: currentUid, to_user_id: authorId });
+    if (!error && window.notifyUser) notifyUser(SB, { userId: authorId, actorId: currentUid, type: 'forum_thanks', contentType: 'forum_thread', contentId: threadId });
+  }
+  btn.disabled = false;
+  await refreshPostThanks(postId, authorId);
+}
+
+async function refreshPostThanks(postId, authorId){
+  const btn = document.querySelector(`.forum-post[data-post-id="${postId}"] .forum-thanks-btn`);
+  if (!btn) return;
+  const { data: rows } = await SB.from('forum_thanks').select('from_user_id').eq('post_id', postId);
+  const mine = (rows || []).some(r => r.from_user_id === currentUid);
+  btn.classList.toggle('active', mine);
+  btn.querySelector('.forum-thanks-count').textContent = (rows || []).length;
+  btn.title = mine ? 'Убрать "спасибо"' : 'Сказать спасибо за пост';
 }
 
 function closeAllEmojiPickers(except){
@@ -127,6 +152,7 @@ function postCardHtml(post, ctx){
         <button type="button" class="emoji-add-btn" title="Добавить реакцию">+</button>
         <div class="emoji-picker">${EMOJI_SET.map(e => `<button type="button" data-e="${e}">${e}</button>`).join('')}</div>
       </div>
+      ${isOwn ? '' : `<button type="button" class="forum-thanks-btn" title="Сказать спасибо за пост">${ICON_THANKS} <span class="forum-thanks-count">0</span></button>`}
     </div>
   </div>`;
 }
@@ -163,7 +189,11 @@ function wirePostCard(el, post, ctx){
     btn.addEventListener('click', () => { toggleReaction(post.id, btn.dataset.e, post.user_id); closeAllEmojiPickers(); });
   });
 
+  const thanksBtn = el.querySelector('.forum-thanks-btn');
+  if (thanksBtn) thanksBtn.addEventListener('click', () => toggleThanks(post.id, post.user_id, thanksBtn));
+
   refreshPostReactions(post.id, post.user_id);
+  if (thanksBtn) refreshPostThanks(post.id, post.user_id);
 }
 
 async function handleReport(postId, btn){

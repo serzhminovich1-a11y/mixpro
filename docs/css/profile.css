@@ -37,6 +37,7 @@ nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-con
 .avatar{position:absolute;inset:3px;border-radius:var(--r-badge);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:var(--text-header-2-size);font-weight:800;color:var(--on-accent);background:linear-gradient(135deg,var(--amber),var(--amber-dim));flex-shrink:0}
 .hero-info h1{font-family:var(--display);font-size:var(--text-display-1-size);font-weight:800;letter-spacing:-.02em;line-height:1.1}
 .hero-info .since{font-family:var(--mono);font-size:var(--text-caption-2-size);color:var(--muted2);margin-top:var(--space-2);letter-spacing:.08em}
+.reputation-badge{display:inline-flex;align-items:center;gap:6px;margin-top:var(--space-2);padding:3px 12px;border-radius:var(--r-pill);background:rgba(250,204,21,.12);border:var(--bw) solid var(--gold);color:var(--gold);font-family:var(--mono);font-size:var(--text-caption-2-size);font-weight:700;width:fit-content}
 
 /* Stat cards */
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:var(--space-3)}

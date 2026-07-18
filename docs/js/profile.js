@@ -190,6 +190,12 @@ async function init() {
   document.getElementById('username').textContent = profile.username;
   document.getElementById('since').textContent = 'С нами с ' + new Date(profile.created_at).toLocaleDateString('ru-RU', {year:'numeric',month:'long'});
 
+  if (profile.reputation_count) {
+    const repBadge = document.getElementById('repBadge');
+    repBadge.style.display = '';
+    repBadge.textContent = '🙏 ' + profile.reputation_count + ' спасибо на форуме';
+  }
+
   // Все очки пользователя
   const { data: scores } = await SB.from('scores')
     .select('*').eq('user_id', uid).order('created_at', { ascending: false });

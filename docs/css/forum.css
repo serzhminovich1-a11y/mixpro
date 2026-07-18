@@ -97,6 +97,11 @@
 .emoji-picker button{width:28px;height:28px;border:none;background:transparent;cursor:pointer;font-size:16px;border-radius:var(--r-xs);transition:.15s}
 .emoji-picker button:hover{background:var(--s2)}
 
+.forum-thanks-btn{display:inline-flex;align-items:center;gap:5px;margin-left:auto;background:var(--s2);border:var(--bw) solid var(--border);border-radius:var(--r-pill);padding:3px 11px;font-family:var(--mono);font-size:var(--text-caption-2-size);font-weight:700;color:var(--muted2);cursor:pointer;transition:.15s}
+.forum-thanks-btn:hover{border-color:var(--gold);color:var(--gold)}
+.forum-thanks-btn.active{border-color:var(--gold);color:var(--gold);background:rgba(250,204,21,.12)}
+.forum-thanks-btn:disabled{opacity:.6;cursor:default}
+
 /* ── Ответ-композер ── */
 .forum-reply-composer{padding:var(--space-4) var(--space-5);display:flex;flex-direction:column;gap:var(--space-3)}
 .forum-quote-preview{display:none;align-items:flex-start;justify-content:space-between;gap:var(--space-2);border-left:3px solid var(--amber);padding:var(--space-2) var(--space-3);background:var(--s2);border-radius:var(--r-xs);font-size:var(--text-caption-1-size);color:var(--muted2)}

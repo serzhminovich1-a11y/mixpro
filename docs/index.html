@@ -32,32 +32,36 @@
     <button class="nav-tab" data-tab="glossary" onclick="tab('glossary',this)">Словарь</button>
   </div>
   <div class="nav-right">
-    <div class="nav-links">
-      <a href="pages/feed.html" class="nav-link-btn">Лента</a>
-      <a href="pages/courses.html" class="nav-link-btn">Курсы</a>
-      <a href="pages/forum.html" class="nav-link-btn">Форум</a>
-      <a href="pages/marketplace.html" class="nav-link-btn">Барахолка</a>
-      <a href="pages/leaderboard.html" class="nav-link-btn">Рейтинг</a>
-      <a href="pages/portfolio.html" class="nav-link-btn">Портфолио</a>
-    </div>
-    <div class="nav-divider"></div>
-    <div class="nav-account">
-      <a href="pages/admin.html" class="nav-admin-btn" id="navAdminBtn" style="display:none" title="Панель управления"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg><span>Админ</span></a>
-      <div id="pmMount"></div>
-      <div id="notifMount"></div>
-      <div class="theme-picker">
-        <button class="nav-theme-btn" id="themeBtn" onclick="toggleThemePanel()" title="Тема оформления">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
-        </button>
-        <div class="theme-panel" id="themePanel">
-          <div class="theme-panel-title">Тема оформления</div>
-          <div class="theme-grid" id="themeGrid"></div>
-          <div class="theme-panel-hint">Тёмные и яркие темы — по VIP. <button class="theme-panel-vip-link" onclick="closeThemePanel();openVip()">Узнать про VIP</button></div>
-        </div>
+    <div class="theme-picker">
+      <button class="nav-theme-btn" id="themeBtn" onclick="toggleThemePanel()" title="Тема оформления">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
+      </button>
+      <div class="theme-panel" id="themePanel">
+        <div class="theme-panel-title">Тема оформления</div>
+        <div class="theme-grid" id="themeGrid"></div>
+        <div class="theme-panel-hint">Тёмные и яркие темы — по VIP. <button class="theme-panel-vip-link" onclick="closeThemePanel();openVip()">Узнать про VIP</button></div>
       </div>
-      <button class="nav-vip-btn" id="navVipBtn" onclick="openVip()">VIP</button>
-      <a href="pages/profile.html" class="nav-link-btn-primary">Профиль</a>
-      <button class="nav-link-btn danger" onclick="logout()">Выйти</button>
+    </div>
+    <div id="pmMount"></div>
+    <div id="notifMount"></div>
+    <a href="pages/profile.html" class="nav-link-btn-primary">Профиль</a>
+    <div class="nav-burger-wrap">
+      <button class="nav-burger-btn" id="burgerBtn" onclick="toggleBurgerMenu()" title="Меню" aria-label="Меню">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+      </button>
+      <div class="nav-burger-panel" id="burgerPanel">
+        <div class="burger-section-title">Разделы</div>
+        <a href="pages/feed.html" class="burger-link">Лента</a>
+        <a href="pages/courses.html" class="burger-link">Курсы</a>
+        <a href="pages/forum.html" class="burger-link">Форум</a>
+        <a href="pages/marketplace.html" class="burger-link">Барахолка</a>
+        <a href="pages/leaderboard.html" class="burger-link">Рейтинг</a>
+        <a href="pages/portfolio.html" class="burger-link">Портфолио</a>
+        <div class="burger-divider"></div>
+        <a href="pages/admin.html" class="burger-link" id="navAdminBtn" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>Панель управления</a>
+        <button type="button" class="burger-link" id="navVipBtn" onclick="closeBurgerMenu();openVip()">VIP-доступ</button>
+        <button type="button" class="burger-link danger" onclick="logout()">Выйти</button>
+      </div>
     </div>
   </div>
 </nav>

@@ -20,6 +20,22 @@ nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-con
 .nav-btn.primary:hover{color:var(--on-accent);transform:translateY(-1px);box-shadow:0 8px 20px -8px var(--amber-glow-strong)}
 .nav-btn.danger:hover{color:var(--red)}
 .nav-btn.danger:hover::after{background:var(--red)}
+.nav-burger-wrap{position:relative}
+.nav-burger-btn{width:34px;height:34px;border-radius:var(--r-pill);border:var(--bw) solid var(--border);background:transparent;color:var(--muted2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;flex-shrink:0}
+.nav-burger-btn:hover{color:var(--text);background:var(--s2);border-color:var(--border-hi)}
+.nav-burger-btn svg{width:16px;height:16px}
+.nav-burger-panel{position:absolute;top:calc(100% + 10px);right:0;width:230px;background:var(--card);border:var(--bw) solid var(--border-hi);border-radius:var(--r-card);padding:var(--space-3);box-shadow:var(--shadow-lift-hover);opacity:0;visibility:hidden;transform:translateY(-6px);transition:.18s cubic-bezier(.16,1,.3,1);z-index:150;display:flex;flex-direction:column;gap:2px}
+.nav-burger-panel.open{opacity:1;visibility:visible;transform:translateY(0)}
+.burger-section-title{font-family:var(--display);font-size:var(--text-caption-2-size);font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:var(--space-2) var(--space-2) var(--space-1)}
+.burger-link{display:flex;align-items:center;gap:var(--space-2);width:100%;padding:var(--space-2) var(--space-2);border-radius:var(--r-sm);border:none;background:transparent;color:var(--text);text-decoration:none;font-family:var(--sans);font-size:var(--text-body-1-size);font-weight:600;cursor:pointer;text-align:left;transition:.15s}
+.burger-link:hover{background:var(--s2)}
+.burger-link.current{color:var(--amber)}
+.burger-link.danger{color:var(--red)}
+.burger-link.danger:hover{background:var(--red-glow-strong)}
+.burger-divider{height:var(--bw);background:var(--border);margin:var(--space-2) 0}
+@media(max-width:900px){
+  nav{flex-wrap:wrap;row-gap:var(--space-2)}
+}
 .wrap{max-width:640px;margin:0 auto;padding:32px 20px 80px;display:flex;flex-direction:column;gap:var(--space-5)}
 
 .sec-h{font-family:var(--display);font-size:var(--text-body-2-size);font-weight:700;color:var(--text);margin-bottom:var(--space-half);display:flex;align-items:center;gap:var(--space-2)}

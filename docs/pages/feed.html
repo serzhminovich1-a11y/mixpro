@@ -26,11 +26,30 @@
 <nav>
   <a href="../index.html" class="logo">MIX<span>PRO</span></a>
   <div class="nav-links">
-    <a href="admin.html" class="nav-btn accent" id="adminLink" style="display:none">Админ</a>
+    <a href="../index.html" class="nav-btn">Главная</a>
+    <a href="feed.html" class="nav-btn current">Лента</a>
+  </div>
+  <div class="nav-links">
     <div id="pmMount"></div>
     <div id="notifMount"></div>
     <a href="profile.html" class="nav-btn primary">Профиль</a>
-    <button class="nav-btn danger" onclick="logout()">Выйти</button>
+    <div class="nav-burger-wrap">
+      <button type="button" class="nav-burger-btn" id="burgerBtn" onclick="toggleBurgerMenu()" title="Меню" aria-label="Меню">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+      </button>
+      <div class="nav-burger-panel" id="burgerPanel">
+        <div class="burger-section-title">Разделы</div>
+        <a href="courses.html" class="burger-link">Курсы</a>
+        <a href="forum.html" class="burger-link">Форум</a>
+        <a href="marketplace.html" class="burger-link">Барахолка</a>
+        <a href="../index.html#trainers" class="burger-link">Тренажёры</a>
+        <a href="leaderboard.html" class="burger-link">Рейтинг</a>
+        <a href="portfolio.html" class="burger-link">Портфолио</a>
+        <div class="burger-divider"></div>
+        <a href="admin.html" class="burger-link" id="adminLink" style="display:none">Админ</a>
+        <button type="button" class="burger-link danger" onclick="closeBurgerMenu();logout()">Выйти</button>
+      </div>
+    </div>
   </div>
 </nav>
 
@@ -89,6 +108,7 @@
 <script src="../js/notifications.js"></script>
 <script src="../js/pm_inbox.js"></script>
 <script src="../js/ban_gate.js"></script>
+<script src="../js/nav_burger.js"></script>
 <script src="../js/feed.js"></script>
 </body>
 </html>

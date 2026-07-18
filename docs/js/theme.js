@@ -72,6 +72,7 @@ function toggleThemePanel(){
 }
 function openThemePanel(){
   renderThemePanel();
+  if(typeof closeBurgerMenu==='function')closeBurgerMenu();
   document.getElementById('themePanel').classList.add('open');
 }
 function closeThemePanel(){

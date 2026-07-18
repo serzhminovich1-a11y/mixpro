@@ -102,7 +102,28 @@ function tab(id,btn){
   document.getElementById(id).classList.add('active');btn.classList.add('active');
   if(id==='tools')setTimeout(drawEnvelope,50);
   if(id==='glossary')renderGlossary();
+  closeBurgerMenu();
 }
+
+// Бургер-меню в шапке (разделы сайта + аккаунт) — те же вкл/выкл по клику
+// вне себя, что и у theme-panel (theme.js), только отдельный элемент.
+function toggleBurgerMenu(){
+  const panel=document.getElementById('burgerPanel');
+  if(!panel)return;
+  if(panel.classList.contains('open'))closeBurgerMenu();
+  else{ if(typeof closeThemePanel==='function')closeThemePanel(); panel.classList.add('open'); }
+}
+function closeBurgerMenu(){
+  const panel=document.getElementById('burgerPanel');
+  if(panel)panel.classList.remove('open');
+}
+document.addEventListener('click',e=>{
+  const panel=document.getElementById('burgerPanel');
+  const btn=document.getElementById('burgerBtn');
+  if(!panel||!panel.classList.contains('open'))return;
+  if(panel.contains(e.target)||(btn&&btn.contains(e.target)))return;
+  closeBurgerMenu();
+});
 
 function openVip(){
   if(vip)return;

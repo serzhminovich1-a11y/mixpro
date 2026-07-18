@@ -4,9 +4,11 @@
 *,*::before,*::after{box-sizing:border-box;margin:var(--space-0);padding:var(--space-0)}
 body{background:radial-gradient(1100px 560px at 82% -10%,var(--bg-glow-1),transparent),radial-gradient(900px 480px at 4% 100%,var(--bg-glow-2),transparent),var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh}
 nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:var(--space-3) var(--space-6);border-bottom:var(--bw) solid var(--border);background:var(--nav-bg);backdrop-filter:blur(14px) saturate(140%);box-shadow:0 18px 32px -28px rgba(0,0,0,.6)}
-.logo{font-family:var(--display);font-size:var(--text-body-2-size);font-weight:800;color:var(--text);text-decoration:none;letter-spacing:-.2px;transition:opacity .18s ease}
+.logo{font-family:var(--display);font-weight:800;color:var(--text);text-decoration:none;letter-spacing:-.2px;display:flex;flex-direction:column;gap:2px;line-height:1;transition:opacity .18s ease}
 .logo:hover{opacity:.82}
-.logo span{color:var(--amber)}
+.logo-name{font-size:var(--text-body-2-size);letter-spacing:.01em}
+.logo-sub{font-family:var(--mono);font-size:8px;font-weight:600;letter-spacing:.26em;color:var(--muted2);text-transform:uppercase;border-top:var(--bw) solid var(--border-hi);padding-top:3px;margin-top:1px}
+@media(max-width:640px){.logo-sub{display:none}}
 .nav-links{display:flex;gap:var(--space-5);align-items:center}
 .nav-btn{-webkit-appearance:none;appearance:none;position:relative;font-family:var(--display);font-weight:600;font-size:var(--text-caption-2-size);text-transform:uppercase;letter-spacing:.07em;padding:var(--space-2) 0;border:none;background:none;color:var(--muted2);cursor:pointer;text-decoration:none;transition:color .16s ease;display:inline-flex;align-items:center}
 .nav-btn::after{content:'';position:absolute;left:0;right:0;bottom:-3px;height:2px;border-radius:2px;background:var(--amber);transform:scaleX(0);transform-origin:center;transition:transform .22s cubic-bezier(.2,.8,.3,1)}

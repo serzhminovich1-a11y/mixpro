@@ -5,7 +5,7 @@ nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-con
 .logo{font-family:var(--display);font-weight:800;color:var(--text);text-decoration:none;letter-spacing:-.2px;display:flex;flex-direction:column;gap:2px;line-height:1;transition:opacity .18s ease}
 .logo:hover{opacity:.82}
 .logo-name{font-size:var(--text-body-2-size);letter-spacing:.01em;text-align:center}
-.logo-sub{font-family:var(--mono);font-size:8px;font-weight:600;letter-spacing:.26em;color:var(--muted2);text-transform:uppercase;text-align:center;border-top:var(--bw) solid var(--border-hi);padding-top:3px;margin-top:1px}
+.logo-sub{font-family:var(--mono);font-size:8px;font-weight:600;letter-spacing:.26em;color:var(--muted2);text-transform:uppercase;text-align:center;margin-right:-.26em;border-top:var(--bw) solid var(--border-hi);padding-top:3px;margin-top:1px}
 @media(max-width:640px){.logo-sub{display:none}}
 .nav-links{display:flex;gap:var(--space-5);align-items:center}
 .nav-btn{-webkit-appearance:none;appearance:none;position:relative;font-family:var(--display);font-weight:600;font-size:var(--text-caption-2-size);text-transform:uppercase;letter-spacing:.07em;padding:var(--space-2) 0;border:none;background:none;color:var(--muted2);cursor:pointer;text-decoration:none;transition:color .16s ease;display:inline-flex;align-items:center}

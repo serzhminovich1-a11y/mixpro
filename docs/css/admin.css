@@ -17,6 +17,12 @@ body{min-height:100vh}
 .admin-panel{display:none;flex-direction:column;gap:var(--space-6)}
 .admin-panel.active{display:flex}
 
+.admin-subtabs{display:flex;gap:var(--space-2);margin-top:-8px}
+.admin-subtab{display:flex;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-4);border-radius:var(--r-pill);border:var(--bw) solid var(--border);background:transparent;color:var(--muted2);font-family:var(--sans);font-weight:600;font-size:var(--text-caption-2-size);cursor:pointer;transition:.15s}
+.admin-subtab:hover{border-color:var(--border-hi);color:var(--text)}
+.admin-subtab.active{background:var(--amber-glow);border-color:var(--amber-glow-strong);color:var(--amber)}
+.admin-subtab .badge{font-family:var(--mono);font-size:10px;padding:1px 7px;border-radius:20px;background:rgba(250,204,21,.15);color:var(--gold)}
+
 .stat-grid-admin{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:var(--space-3)}
 .stat-box{background:linear-gradient(180deg,var(--surf-top),var(--surf-bot)),var(--bg);border:var(--bw) solid var(--border);border-radius:var(--r-md);padding:var(--space-4) var(--space-5);box-shadow:var(--shadow-lift);text-align:left;transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease}
 button.stat-box{cursor:pointer}

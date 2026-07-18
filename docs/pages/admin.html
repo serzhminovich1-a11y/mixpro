@@ -119,9 +119,14 @@
 
     <!-- ═══ ВЕРИФИКАЦИЯ ═══ -->
     <section class="admin-panel" id="panel-verify">
-      <div class="sec-h">Заявки на подтверждение опыта</div>
+      <div class="sec-h">Верификация</div>
       <div class="page-sub" style="margin-top:-14px">Одобришь — человек получит статус VERIFIED_PRO и право создавать курсы</div>
+      <div class="admin-subtabs">
+        <button type="button" class="admin-subtab active" data-vtab="pending">На рассмотрении</button>
+        <button type="button" class="admin-subtab" data-vtab="confirmed">Подтверждённые</button>
+      </div>
       <div id="verifyQueue" style="display:flex;flex-direction:column;gap:12px"></div>
+      <div id="verifyConfirmed" style="display:none;flex-direction:column;gap:12px"></div>
     </section>
 
     <!-- ═══ ЖАЛОБЫ ═══ -->

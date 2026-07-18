@@ -1370,6 +1370,13 @@ async function handleVerifyReview(requestId, approve, card, targetUserId){
 
 async function renderVerifyQueue(){
   const queue = document.getElementById('verifyQueue');
+  // Слушатели вкладок вешаем ДО любых ранних return — иначе при пустой
+  // очереди (человек, о котором и весь смысл вкладки "Подтверждённые",
+  // права ведь уже выдал) переключение вкладок просто не работало бы.
+  document.querySelectorAll('.admin-subtab[data-vtab]').forEach(btn => {
+    btn.addEventListener('click', () => switchVerifyTab(btn.dataset.vtab));
+  });
+
   const { data, error } = await SB.from('verification_requests')
     .select('*, profiles(username)')
     .eq('status', 'pending')
@@ -1381,6 +1388,67 @@ async function renderVerifyQueue(){
   }
   queue.innerHTML = '';
   data.forEach(r => queue.appendChild(verifyRequestCard(r)));
+}
+
+function switchVerifyTab(tab){
+  document.querySelectorAll('.admin-subtab[data-vtab]').forEach(b => b.classList.toggle('active', b.dataset.vtab === tab));
+  document.getElementById('verifyQueue').style.display = tab === 'pending' ? 'flex' : 'none';
+  const confirmed = document.getElementById('verifyConfirmed');
+  confirmed.style.display = tab === 'confirmed' ? 'flex' : 'none';
+  if (tab === 'confirmed' && !confirmed.dataset.loaded) {
+    confirmed.dataset.loaded = '1';
+    renderConfirmedVerified();
+  }
+}
+
+// Источник правды — сам profiles.verification_status, а не verification_requests:
+// админ мог выдать статус напрямую через таблицу "Пользователи" (saveField),
+// без всякой заявки — такой человек в verification_requests не появится вообще.
+async function renderConfirmedVerified(){
+  const list = document.getElementById('verifyConfirmed');
+  const { data, error } = await SB.from('profiles')
+    .select('id, username, role, verification_status')
+    .eq('verification_status', 'approved')
+    .order('username', { ascending: true });
+
+  if (error || !data || data.length === 0) {
+    list.innerHTML = '<div class="empty">Пока никто не подтверждён</div>';
+    return;
+  }
+  list.innerHTML = '';
+  data.forEach(u => list.appendChild(confirmedVerifiedRow(u)));
+}
+
+function confirmedVerifiedRow(u){
+  const card = document.createElement('div');
+  card.className = 'review-card';
+  card.innerHTML = `
+    <div class="review-card-row">
+      <div class="review-card-name">${escapeHtml(u.username)} <span class="au-role role-${u.role}" style="font-size:11px;margin-left:6px">${u.role}</span></div>
+      <button type="button" class="nav-btn danger revokeBtn">Отозвать</button>
+    </div>
+    <div class="form-status rStatus"></div>`;
+  card.querySelector('.revokeBtn').addEventListener('click', () => handleRevokeVerification(u, card));
+  return card;
+}
+
+async function handleRevokeVerification(u, card){
+  if (!confirm(`Отозвать подтверждение опыта у «${u.username}»? Если роль VERIFIED_PRO выдана именно за это — она тоже вернётся к STUDENT.`)) return;
+  const statusEl = card.querySelector('.rStatus');
+  card.querySelectorAll('button').forEach(b => b.disabled = true);
+  const patch = { verification_status: 'none' };
+  if (u.role === 'VERIFIED_PRO') patch.role = 'STUDENT';
+  const { error } = await SB.from('profiles').update(patch).eq('id', u.id);
+  if (error) {
+    statusEl.textContent = 'Ошибка: ' + error.message;
+    statusEl.className = 'form-status error';
+    card.querySelectorAll('button').forEach(b => b.disabled = false);
+    return;
+  }
+  if (window.notifyUser) notifyUser(SB, { userId: u.id, actorId: currentUid, type: 'verification_rejected' });
+  card.style.opacity = '.4';
+  statusEl.textContent = 'Подтверждение отозвано';
+  statusEl.className = 'form-status error';
 }
 
 /* ══════════════════════════════════════

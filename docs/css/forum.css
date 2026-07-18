@@ -83,6 +83,7 @@
 .forum-post-body th{background:var(--s2);font-weight:700}
 .forum-post-body pre{background:var(--s2);border:var(--bw) solid var(--border);border-radius:var(--r-sm);padding:var(--space-3);overflow-x:auto;font-family:var(--mono);font-size:var(--text-body-1-size)}
 .forum-post-edited{font-family:var(--mono);font-size:var(--text-caption-2-size);color:var(--muted)}
+.forum-post-signature{margin-top:-4px;padding-top:var(--space-2);border-top:var(--bw) dashed var(--border);color:var(--muted);font-size:var(--text-caption-1-size);font-style:italic}
 
 .forum-reactions{display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap}
 .emoji-pills{display:flex;flex-wrap:wrap;gap:6px}

@@ -196,6 +196,32 @@ async function init() {
     repBadge.textContent = '🙏 ' + profile.reputation_count + ' спасибо на форуме';
   }
 
+  if (isOwn) {
+    const section = document.getElementById('signatureEditSection');
+    section.style.display = '';
+    const input = document.getElementById('signatureInput');
+    const counter = document.getElementById('signatureCounter');
+    input.value = profile.bio || '';
+    counter.textContent = input.value.length + ' / 300';
+    input.addEventListener('input', () => { counter.textContent = input.value.length + ' / 300'; });
+    document.getElementById('signatureSaveBtn').addEventListener('click', async () => {
+      const statusEl = document.getElementById('signatureStatus');
+      const btn = document.getElementById('signatureSaveBtn');
+      const value = input.value.trim();
+      btn.disabled = true;
+      const { error } = await SB.from('profiles').update({ bio: value || null }).eq('id', myUid);
+      btn.disabled = false;
+      if (error) { statusEl.textContent = 'Ошибка: ' + error.message; statusEl.className = 'form-status error'; return; }
+      statusEl.textContent = 'Сохранено!';
+      statusEl.className = 'form-status ok';
+      setTimeout(() => { statusEl.textContent = ''; }, 1500);
+    });
+  } else if (profile.bio) {
+    const view = document.getElementById('signatureView');
+    view.style.display = '';
+    view.textContent = '«' + profile.bio + '»';
+  }
+
   // Все очки пользователя
   const { data: scores } = await SB.from('scores')
     .select('*').eq('user_id', uid).order('created_at', { ascending: false });

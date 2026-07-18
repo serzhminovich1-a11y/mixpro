@@ -54,6 +54,21 @@
         <h1 id="username">—</h1>
         <div class="since" id="since"></div>
         <div class="reputation-badge" id="repBadge" style="display:none" title="Репутация — сколько раз на форуме сказали спасибо за сообщения"></div>
+        <div class="signature-view" id="signatureView" style="display:none"></div>
+      </div>
+    </div>
+
+    <!-- Подпись (видно только себе — форма редактирования) -->
+    <div id="signatureEditSection" style="display:none">
+      <div class="sec-h">Подпись</div>
+      <div class="page-sub" style="margin-top:-14px">Короткая фраза под вашими сообщениями на форуме — необязательно</div>
+      <div class="signature-edit-card">
+        <textarea id="signatureInput" maxlength="300" placeholder="Например: свожу рок и электронику, всегда рад разбору треков"></textarea>
+        <div class="signature-edit-row">
+          <span class="signature-counter" id="signatureCounter">0 / 300</span>
+          <button type="button" class="submit-btn" id="signatureSaveBtn" style="width:auto;padding:8px 20px">Сохранить</button>
+        </div>
+        <div class="form-status" id="signatureStatus"></div>
       </div>
     </div>
 

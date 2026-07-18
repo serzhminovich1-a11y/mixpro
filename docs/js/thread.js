@@ -146,6 +146,7 @@ function postCardHtml(post, ctx){
     </div>
     ${quoteHtml}
     <div class="forum-post-body rt-editable-view">${sanitizeRichHtml(post.content)}</div>
+    ${author.bio ? `<div class="forum-post-signature">${escapeHtml(author.bio)}</div>` : ''}
     <div class="forum-reactions">
       <div class="emoji-pills"></div>
       <div class="emoji-add">
@@ -325,7 +326,7 @@ async function loadThread(){
   const postsById = new Map(rows.map(p => [p.id, p]));
 
   const authorIds = [...new Set(rows.map(p => p.user_id))];
-  const { data: authors } = authorIds.length ? await SB.from('profiles').select('id, username, role, avatar_color').in('id', authorIds) : { data: [] };
+  const { data: authors } = authorIds.length ? await SB.from('profiles').select('id, username, role, avatar_color, bio').in('id', authorIds) : { data: [] };
   const authorMap = new Map((authors || []).map(a => [a.id, a]));
 
   const ctx = { postsById, authorMap };

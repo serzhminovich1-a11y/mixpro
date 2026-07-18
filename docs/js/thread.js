@@ -15,6 +15,7 @@ let threadId = null;
 let threadData = null;
 let quotePostId = null;
 let quotePreviewLabel = '';
+let isSubscribed = false;
 
 function escapeHtml(s){ return String(s == null ? '' : s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
 function isStaff(role){ return role === 'MENTOR' || role === 'ADMIN'; }
@@ -26,6 +27,7 @@ const ICON_TRASH = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" 
 const ICON_PENCIL = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></svg>';
 const ICON_QUOTE = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21c3 0 6-2 6-6V7H3v8h3c0 1.5-1 3-3 3zM15 21c3 0 6-2 6-6V7h-6v8h3c0 1.5-1 3-3 3z"/></svg>';
 const ICON_FLAG = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/></svg>';
+const ICON_BELL = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>';
 
 async function logout(){ await SB.auth.signOut(); location.href = 'auth.html'; }
 
@@ -220,6 +222,28 @@ async function handleToggleLock(){
   await loadThread();
 }
 
+// Подписка на тему — свои посты и так автоподписывают через триггер в базе
+// (034_forum_subscriptions.sql), это для тех, кто хочет следить за темой,
+// не оставляя сообщений, или наоборот — отписаться от своей же темы.
+async function checkSubscription(){
+  const { data } = await SB.from('forum_subscriptions').select('thread_id').eq('thread_id', threadId).eq('user_id', currentUid).maybeSingle();
+  isSubscribed = !!data;
+}
+
+async function handleToggleSubscribe(btn){
+  btn.disabled = true;
+  if (isSubscribed) {
+    const { error } = await SB.from('forum_subscriptions').delete().eq('thread_id', threadId).eq('user_id', currentUid);
+    if (error) { alert('Не удалось отписаться: ' + error.message); btn.disabled = false; return; }
+    isSubscribed = false;
+  } else {
+    const { error } = await SB.from('forum_subscriptions').insert({ thread_id: threadId, user_id: currentUid });
+    if (error) { alert('Не удалось подписаться: ' + error.message); btn.disabled = false; return; }
+    isSubscribed = true;
+  }
+  renderHeader();
+}
+
 function renderHeader(){
   const badges = (threadData.is_pinned ? `<span class="forum-thread-badge" title="Закреплено">${ICON_PIN}</span>` : '') +
     (threadData.is_locked ? `<span class="forum-thread-badge locked" title="Закрыто">${ICON_LOCK}</span>` : '');
@@ -229,6 +253,7 @@ function renderHeader(){
   const actions = document.getElementById('threadActions');
   const canDeleteThread = threadData.user_id === currentUid || isStaff(currentRole);
   const btns = [];
+  btns.push(`<button type="button" class="forum-icon-btn${isSubscribed ? ' active' : ''}" id="subBtn" title="${isSubscribed ? 'Отписаться от темы' : 'Подписаться на тему (уведомления об ответах)'}">${ICON_BELL}</button>`);
   if (isStaff(currentRole)) {
     btns.push(`<button type="button" class="forum-icon-btn${threadData.is_pinned ? ' active' : ''}" id="pinBtn" title="${threadData.is_pinned ? 'Открепить' : 'Закрепить'}">${ICON_PIN}</button>`);
     btns.push(`<button type="button" class="forum-icon-btn${threadData.is_locked ? ' active' : ''}" id="lockBtn" title="${threadData.is_locked ? 'Открыть тему' : 'Закрыть тему'}">${threadData.is_locked ? ICON_UNLOCK : ICON_LOCK}</button>`);
@@ -237,6 +262,7 @@ function renderHeader(){
     btns.push(`<button type="button" class="forum-icon-btn danger" id="deleteThreadBtn" title="Удалить тему">${ICON_TRASH}</button>`);
   }
   actions.innerHTML = btns.join('');
+  document.getElementById('subBtn').addEventListener('click', () => handleToggleSubscribe(document.getElementById('subBtn')));
   if (document.getElementById('pinBtn')) document.getElementById('pinBtn').addEventListener('click', handleTogglePin);
   if (document.getElementById('lockBtn')) document.getElementById('lockBtn').addEventListener('click', handleToggleLock);
   if (document.getElementById('deleteThreadBtn')) document.getElementById('deleteThreadBtn').addEventListener('click', () => {
@@ -261,6 +287,7 @@ async function loadThread(){
   const { data: thread } = await SB.from('forum_threads').select('*').eq('id', threadId).single();
   if (!thread) { location.href = 'forum.html'; return; }
   threadData = thread;
+  await checkSubscription();
   renderHeader();
 
   const { data: posts } = await SB.from('forum_posts').select('*').eq('thread_id', threadId).order('created_at', { ascending: true });

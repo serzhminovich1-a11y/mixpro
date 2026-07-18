@@ -29,6 +29,8 @@
     vip_granted:              { icon: ICON_CROWN,  text: () => 'Вам открыт VIP-доступ 🎉',                       href: () => 'profile.html' },
     verification_approved:   { icon: ICON_REVIEW, text: () => 'Заявка на верификацию одобрена — теперь у вас статус Certified Engineer', href: () => 'profile.html' },
     verification_rejected:   { icon: ICON_REVIEW, text: () => 'Заявка на верификацию отклонена',                href: () => 'verify.html' },
+    forum_reply:     { icon: ICON_COMMENT,  text: u => `${u} ответил(а) в теме, на которую вы подписаны`, href: n => 'thread.html?thread=' + n.content_id },
+    forum_reaction:  { icon: ICON_REACTION, text: u => `${u} отреагировал(а) на ваше сообщение на форуме`, href: n => 'thread.html?thread=' + n.content_id },
   };
 
   function escapeHtml(s){ return String(s == null ? '' : s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }

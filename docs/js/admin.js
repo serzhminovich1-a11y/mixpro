@@ -13,13 +13,16 @@ const loadedSections = new Set();
 function escapeAttr(s){ return String(s == null ? '' : s).replace(/"/g, '&quot;'); }
 function escapeHtml(s){ return String(s == null ? '' : s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
 
-// Контурные SVG-иконки вместо эмодзи
-function aIcon(path){ return `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`; }
+// Контурные SVG-иконки вместо эмодзи. aIcon() и иконки расширенного
+// тулбара (ICON_VIDEO_A/ICON_LIST_*/ICON_ALIGN_*/ICON_LINK_A/... —
+// использованы ниже в fullRichToolbarHtml()) теперь объявлены в
+// rich_text.js (подключён раньше этого файла на всех страницах, где
+// используется этот тулбар) — там же они нужны публичным страницам без
+// admin.js (форум, барахолка, сообщения).
 const ICON_PENCIL_A = aIcon('<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/>');
 const ICON_TRASH_A = aIcon('<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/>');
 const ICON_BAN_A = aIcon('<circle cx="12" cy="12" r="10"/><line x1="4.9" y1="4.9" x2="19.1" y2="19.1"/>');
 const ICON_UNBAN_A = aIcon('<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>');
-const ICON_VIDEO_A = aIcon('<path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/>');
 const ICON_HEADPHONES_A = aIcon('<path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H4a1 1 0 0 1-1-1v-6a9 9 0 0 1 18 0v6a1 1 0 0 1-1 1h-2a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/>');
 const ICON_CHECK_A = aIcon('<path d="M20 6 9 17l-5-5"/>');
 const ICON_CLIPBOARD_A = aIcon('<rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>');
@@ -27,21 +30,6 @@ const ICON_STEPS_A = aIcon('<path d="M12 2 2 7l10 5 10-5-10-5Z"/><path d="m2 17 
 const ICON_UP_A = aIcon('<path d="m18 15-6-6-6 6"/>');
 const ICON_DOWN_A = aIcon('<path d="m6 9 6 6 6-6"/>');
 const ICON_X_A = aIcon('<path d="M18 6 6 18"/><path d="m6 6 12 12"/>');
-// Иконки расширенного тулбара конструктора теории (Stepik-подобный редактор)
-const ICON_LIST_UL_A = aIcon('<line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/>');
-const ICON_LIST_OL_A = aIcon('<line x1="10" x2="21" y1="6" y2="6"/><line x1="10" x2="21" y1="12" y2="12"/><line x1="10" x2="21" y1="18" y2="18"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/>');
-const ICON_ALIGN_L_A = aIcon('<line x1="21" x2="3" y1="6" y2="6"/><line x1="15" x2="3" y1="12" y2="12"/><line x1="17" x2="3" y1="18" y2="18"/>');
-const ICON_ALIGN_C_A = aIcon('<line x1="21" x2="3" y1="6" y2="6"/><line x1="17" x2="7" y1="12" y2="12"/><line x1="19" x2="5" y1="18" y2="18"/>');
-const ICON_ALIGN_R_A = aIcon('<line x1="21" x2="3" y1="6" y2="6"/><line x1="21" x2="9" y1="12" y2="12"/><line x1="21" x2="7" y1="18" y2="18"/>');
-const ICON_LINK_A = aIcon('<path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="M15 7h2a5 5 0 1 1 0 10h-2"/><line x1="8" x2="16" y1="12" y2="12"/>');
-const ICON_UNLINK_A = aIcon('<path d="M9 17H7A5 5 0 0 1 7 7"/><path d="M15 7h2a5 5 0 0 1 3.9 8.11"/><line x1="8" x2="16" y1="12" y2="12"/><line x1="3" x2="21" y1="3" y2="21"/>');
-const ICON_IMAGE_A = aIcon('<rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>');
-const ICON_FILE_A = aIcon('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/>');
-const ICON_TABLE_A = aIcon('<path d="M12 3v18"/><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/>');
-const ICON_CODE_A = aIcon('<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>');
-const ICON_UNDO_A = aIcon('<path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 6 6v1"/>');
-const ICON_REDO_A = aIcon('<path d="m15 14 5-5-5-5"/><path d="M20 9H10a6 6 0 0 0-6 6v1"/>');
-const ICON_QUOTE_A = aIcon('<path d="M3 21c3 0 6-2 6-6V7H3v8h3c0 1.5-1 3-3 3zM15 21c3 0 6-2 6-6V7h-6v8h3c0 1.5-1 3-3 3z"/>');
 
 async function logout() {
   await SB.auth.signOut();
@@ -76,6 +64,7 @@ async function loadSection(name){
   if (name === 'overview') await renderOverview();
   if (name === 'courses') await renderCoursesAdmin();
   if (name === 'glossary') await renderGlossaryAdmin();
+  if (name === 'forum') await renderForumAdmin();
   if (name === 'assignments') await renderAssignmentQueue();
   if (name === 'verify') await renderVerifyQueue();
   if (name === 'reports') await renderReportsQueue();
@@ -180,41 +169,6 @@ async function uploadCourseAsset(file){
     name: file.name || 'Файл',
     type: file.type || '',
   };
-}
-
-function fullRichToolbarHtml(){
-  return `
-    <div class="rt-toolbar rt-toolbar-full">
-      <button type="button" class="rt-btn" data-cmd="undo" data-tip="Отменить" aria-label="Отменить">${ICON_UNDO_A}</button><button type="button" class="rt-btn" data-cmd="redo" data-tip="Повторить" aria-label="Повторить">${ICON_REDO_A}</button>
-      <span class="rt-sep"></span>
-      <button type="button" class="rt-btn" data-cmd="bold" data-tip="Жирный" aria-label="Жирный"><b>Ж</b></button><button type="button" class="rt-btn" data-cmd="italic" data-tip="Курсив" aria-label="Курсив"><i>К</i></button><button type="button" class="rt-btn" data-cmd="underline" data-tip="Подчёркнутый" aria-label="Подчёркнутый"><u>Ч</u></button><button type="button" class="rt-btn rt-code-btn" data-tip="Блок кода" aria-label="Блок кода">&lt;/&gt;</button>
-      <select class="rt-select rt-style" title="Стиль абзаца"><option value="">Стили</option><option value="p">Обычный текст</option><option value="h2">Заголовок 2</option><option value="h3">Заголовок 3</option><option value="h4">Заголовок 4</option><option value="blockquote">Цитата</option></select>
-      <div class="rt-color-wrap">
-        <button type="button" class="rt-btn rt-color-btn" data-tip="Цвет текста" aria-label="Цвет текста">A</button>
-        <div class="rt-color-pop" hidden>
-          <div class="rt-color-row rt-color-presets"></div>
-          <div class="rt-color-row rt-color-recent"></div>
-          <label class="rt-color-custom" title="Свой цвет">+<input type="color" class="rt-color" value="#ff5a36"></label>
-        </div>
-      </div>
-      <span class="rt-sep"></span>
-      <button type="button" class="rt-btn" data-cmd="insertUnorderedList" data-tip="Маркированный список" aria-label="Маркированный список">${ICON_LIST_UL_A}</button><button type="button" class="rt-btn" data-cmd="insertOrderedList" data-tip="Нумерованный список" aria-label="Нумерованный список">${ICON_LIST_OL_A}</button>
-      <button type="button" class="rt-btn rt-quote-btn" data-tip="Цитата" aria-label="Цитата">${ICON_QUOTE_A}</button>
-      <span class="rt-sep"></span>
-      <button type="button" class="rt-btn" data-cmd="justifyLeft" data-tip="По левому краю" aria-label="По левому краю">${ICON_ALIGN_L_A}</button><button type="button" class="rt-btn" data-cmd="justifyCenter" data-tip="По центру" aria-label="По центру">${ICON_ALIGN_C_A}</button><button type="button" class="rt-btn" data-cmd="justifyRight" data-tip="По правому краю" aria-label="По правому краю">${ICON_ALIGN_R_A}</button>
-      <span class="rt-sep"></span>
-      <button type="button" class="rt-btn rt-link-btn" data-tip="Вставить ссылку" aria-label="Вставить ссылку">${ICON_LINK_A}</button><button type="button" class="rt-btn" data-cmd="unlink" data-tip="Убрать ссылку" aria-label="Убрать ссылку">${ICON_UNLINK_A}</button>
-      <button type="button" class="rt-btn rt-img-btn" data-tip="Добавить изображение" aria-label="Добавить изображение">${ICON_IMAGE_A}</button><input type="file" class="rt-img-input" accept="image/*" hidden>
-      <button type="button" class="rt-btn rt-file-btn" data-tip="Прикрепить файл" aria-label="Прикрепить файл">${ICON_FILE_A}</button><input type="file" class="rt-file-input" hidden>
-      <button type="button" class="rt-btn rt-video-btn" data-tip="Добавить видео по ссылке" aria-label="Добавить видео по ссылке">${ICON_VIDEO_A}</button>
-      <button type="button" class="rt-btn rt-formula-btn" data-tip="Вставить формулу или символ" aria-label="Вставить формулу или символ">Σ</button>
-      <button type="button" class="rt-btn rt-table-btn" data-tip="Вставить таблицу" aria-label="Вставить таблицу">${ICON_TABLE_A}</button>
-      <span class="rt-sep"></span><button type="button" class="rt-btn rt-source-btn" data-tip="Исходный код (HTML)" aria-label="Исходный код (HTML)">${ICON_CODE_A}</button>
-    </div>`;
-}
-
-function courseRichEditorHtml(className, value){
-  return `<div class="course-rich-editor">${fullRichToolbarHtml()}<div class="rt-editable rt-editable-large ${className}" contenteditable="true" data-placeholder="Расскажите о курсе, добавьте материалы и полезные ссылки">${sanitizeRichHtml(value || '')}</div><div class="rt-editor-hint">Текст, ссылки, изображения, файлы и видео — всё в одном описании.</div></div>`;
 }
 
 async function handleCreateCourse(e){
@@ -1123,6 +1077,159 @@ async function handleDeleteGlossaryTerm(term){
 }
 
 /* ══════════════════════════════════════
+   ФОРУМ — категории (тот же паттерн, что словарь) + модерация тем
+   ══════════════════════════════════════ */
+const ICON_PIN_ADM = aIcon('<path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/>');
+const ICON_LOCK_ADM = aIcon('<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>');
+const ICON_UNLOCK_ADM = aIcon('<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>');
+
+async function renderForumAdmin(){
+  const root = document.getElementById('forumAdminRoot');
+  const [{ data: cats }, { data: threads }] = await Promise.all([
+    SB.from('forum_categories').select('*').order('order_index', { ascending: true }),
+    SB.from('forum_threads').select('*, forum_posts(count)').order('created_at', { ascending: false }).limit(50),
+  ]);
+  root.innerHTML = '';
+  root.appendChild(forumCategorySection(cats || []));
+  root.appendChild(forumThreadModerationSection(threads || [], cats || []));
+}
+
+function forumCategorySection(categories){
+  const wrap = document.createElement('div');
+  wrap.className = 'course-program-editor';
+  wrap.innerHTML = `<div class="course-program-toolbar"><div><div class="course-program-kicker">Категории форума</div><div class="course-program-sub">Разделы, в которых участники создают темы</div></div><button type="button" class="program-add-btn addForumCatBtn">+ Создать категорию</button></div>`;
+  wrap.querySelector('.addForumCatBtn').addEventListener('click', () => createForumCategory());
+
+  const list = document.createElement('div');
+  list.className = 'course-program-lessons';
+  categories.forEach((cat, i) => list.appendChild(forumCategoryRow(cat, i, categories.length, categories)));
+  wrap.appendChild(list);
+  if (!categories.length) {
+    const empty = document.createElement('div');
+    empty.className = 'empty';
+    empty.style.padding = '16px 0';
+    empty.textContent = 'Пока нет ни одной категории — создайте первую выше.';
+    wrap.appendChild(empty);
+  }
+  return wrap;
+}
+
+function forumCategoryRow(cat, index, total, categories){
+  const row = document.createElement('div');
+  row.className = 'admin-lesson-row';
+  row.innerHTML = `
+    <span class="admin-lesson-main"><span>${escapeHtml(cat.title)}</span>${cat.description ? `<span style="color:var(--muted2);font-size:12px;margin-left:8px">${escapeHtml(cat.description)}</span>` : ''}</span>
+    <span style="display:flex;align-items:center;gap:8px">
+      <button type="button" class="icon-btn catUp" title="Поднять категорию">${ICON_UP_A}</button><button type="button" class="icon-btn catDown" title="Опустить категорию">${ICON_DOWN_A}</button>
+      <button type="button" class="icon-btn catEdit" title="Переименовать категорию">${ICON_PENCIL_A}</button><button type="button" class="icon-btn catDelete" title="Удалить категорию">${ICON_TRASH_A}</button>
+    </span>`;
+  const [upBtn, downBtn, editBtn, delBtn] = row.querySelectorAll('.icon-btn');
+  upBtn.disabled = index === 0;
+  downBtn.disabled = index === total - 1;
+  upBtn.addEventListener('click', () => moveForumCategory(categories, index, -1));
+  downBtn.addEventListener('click', () => moveForumCategory(categories, index, 1));
+  editBtn.addEventListener('click', () => renameForumCategory(cat));
+  delBtn.addEventListener('click', () => deleteForumCategory(cat));
+  return row;
+}
+
+async function createForumCategory(){
+  const title = prompt('Название категории:', 'Новая категория');
+  if (!title || !title.trim()) return;
+  const description = prompt('Короткое описание (необязательно, видно в списке категорий):', '') || null;
+  const { count } = await SB.from('forum_categories').select('id', { count: 'exact', head: true });
+  const { error } = await SB.from('forum_categories').insert({ title: title.trim(), description, order_index: count || 0 });
+  if (error) { alert('Не удалось создать категорию: ' + error.message); return; }
+  renderForumAdmin();
+}
+
+async function renameForumCategory(cat){
+  const title = prompt('Название категории:', cat.title);
+  if (!title || !title.trim() || title.trim() === cat.title) return;
+  const { error } = await SB.from('forum_categories').update({ title: title.trim() }).eq('id', cat.id);
+  if (error) { alert('Не удалось переименовать: ' + error.message); return; }
+  renderForumAdmin();
+}
+
+async function deleteForumCategory(cat){
+  if (!confirm(`Удалить категорию «${cat.title}»? Все темы внутри тоже удалятся вместе с ответами. Отменить нельзя.`)) return;
+  const { error } = await SB.from('forum_categories').delete().eq('id', cat.id);
+  if (error) { alert('Не удалось удалить: ' + error.message); return; }
+  renderForumAdmin();
+}
+
+async function moveForumCategory(categories, index, direction){
+  const otherIndex = index + direction;
+  if (otherIndex < 0 || otherIndex >= categories.length) return;
+  const current = categories[index], other = categories[otherIndex];
+  await Promise.all([
+    SB.from('forum_categories').update({ order_index: other.order_index }).eq('id', current.id),
+    SB.from('forum_categories').update({ order_index: current.order_index }).eq('id', other.id),
+  ]);
+  renderForumAdmin();
+}
+
+function forumThreadModerationSection(threads, categories){
+  const wrap = document.createElement('div');
+  wrap.style.marginTop = '28px';
+  const catMap = new Map(categories.map(c => [c.id, c.title]));
+  const heading = document.createElement('div');
+  heading.className = 'course-program-kicker';
+  heading.style.marginBottom = '10px';
+  heading.textContent = 'Последние темы';
+  wrap.appendChild(heading);
+
+  const list = document.createElement('div');
+  list.style.cssText = 'display:flex;flex-direction:column;gap:8px';
+  if (!threads.length) {
+    list.innerHTML = '<div class="empty">Тем пока нет</div>';
+  } else {
+    threads.forEach(t => list.appendChild(forumThreadModRow(t, catMap, categories)));
+  }
+  wrap.appendChild(list);
+  return wrap;
+}
+
+function forumThreadModRow(t, catMap, categories){
+  const row = document.createElement('div');
+  row.className = 'admin-lesson-row';
+  const replies = Math.max(((t.forum_posts && t.forum_posts[0] && t.forum_posts[0].count) || 1) - 1, 0);
+  const catOptions = categories.map(c => `<option value="${c.id}" ${c.id === t.category_id ? 'selected' : ''}>${escapeHtml(c.title)}</option>`).join('');
+  row.innerHTML = `
+    <span class="admin-lesson-main">
+      <a href="../pages/thread.html?thread=${t.id}" target="_blank" style="color:var(--text);text-decoration:none">${escapeHtml(t.title)}</a>
+      <span style="color:var(--muted2);font-size:12px;margin-left:8px">${replies} ${replies === 1 ? 'ответ' : 'ответов'} · ${escapeHtml(catMap.get(t.category_id) || '?')}</span>
+    </span>
+    <span style="display:flex;align-items:center;gap:8px">
+      <select class="ftCatMove" style="font-size:11px">${catOptions}</select>
+      <button type="button" class="icon-btn ftPin${t.is_pinned ? ' active' : ''}" title="${t.is_pinned ? 'Открепить' : 'Закрепить'}">${ICON_PIN_ADM}</button>
+      <button type="button" class="icon-btn ftLock" title="${t.is_locked ? 'Открыть тему' : 'Закрыть тему'}">${t.is_locked ? ICON_UNLOCK_ADM : ICON_LOCK_ADM}</button>
+      <button type="button" class="icon-btn ftDelete" title="Удалить тему">${ICON_TRASH_A}</button>
+    </span>`;
+  row.querySelector('.ftCatMove').addEventListener('change', async (e) => {
+    const { error } = await SB.from('forum_threads').update({ category_id: e.target.value }).eq('id', t.id);
+    if (error) alert('Не удалось перенести: ' + error.message);
+  });
+  row.querySelector('.ftPin').addEventListener('click', async () => {
+    const { error } = await SB.from('forum_threads').update({ is_pinned: !t.is_pinned }).eq('id', t.id);
+    if (error) { alert('Ошибка: ' + error.message); return; }
+    renderForumAdmin();
+  });
+  row.querySelector('.ftLock').addEventListener('click', async () => {
+    const { error } = await SB.from('forum_threads').update({ is_locked: !t.is_locked }).eq('id', t.id);
+    if (error) { alert('Ошибка: ' + error.message); return; }
+    renderForumAdmin();
+  });
+  row.querySelector('.ftDelete').addEventListener('click', async () => {
+    if (!confirm(`Удалить тему «${t.title}» целиком (со всеми ответами)? Отменить нельзя.`)) return;
+    const { error } = await SB.from('forum_threads').delete().eq('id', t.id);
+    if (error) { alert('Не удалось удалить: ' + error.message); return; }
+    renderForumAdmin();
+  });
+  return row;
+}
+
+/* ══════════════════════════════════════
    ПРОВЕРКА ЗАДАНИЙ
    ══════════════════════════════════════ */
 function submissionCard(s){
@@ -1295,22 +1402,26 @@ async function renderReportsQueue(){
   const postIds = [...new Set(reports.filter(r => r.content_type === 'post').map(r => r.content_id))];
   const commentIds = [...new Set(reports.filter(r => r.content_type === 'comment').map(r => r.content_id))];
   const projectCommentIds = [...new Set(reports.filter(r => r.content_type === 'project_comment').map(r => r.content_id))];
+  const forumPostIds = [...new Set(reports.filter(r => r.content_type === 'forum_post').map(r => r.content_id))];
 
-  const [{ data: reporters }, { data: posts }, { data: comments }, { data: projectComments }] = await Promise.all([
+  const [{ data: reporters }, { data: posts }, { data: comments }, { data: projectComments }, { data: forumPosts }] = await Promise.all([
     reporterIds.length ? SB.from('profiles').select('id, username').in('id', reporterIds) : Promise.resolve({ data: [] }),
     postIds.length ? SB.from('posts').select('id, content, user_id').in('id', postIds) : Promise.resolve({ data: [] }),
     commentIds.length ? SB.from('post_comments').select('id, content, audio_url, user_id').in('id', commentIds) : Promise.resolve({ data: [] }),
     projectCommentIds.length ? SB.from('project_comments').select('id, content, user_id').in('id', projectCommentIds) : Promise.resolve({ data: [] }),
+    forumPostIds.length ? SB.from('forum_posts').select('id, content, user_id, is_op, thread_id').in('id', forumPostIds) : Promise.resolve({ data: [] }),
   ]);
   const reporterMap = new Map((reporters || []).map(u => [u.id, u.username]));
   const postMap = new Map((posts || []).map(p => [p.id, p]));
   const commentMap = new Map((comments || []).map(c => [c.id, c]));
   const projectCommentMap = new Map((projectComments || []).map(c => [c.id, c]));
+  const forumPostMap = new Map((forumPosts || []).map(c => [c.id, c]));
 
   queue.innerHTML = '';
   reports.forEach(r => {
     const content = r.content_type === 'post' ? postMap.get(r.content_id)
       : r.content_type === 'project_comment' ? projectCommentMap.get(r.content_id)
+      : r.content_type === 'forum_post' ? forumPostMap.get(r.content_id)
       : commentMap.get(r.content_id);
     queue.appendChild(reportCard(r, content, reporterMap.get(r.reporter_id)));
   });
@@ -1320,7 +1431,7 @@ function reportCard(r, content, reporterName){
   const card = document.createElement('div');
   card.className = 'review-card';
   const date = new Date(r.created_at).toLocaleDateString('ru-RU');
-  const typeLabel = r.content_type === 'post' ? 'Пост' : r.content_type === 'project_comment' ? 'Комментарий (портфолио)' : 'Комментарий';
+  const typeLabel = r.content_type === 'post' ? 'Пост' : r.content_type === 'project_comment' ? 'Комментарий (портфолио)' : r.content_type === 'forum_post' ? (content && content.is_op ? 'Тема форума' : 'Сообщение на форуме') : 'Комментарий';
   let preview;
   const hasAudio = content && content.audio_url;
   if (!content) {
@@ -1343,16 +1454,24 @@ function reportCard(r, content, reporterName){
     </div>`;
 
   if (hasAudio) createWavePlayer(content.audio_url, card.querySelector('.wp-mount'));
-  card.querySelector('.deleteContentBtn').addEventListener('click', () => handleResolveReport(r, card, 'delete'));
-  card.querySelector('.dismissBtn').addEventListener('click', () => handleResolveReport(r, card, 'dismiss'));
+  card.querySelector('.deleteContentBtn').addEventListener('click', () => handleResolveReport(r, card, 'delete', content));
+  card.querySelector('.dismissBtn').addEventListener('click', () => handleResolveReport(r, card, 'dismiss', content));
   return card;
 }
 
-async function handleResolveReport(r, card, action){
+async function handleResolveReport(r, card, action, content){
   card.querySelectorAll('button').forEach(b => b.disabled = true);
   if (action === 'delete') {
-    const table = r.content_type === 'post' ? 'posts' : r.content_type === 'project_comment' ? 'project_comments' : 'post_comments';
-    const { error: delErr } = await SB.from(table).delete().eq('id', r.content_id);
+    // Открывающий пост темы форума нельзя удалить отдельно (as-is у самой
+    // таблицы forum_posts) — только всю тему целиком, см. 033_forum_core.sql.
+    const isForumOp = r.content_type === 'forum_post' && content && content.is_op;
+    const table = isForumOp ? 'forum_threads'
+      : r.content_type === 'post' ? 'posts'
+      : r.content_type === 'project_comment' ? 'project_comments'
+      : r.content_type === 'forum_post' ? 'forum_posts'
+      : 'post_comments';
+    const deleteId = isForumOp ? content.thread_id : r.content_id;
+    const { error: delErr } = await SB.from(table).delete().eq('id', deleteId);
     if (delErr) { alert('Не удалось удалить: ' + delErr.message); card.querySelectorAll('button').forEach(b => b.disabled = false); return; }
   }
   const { error } = await SB.from('content_reports').update({
@@ -1521,13 +1640,16 @@ async function openUserDetail(u){
     SB.from('posts').select('id').eq('user_id', u.id),
     SB.from('post_comments').select('id').eq('user_id', u.id),
   ]);
+  const { data: allForumPosts } = await SB.from('forum_posts').select('id').eq('user_id', u.id);
 
   const postIds = (allPosts || []).map(p => p.id);
   const commentIds = (allComments || []).map(c => c.id);
+  const forumPostIds = (allForumPosts || []).map(p => p.id);
   let reportsAgainst = [];
   const reportQueries = [];
   if (postIds.length) reportQueries.push(SB.from('content_reports').select('id, reason, status, created_at, content_type').eq('content_type', 'post').in('content_id', postIds));
   if (commentIds.length) reportQueries.push(SB.from('content_reports').select('id, reason, status, created_at, content_type').eq('content_type', 'comment').in('content_id', commentIds));
+  if (forumPostIds.length) reportQueries.push(SB.from('content_reports').select('id, reason, status, created_at, content_type').eq('content_type', 'forum_post').in('content_id', forumPostIds));
   if (reportQueries.length) {
     const results = await Promise.all(reportQueries);
     reportsAgainst = results.flatMap(r => r.data || []);
@@ -1552,7 +1674,7 @@ function renderUserDetailBody(u, data){
   (data.submissions || []).forEach(s => timeline.push({ t: s.submitted_at, icon: 'submission', text: `Сдал(а) задание — статус: ${escapeHtml(s.status)}${s.score != null ? ', ' + s.score + ' баллов' : ''}` }));
   (data.projects || []).forEach(p => timeline.push({ t: p.created_at, icon: 'project', text: 'Загрузил(а) проект в портфолио: ' + escapeHtml(p.title || '') }));
   (data.verifyReqs || []).forEach(v => timeline.push({ t: v.created_at, icon: 'verify', text: 'Заявка на верификацию — статус: ' + escapeHtml(v.status) }));
-  (data.reportsFiled || []).forEach(r => timeline.push({ t: r.created_at, icon: 'report', text: `Пожаловался(-ась) на ${r.content_type === 'post' ? 'пост' : 'комментарий'}${r.reason ? ': ' + escapeHtml(r.reason) : ''}` }));
+  (data.reportsFiled || []).forEach(r => timeline.push({ t: r.created_at, icon: 'report', text: `Пожаловался(-ась) на ${r.content_type === 'post' ? 'пост' : r.content_type === 'forum_post' ? 'сообщение на форуме' : 'комментарий'}${r.reason ? ': ' + escapeHtml(r.reason) : ''}` }));
   timeline.sort((a, b) => new Date(b.t) - new Date(a.t));
 
   const stats = [
@@ -1579,7 +1701,7 @@ function renderUserDetailBody(u, data){
     <div class="aud-stats">${stats.map(s => `<div class="aud-stat"><div class="n">${s.n}</div><div class="l">${s.l}</div></div>`).join('')}</div>
     ${data.reportsAgainst.length ? `
       <div class="aud-section-title aud-flag">⚠ Жалобы на контент этого пользователя (${data.reportsAgainst.length})</div>
-      <div class="aud-timeline">${data.reportsAgainst.map(r => `<div class="aud-item"><div class="aud-item-icon">${ICON_FLAG_A}</div><div class="aud-item-body"><div class="aud-item-text">${r.content_type === 'post' ? 'Пост' : 'Комментарий'} — статус «${escapeHtml(r.status)}»${r.reason ? ': ' + escapeHtml(r.reason) : ''}</div><div class="aud-item-time">${new Date(r.created_at).toLocaleString('ru-RU')}</div></div></div>`).join('')}</div>
+      <div class="aud-timeline">${data.reportsAgainst.map(r => `<div class="aud-item"><div class="aud-item-icon">${ICON_FLAG_A}</div><div class="aud-item-body"><div class="aud-item-text">${r.content_type === 'post' ? 'Пост' : r.content_type === 'forum_post' ? 'Сообщение на форуме' : 'Комментарий'} — статус «${escapeHtml(r.status)}»${r.reason ? ': ' + escapeHtml(r.reason) : ''}</div><div class="aud-item-time">${new Date(r.created_at).toLocaleString('ru-RU')}</div></div></div>`).join('')}</div>
     ` : ''}
     <div class="aud-section-title">Последние действия</div>
     <div class="aud-timeline">
@@ -1689,6 +1811,7 @@ async function init() {
   if (!['MENTOR', 'ADMIN'].includes(currentRole)) {
     document.getElementById('navVerify').style.display = 'none';
     document.getElementById('navReports').style.display = 'none';
+    document.getElementById('navForum').style.display = 'none';
   }
   if (currentRole !== 'ADMIN') {
     document.getElementById('navUsers').style.display = 'none';

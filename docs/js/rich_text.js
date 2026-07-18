@@ -149,6 +149,64 @@ function appendSanitizedChildren(src, dest){
   Array.from(sanitized.childNodes).forEach(n => dest.appendChild(n));
 }
 
+// Конструктор HTML полного тулбара + сам rt-editable — раньше жил только
+// в admin.js (для курсов/словаря), но теперь нужен и публичным страницам
+// без admin.js (форум, барахолка, личные сообщения), поэтому перенесён
+// сюда вместе со своими иконками. admin.js по-прежнему их использует —
+// просто как глобальные функции/константы этого файла, который у него
+// подключён раньше своего скрипта.
+function aIcon(path){ return `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`; }
+const ICON_UNDO_A = aIcon('<path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 6 6v1"/>');
+const ICON_REDO_A = aIcon('<path d="m15 14 5-5-5-5"/><path d="M20 9H10a6 6 0 0 0-6 6v1"/>');
+const ICON_LIST_UL_A = aIcon('<line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/>');
+const ICON_LIST_OL_A = aIcon('<line x1="10" x2="21" y1="6" y2="6"/><line x1="10" x2="21" y1="12" y2="12"/><line x1="10" x2="21" y1="18" y2="18"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/>');
+const ICON_ALIGN_L_A = aIcon('<line x1="21" x2="3" y1="6" y2="6"/><line x1="15" x2="3" y1="12" y2="12"/><line x1="17" x2="3" y1="18" y2="18"/>');
+const ICON_ALIGN_C_A = aIcon('<line x1="21" x2="3" y1="6" y2="6"/><line x1="17" x2="7" y1="12" y2="12"/><line x1="19" x2="5" y1="18" y2="18"/>');
+const ICON_ALIGN_R_A = aIcon('<line x1="21" x2="3" y1="6" y2="6"/><line x1="21" x2="9" y1="12" y2="12"/><line x1="21" x2="7" y1="18" y2="18"/>');
+const ICON_LINK_A = aIcon('<path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="M15 7h2a5 5 0 1 1 0 10h-2"/><line x1="8" x2="16" y1="12" y2="12"/>');
+const ICON_UNLINK_A = aIcon('<path d="M9 17H7A5 5 0 0 1 7 7"/><path d="M15 7h2a5 5 0 0 1 3.9 8.11"/><line x1="8" x2="16" y1="12" y2="12"/><line x1="3" x2="21" y1="3" y2="21"/>');
+const ICON_IMAGE_A = aIcon('<rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>');
+const ICON_FILE_A = aIcon('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/>');
+const ICON_VIDEO_A = aIcon('<path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/>');
+const ICON_TABLE_A = aIcon('<path d="M12 3v18"/><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/>');
+const ICON_CODE_A = aIcon('<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>');
+const ICON_QUOTE_A = aIcon('<path d="M3 21c3 0 6-2 6-6V7H3v8h3c0 1.5-1 3-3 3zM15 21c3 0 6-2 6-6V7h-6v8h3c0 1.5-1 3-3 3z"/>');
+
+function fullRichToolbarHtml(){
+  return `
+    <div class="rt-toolbar rt-toolbar-full">
+      <button type="button" class="rt-btn" data-cmd="undo" data-tip="Отменить" aria-label="Отменить">${ICON_UNDO_A}</button><button type="button" class="rt-btn" data-cmd="redo" data-tip="Повторить" aria-label="Повторить">${ICON_REDO_A}</button>
+      <span class="rt-sep"></span>
+      <button type="button" class="rt-btn" data-cmd="bold" data-tip="Жирный" aria-label="Жирный"><b>Ж</b></button><button type="button" class="rt-btn" data-cmd="italic" data-tip="Курсив" aria-label="Курсив"><i>К</i></button><button type="button" class="rt-btn" data-cmd="underline" data-tip="Подчёркнутый" aria-label="Подчёркнутый"><u>Ч</u></button><button type="button" class="rt-btn rt-code-btn" data-tip="Блок кода" aria-label="Блок кода">&lt;/&gt;</button>
+      <select class="rt-select rt-style" title="Стиль абзаца"><option value="">Стили</option><option value="p">Обычный текст</option><option value="h2">Заголовок 2</option><option value="h3">Заголовок 3</option><option value="h4">Заголовок 4</option><option value="blockquote">Цитата</option></select>
+      <div class="rt-color-wrap">
+        <button type="button" class="rt-btn rt-color-btn" data-tip="Цвет текста" aria-label="Цвет текста">A</button>
+        <div class="rt-color-pop" hidden>
+          <div class="rt-color-row rt-color-presets"></div>
+          <div class="rt-color-row rt-color-recent"></div>
+          <label class="rt-color-custom" title="Свой цвет">+<input type="color" class="rt-color" value="#ff5a36"></label>
+        </div>
+      </div>
+      <span class="rt-sep"></span>
+      <button type="button" class="rt-btn" data-cmd="insertUnorderedList" data-tip="Маркированный список" aria-label="Маркированный список">${ICON_LIST_UL_A}</button><button type="button" class="rt-btn" data-cmd="insertOrderedList" data-tip="Нумерованный список" aria-label="Нумерованный список">${ICON_LIST_OL_A}</button>
+      <button type="button" class="rt-btn rt-quote-btn" data-tip="Цитата" aria-label="Цитата">${ICON_QUOTE_A}</button>
+      <span class="rt-sep"></span>
+      <button type="button" class="rt-btn" data-cmd="justifyLeft" data-tip="По левому краю" aria-label="По левому краю">${ICON_ALIGN_L_A}</button><button type="button" class="rt-btn" data-cmd="justifyCenter" data-tip="По центру" aria-label="По центру">${ICON_ALIGN_C_A}</button><button type="button" class="rt-btn" data-cmd="justifyRight" data-tip="По правому краю" aria-label="По правому краю">${ICON_ALIGN_R_A}</button>
+      <span class="rt-sep"></span>
+      <button type="button" class="rt-btn rt-link-btn" data-tip="Вставить ссылку" aria-label="Вставить ссылку">${ICON_LINK_A}</button><button type="button" class="rt-btn" data-cmd="unlink" data-tip="Убрать ссылку" aria-label="Убрать ссылку">${ICON_UNLINK_A}</button>
+      <button type="button" class="rt-btn rt-img-btn" data-tip="Добавить изображение" aria-label="Добавить изображение">${ICON_IMAGE_A}</button><input type="file" class="rt-img-input" accept="image/*" hidden>
+      <button type="button" class="rt-btn rt-file-btn" data-tip="Прикрепить файл" aria-label="Прикрепить файл">${ICON_FILE_A}</button><input type="file" class="rt-file-input" hidden>
+      <button type="button" class="rt-btn rt-video-btn" data-tip="Добавить видео по ссылке" aria-label="Добавить видео по ссылке">${ICON_VIDEO_A}</button>
+      <button type="button" class="rt-btn rt-formula-btn" data-tip="Вставить формулу или символ" aria-label="Вставить формулу или символ">Σ</button>
+      <button type="button" class="rt-btn rt-table-btn" data-tip="Вставить таблицу" aria-label="Вставить таблицу">${ICON_TABLE_A}</button>
+      <span class="rt-sep"></span><button type="button" class="rt-btn rt-source-btn" data-tip="Исходный код (HTML)" aria-label="Исходный код (HTML)">${ICON_CODE_A}</button>
+    </div>`;
+}
+
+function courseRichEditorHtml(className, value){
+  return `<div class="course-rich-editor">${fullRichToolbarHtml()}<div class="rt-editable rt-editable-large ${className}" contenteditable="true" data-placeholder="Расскажите о курсе, добавьте материалы и полезные ссылки">${sanitizeRichHtml(value || '')}</div><div class="rt-editor-hint">Текст, ссылки, изображения, файлы и видео — всё в одном описании.</div></div>`;
+}
+
 // Подключает панель форматирования (.rt-toolbar) к соседнему полю
 // (.rt-editable) внутри контейнера. Выделение сохраняем сами, потому что
 // клик по кнопке/селекту тулбара обычно сбивает его в contenteditable.

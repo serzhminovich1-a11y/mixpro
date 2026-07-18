@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MIXPRO — Урок</title>
+<title>MIXPRO — Тема</title>
 <link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400..900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../css/tokens.css">
 <link rel="stylesheet" href="../css/themes.css">
@@ -15,10 +15,10 @@
   } catch(e){}
 })();
 </script>
-<link rel="stylesheet" href="../css/courses.css">
+<link rel="stylesheet" href="../css/forum.css">
 <link rel="stylesheet" href="../css/animations.css">
+<link rel="stylesheet" href="../css/rich_text.css">
 <link rel="stylesheet" href="../css/notifications.css">
-<link rel="stylesheet" href="../css/lesson_steps.css">
 </head>
 <body>
 <nav>
@@ -26,9 +26,8 @@
   <div class="nav-links">
     <a href="../index.html" class="nav-btn">Главная</a>
     <a href="feed.html" class="nav-btn">Лента</a>
-    <a href="courses.html" class="nav-btn current">Курсы</a>
-    <a href="forum.html" class="nav-btn">Форум</a>
-    <a href="../index.html#trainers" class="nav-btn">Тренажёры</a>
+    <a href="courses.html" class="nav-btn">Курсы</a>
+    <a href="forum.html" class="nav-btn current">Форум</a>
     <a href="leaderboard.html" class="nav-btn">Рейтинг</a>
     <a href="portfolio.html" class="nav-btn">Портфолио</a>
   </div>
@@ -42,26 +41,30 @@
 </nav>
 
 <div class="wrap">
-  <div id="loading" class="loading">Загружаем урок...</div>
+  <div id="loading" class="loading">Загружаем тему...</div>
 
   <div id="content" style="display:none">
-    <a href="#" id="backLink" class="back-link">← К курсу</a>
+    <a href="forum.html" class="back-link" id="backLink">← Форум</a>
 
-    <div class="lesson-head">
-      <div class="course-name" id="courseName">—</div>
-      <h1 id="lessonTitle">—</h1>
+    <div class="forum-thread-header">
+      <div class="forum-thread-header-title" id="threadTitle">—</div>
+      <div class="forum-thread-header-actions" id="threadActions"></div>
     </div>
 
-    <div id="playerBlock" class="player-wrap" style="display:none">
-      <video id="video" controls controlsList="nodownload noremoteplayback" disablePictureInPicture oncontextmenu="return false"></video>
-      <div class="watermark" id="watermark"></div>
-    </div>
+    <div id="postsList" style="display:flex;flex-direction:column;gap:14px"></div>
 
-    <div id="noVideo" class="empty" style="display:none">Материал к этому уроку скоро появится</div>
-
-    <div id="stepsMount"></div>
-
-    <button class="complete-btn" id="completeBtn">Отметить урок пройденным</button>
+    <form class="card forum-reply-composer" id="replyForm">
+      <div class="forum-quote-preview" id="quotePreview">
+        <div id="quotePreviewText"></div>
+        <button type="button" id="quoteCancelBtn" title="Убрать цитату">✕</button>
+      </div>
+      <div id="replyEditorMount"></div>
+      <div class="composer-actions">
+        <div class="composer-status" id="replyStatus"></div>
+        <button type="submit" class="btn-primary" id="replySubmit">Ответить</button>
+      </div>
+    </form>
+    <div class="empty" id="lockedNotice" style="display:none">Тема закрыта — новые ответы недоступны</div>
   </div>
 </div>
 
@@ -70,8 +73,7 @@
 <script src="../js/content_filter.js"></script>
 <script src="../js/rich_text.js"></script>
 <script src="../js/notifications.js"></script>
-<script src="../js/lesson_steps.js"></script>
 <script src="../js/ban_gate.js"></script>
-<script src="../js/lesson.js"></script>
+<script src="../js/thread.js"></script>
 </body>
 </html>

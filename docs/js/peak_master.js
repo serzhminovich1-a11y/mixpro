@@ -150,7 +150,9 @@ function updateGraph(showCurve, color, label){
     const x=fToSvgX(target);
     peakLine.setAttribute('x1',x);peakLine.setAttribute('x2',x);
     peakLine.style.opacity=comparing?'0':'.6';
-    peakTag.style.left=(x/1240*100)+'%';
+    // Клампим % (не саму линию — только подпись), иначе на краях диапазона
+    // (около 20 Гц или 16-20k) подпись обрезается о край карточки графика.
+    peakTag.style.left=Math.max(6,Math.min(94,x/1240*100))+'%';
     peakTag.style.opacity=comparing?'0':'1';
     peakFreqLabel.textContent=fmtF(target)+' Hz';
     document.getElementById('peakBoostLabel').textContent=label||'С БУСТОМ';

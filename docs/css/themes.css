@@ -133,7 +133,6 @@
   --wave-1:#7c4dff; --wave-2:#ec4899; --wave-3:#06b6d4; --wave-4:#7c4dff;
 }
 [data-theme="glass"] body{background:linear-gradient(135deg,#c9c3ff 0%,#ffd6e8 45%,#c3f0ff 100%) fixed}
-[data-theme="glass"] .modal,[data-theme="glass"] .theme-panel,[data-theme="glass"] .overlay .modal{backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
 
 /* ── ТЕМА «FL»: FL Studio (VIP) ── */
 /* По реальным скриншотам программы (не по логотипу!): холодный

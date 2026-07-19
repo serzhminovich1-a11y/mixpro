@@ -55,7 +55,7 @@ nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-con
 .avatar{position:absolute;inset:3px;border-radius:var(--r-badge);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:var(--text-header-2-size);font-weight:800;color:var(--on-accent);background:linear-gradient(135deg,var(--amber),var(--amber-dim));flex-shrink:0}
 .hero-info h1{font-family:var(--display);font-size:var(--text-display-1-size);font-weight:800;letter-spacing:-.02em;line-height:1.1}
 .hero-info .since{font-family:var(--mono);font-size:var(--text-caption-2-size);color:var(--muted2);margin-top:var(--space-2);letter-spacing:.08em}
-.reputation-badge{display:inline-flex;align-items:center;gap:6px;margin-top:var(--space-2);padding:3px 12px;border-radius:var(--r-pill);background:rgba(250,204,21,.12);border:var(--bw) solid var(--gold);color:var(--gold);font-family:var(--mono);font-size:var(--text-caption-2-size);font-weight:700;width:fit-content}
+.reputation-badge{display:inline-flex;align-items:center;gap:6px;margin-top:var(--space-2);padding:3px 12px;border-radius:var(--r-pill);background:var(--gold-glow);border:var(--bw) solid var(--gold);color:var(--gold);font-family:var(--mono);font-size:var(--text-caption-2-size);font-weight:700;width:fit-content}
 .signature-view{margin-top:var(--space-2);color:var(--muted2);font-size:var(--text-body-1-size);font-style:italic}
 .signature-edit-card{background:linear-gradient(180deg,var(--surf-top),var(--surf-bot)),var(--bg);border:var(--bw) solid var(--border);border-radius:var(--r-card);padding:var(--space-4);display:flex;flex-direction:column;gap:var(--space-3);box-shadow:var(--shadow-lift)}
 .signature-edit-card textarea{background:var(--s2);border:var(--bw) solid var(--border);border-radius:var(--r-sm);padding:var(--space-3);color:var(--text);font-family:var(--sans);font-size:var(--text-body-1-size);resize:vertical;min-height:64px}
@@ -115,7 +115,7 @@ tr:hover td{background:var(--s2)}
 .achv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:var(--space-3)}
 .achv-card{border-radius:var(--r-md);padding:var(--space-4);text-align:center}
 .achv-card.locked{opacity:.4}
-.achv-card.unlocked{border-color:rgba(250,204,21,.35);box-shadow:var(--shadow-lift), 0 0 22px -10px rgba(250,204,21,.4)}
+.achv-card.unlocked{border-color:var(--gold-glow-strong);box-shadow:var(--shadow-lift), 0 0 22px -10px var(--gold-glow-strong)}
 .achv-icon{width:30px;height:30px;margin:0 auto 8px;color:var(--gold)}
 .achv-icon svg{width:100%;height:100%;display:block}
 .achv-card.locked .achv-icon{color:var(--muted2)}
@@ -151,7 +151,7 @@ tr:hover td{background:var(--s2)}
 /* Пресеты / Мерч — витрина, оплата будет отдельным этапом */
 .shop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:var(--space-3)}
 .shop-card{border-radius:var(--r-md);padding:var(--space-4)}
-.shop-icon-box{height:70px;border-radius:var(--r-sm);background:linear-gradient(135deg,rgba(250,204,21,.13),rgba(249,115,22,.09));display:flex;align-items:center;justify-content:center;margin-bottom:var(--space-3);border:var(--bw) solid var(--border);color:var(--gold)}
+.shop-icon-box{height:70px;border-radius:var(--r-sm);background:linear-gradient(135deg,var(--gold-glow),rgba(249,115,22,.09));display:flex;align-items:center;justify-content:center;margin-bottom:var(--space-3);border:var(--bw) solid var(--border);color:var(--gold)}
 .shop-icon-box svg{width:26px;height:26px}
 .shop-title{font-family:var(--display);font-size:var(--text-body-1-size);font-weight:700}
 .shop-desc{font-size:var(--text-caption-2-size);color:var(--muted2);margin-top:var(--space-half);line-height:1.4}

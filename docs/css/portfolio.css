@@ -84,7 +84,7 @@ nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-con
 .proj-badges{display:flex;align-items:center;gap:var(--space-1);flex-wrap:wrap}
 .proj-badge{display:inline-flex;align-items:center;gap:var(--space-1);font-family:var(--mono);font-size:var(--text-caption-1-size);padding:var(--space-half) var(--space-2);border-radius:var(--r-pill)}
 .proj-badge svg{width:10px;height:10px}
-.proj-badge.rating{color:var(--gold);background:rgba(250,204,21,.1);border:var(--bw) solid rgba(250,204,21,.25)}
+.proj-badge.rating{color:var(--gold);background:var(--gold-glow);border:var(--bw) solid var(--gold-glow-strong)}
 .proj-badge.reviewed{color:var(--green);background:var(--amber-glow);border:var(--bw) solid var(--amber-glow-strong)}
 
 /* Upload form */

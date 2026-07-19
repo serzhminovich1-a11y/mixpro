@@ -28,6 +28,7 @@
   --accent-shadow:0 8px 22px -8px rgba(74,222,128,.5); --amber-glow-strong:rgba(74,222,128,.25);
   --green-glow:rgba(61,220,132,.12); --green-glow-strong:rgba(61,220,132,.3); --green-glow-soft:rgba(61,220,132,.08);
   --red-glow:rgba(248,113,113,.08); --red-glow-strong:rgba(255,78,78,.1);
+  --gold-glow:rgba(250,204,21,.12); --gold-glow-strong:rgba(250,204,21,.28);
   --bw:1px;
   --r-pill:999px; --r-lg:16px; --r-card:14px; --r-md:10px; --r-sm:8px; --r-xs:4px; --r-badge:50%;
   --hero-glow-color:transparent;
@@ -41,6 +42,7 @@
   --green:#1a8a4a; --red:#e0245e; --gold:#eab308;
   --green-glow:rgba(26,138,74,.12); --green-glow-strong:rgba(26,138,74,.3); --green-glow-soft:rgba(26,138,74,.08);
   --red-glow:rgba(224,36,94,.08); --red-glow-strong:rgba(224,36,94,.12);
+  --gold-glow:rgba(234,179,8,.12); --gold-glow-strong:rgba(234,179,8,.28);
   --s2:rgba(0,0,0,.04);
   --surf-top:rgba(0,0,0,.02); --surf-bot:rgba(0,0,0,.005);
   --shadow-lift:4px 4px 0 #111; --shadow-lift-hover:6px 6px 0 #111; --accent-shadow:4px 4px 0 #111;
@@ -60,6 +62,7 @@
   --green:#4ade80; --red:#f87171; --gold:#facc15;
   --green-glow:rgba(74,222,128,.12); --green-glow-strong:rgba(74,222,128,.28); --green-glow-soft:rgba(74,222,128,.08);
   --red-glow:rgba(248,113,113,.1); --red-glow-strong:rgba(248,113,113,.14);
+  --gold-glow:rgba(250,204,21,.12); --gold-glow-strong:rgba(250,204,21,.28);
   --s2:rgba(255,255,255,.05);
   --display:'JetBrains Mono', monospace; --sans:'JetBrains Mono', monospace;
   --surf-top:rgba(255,255,255,.04); --surf-bot:rgba(255,255,255,.01);
@@ -82,6 +85,7 @@
   --green:#00ffb3; --red:#ff3860; --gold:#ffe94d;
   --green-glow:rgba(0,255,179,.14); --green-glow-strong:rgba(0,255,179,.3); --green-glow-soft:rgba(0,255,179,.1);
   --red-glow:rgba(255,56,96,.12); --red-glow-strong:rgba(255,56,96,.18);
+  --gold-glow:rgba(255,233,77,.14); --gold-glow-strong:rgba(255,233,77,.3);
   --s2:rgba(255,255,255,.06);
   --surf-top:rgba(255,255,255,.06); --surf-bot:rgba(255,255,255,.015);
   --shadow-lift:0 0 0 1px rgba(0,229,255,.15), 0 8px 24px -8px rgba(255,46,154,.25);
@@ -102,6 +106,7 @@
   --green:#4ade80; --red:#ff4d6d; --gold:#ffb036;
   --green-glow:rgba(74,222,128,.12); --green-glow-strong:rgba(74,222,128,.28); --green-glow-soft:rgba(74,222,128,.08);
   --red-glow:rgba(255,77,109,.1); --red-glow-strong:rgba(255,77,109,.14);
+  --gold-glow:rgba(255,176,54,.14); --gold-glow-strong:rgba(255,176,54,.28);
   --s2:rgba(255,255,255,.05);
   --surf-top:rgba(255,255,255,.045); --surf-bot:rgba(255,255,255,.012);
   --shadow-lift:0 1px 0 rgba(255,255,255,.05) inset, 0 20px 40px -20px rgba(0,0,0,.7);
@@ -122,6 +127,7 @@
   --green:#059669; --red:#e11d48; --gold:#d97706;
   --green-glow:rgba(5,150,105,.14); --green-glow-strong:rgba(5,150,105,.3); --green-glow-soft:rgba(5,150,105,.1);
   --red-glow:rgba(225,29,72,.1); --red-glow-strong:rgba(225,29,72,.15);
+  --gold-glow:rgba(217,119,6,.14); --gold-glow-strong:rgba(217,119,6,.3);
   --s2:rgba(255,255,255,.3);
   --surf-top:rgba(255,255,255,.55); --surf-bot:rgba(255,255,255,.2);
   --shadow-lift:0 8px 32px -12px rgba(80,60,140,.25);
@@ -146,6 +152,7 @@
   --green:#4ade80; --red:#e6573a; --gold:#ffb020;
   --green-glow:rgba(74,222,128,.12); --green-glow-strong:rgba(74,222,128,.28); --green-glow-soft:rgba(74,222,128,.08);
   --red-glow:rgba(230,87,58,.12); --red-glow-strong:rgba(230,87,58,.22);
+  --gold-glow:rgba(255,176,32,.14); --gold-glow-strong:rgba(255,176,32,.3);
   --s2:rgba(255,255,255,.05);
   --surf-top:rgba(255,255,255,.06); --surf-bot:rgba(255,255,255,.015);
   --shadow-lift:0 1px 0 rgba(255,255,255,.05) inset, 0 6px 16px rgba(0,0,0,.35);
@@ -168,6 +175,7 @@
   --green:#39b06e; --red:#ff5a36; --gold:#ffb020;
   --green-glow:rgba(57,176,110,.12); --green-glow-strong:rgba(57,176,110,.22); --green-glow-soft:rgba(57,176,110,.08);
   --red-glow:rgba(255,90,54,.1); --red-glow-strong:rgba(255,90,54,.18);
+  --gold-glow:rgba(255,176,32,.14); --gold-glow-strong:rgba(255,176,32,.28);
   --s2:rgba(0,0,0,.04);
   --surf-top:rgba(0,0,0,0); --surf-bot:rgba(0,0,0,0);
   --shadow-lift:0 0 0 0 transparent; --shadow-lift-hover:0 0 0 0 transparent; --accent-shadow:0 0 0 0 transparent;

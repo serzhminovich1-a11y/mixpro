@@ -35,7 +35,7 @@
 .au-vip-toggle{display:inline-flex;align-items:center;gap:var(--space-1);cursor:pointer}
 .au-vip{appearance:none;-webkit-appearance:none;width:34px;height:19px;border-radius:var(--r-pill);background:var(--s2);border:var(--bw) solid var(--border);position:relative;cursor:pointer;flex-shrink:0;transition:background .15s,border-color .15s}
 .au-vip::after{content:'';position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:var(--r-badge);background:var(--muted2);transition:transform .15s,background .15s}
-.au-vip:checked{background:rgba(250,204,21,.15);border-color:var(--gold)}
+.au-vip:checked{background:var(--gold-glow);border-color:var(--gold)}
 .au-vip:checked::after{transform:translateX(15px);background:var(--gold)}
 
 /* ── "Был(а)" / онлайн-индикатор ── */
@@ -58,7 +58,7 @@
 .aud-name{font-family:var(--display);font-weight:800;font-size:var(--text-header-2-size);color:var(--text)}
 .aud-meta{font-family:var(--mono);font-size:var(--text-caption-2-size);color:var(--muted2);margin-top:var(--space-1);display:flex;gap:var(--space-3);flex-wrap:wrap;align-items:center}
 .aud-badge{display:inline-flex;align-items:center;padding:var(--space-half) var(--space-2);border-radius:var(--r-xs);font-weight:700;letter-spacing:.03em}
-.aud-badge.role-ADMIN{color:var(--gold);background:rgba(250,204,21,.12)}
+.aud-badge.role-ADMIN{color:var(--gold);background:var(--gold-glow)}
 .aud-badge.role-MENTOR,.aud-badge.role-VERIFIED_PRO{color:var(--amber);background:var(--amber-glow)}
 .aud-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:var(--space-2);margin:var(--space-5) 0}
 .aud-stat{background:var(--s2);border:var(--bw) solid var(--border);border-radius:var(--r-sm);padding:var(--space-3);text-align:center}

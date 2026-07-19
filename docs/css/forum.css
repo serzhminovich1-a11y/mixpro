@@ -99,7 +99,7 @@ nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-con
 .forum-post-name{display:flex;align-items:center;gap:var(--space-2);font-family:var(--display);font-weight:700;font-size:var(--text-body-1-size);color:var(--text)}
 .forum-role-badge{font-family:var(--mono);font-size:9px;font-weight:800;letter-spacing:.05em;padding:1px 6px;border-radius:var(--r-badge)}
 .forum-role-badge.role-VERIFIED_PRO,.forum-role-badge.role-MENTOR{color:var(--amber);background:var(--amber-glow)}
-.forum-role-badge.role-ADMIN{color:var(--gold);background:rgba(250,204,21,.12)}
+.forum-role-badge.role-ADMIN{color:var(--gold);background:var(--gold-glow)}
 .forum-post-time{font-family:var(--mono);font-size:var(--text-caption-2-size);color:var(--muted2)}
 .forum-post-actions{display:flex;align-items:center;gap:var(--space-1);margin-left:auto;flex-shrink:0}
 .forum-icon-btn{width:26px;height:26px;border-radius:var(--r-xs);border:var(--bw) solid var(--border);background:transparent;color:var(--muted2);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:.15s;flex-shrink:0}
@@ -139,7 +139,7 @@ nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-con
 
 .forum-thanks-btn{display:inline-flex;align-items:center;gap:5px;margin-left:auto;background:var(--s2);border:var(--bw) solid var(--border);border-radius:var(--r-pill);padding:3px 11px;font-family:var(--mono);font-size:var(--text-caption-2-size);font-weight:700;color:var(--muted2);cursor:pointer;transition:.15s}
 .forum-thanks-btn:hover{border-color:var(--gold);color:var(--gold)}
-.forum-thanks-btn.active{border-color:var(--gold);color:var(--gold);background:rgba(250,204,21,.12)}
+.forum-thanks-btn.active{border-color:var(--gold);color:var(--gold);background:var(--gold-glow)}
 .forum-thanks-btn:disabled{opacity:.6;cursor:default}
 
 /* ── Ответ-композер ── */

@@ -50,7 +50,7 @@
 /* ── Модалка "Досье пользователя" ── */
 .au-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:300;backdrop-filter:blur(4px);align-items:flex-start;justify-content:center;padding:var(--space-6) var(--space-4);overflow-y:auto}
 .au-overlay.open{display:flex}
-.au-modal{background:var(--card);border:var(--bw) solid var(--border-hi);border-radius:var(--r-lg);padding:var(--space-6);max-width:720px;width:100%;box-shadow:var(--shadow-lift-hover);position:relative;margin:auto}
+.au-modal{background:var(--card);background:color-mix(in srgb,var(--card) 4%,var(--bg) 96%);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:var(--bw) solid var(--border-hi);border-radius:var(--r-lg);padding:var(--space-6);max-width:720px;width:100%;box-shadow:var(--shadow-lift-hover);position:relative;margin:auto}
 .au-modal-close{position:absolute;top:var(--space-4);right:var(--space-4);width:32px;height:32px;border-radius:var(--r-badge);border:var(--bw) solid var(--border);background:var(--s2);color:var(--muted2);font-size:20px;line-height:1;cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center}
 .au-modal-close:hover{color:var(--text);border-color:var(--border-hi)}
 .aud-head{display:flex;align-items:center;gap:var(--space-4);padding-right:40px}

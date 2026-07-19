@@ -78,6 +78,9 @@
   body{animation:pageIn .35s ease}
   @keyframes pageIn{from{opacity:0}to{opacity:1}}
 
+  /* ── Уход перед переходом на другую страницу (page_transition.js) ── */
+  body.page-leaving{opacity:0;transition:opacity .15s ease}
+
   /* ── Заметный фокус с клавиатуры ── */
   button:focus-visible,a:focus-visible,input:focus-visible,
   textarea:focus-visible,select:focus-visible{

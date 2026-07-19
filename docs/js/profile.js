@@ -142,11 +142,11 @@ async function renderWorksWall(uid, viewerCtx){
 }
 
 async function init() {
-  const { data: { session } } = await SB.auth.getSession();
-  if (!session) { location.href = 'auth.html'; return; }
+  const session = await requireSession(SB);
+  if (!session) return;
 
   const myUid = session.user.id;
-  SB.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', myUid).select().then(({ data, error }) => { if (error) console.error('last_seen_at update failed:', error); else if (!data || !data.length) console.warn('last_seen_at: 0 строк обновлено — возможно, истекла сессия'); });
+  if (window.updateLastSeen) updateLastSeen(SB, myUid);
   const uid = new URLSearchParams(location.search).get('user') || myUid;
   const isOwn = uid === myUid;
 

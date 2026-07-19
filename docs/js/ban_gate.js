@@ -28,4 +28,22 @@
       </div>`;
     return true;
   };
+
+  /* Пинг "последний раз был онлайн" — одинаковый вызов дублировался
+     на каждой странице с логином, вынесен сюда. */
+  window.updateLastSeen = function (SB, uid) {
+    SB.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', uid).select().then(({ data, error }) => {
+      if (error) console.error('last_seen_at update failed:', error);
+      else if (!data || !data.length) console.warn('last_seen_at: 0 строк обновлено — возможно, истекла сессия');
+    });
+  };
+
+  /* Для страниц, куда гостю вообще нельзя — получить сессию или сразу
+     увести на auth.html. Страницы, доступные гостю (index.html,
+     leaderboard.html, тренажёры), делают проверку сессии сами. */
+  window.requireSession = async function (SB) {
+    const { data: { session } } = await SB.auth.getSession();
+    if (!session) { location.href = 'auth.html'; return null; }
+    return session;
+  };
 })();

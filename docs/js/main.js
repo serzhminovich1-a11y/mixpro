@@ -148,9 +148,15 @@ function applyVip(){
 const SB=supabase.createClient('https://mwzskffecoedpvyflswg.supabase.co','sb_publishable_m1ImqMRye4s4yrpuBTvWvA_yMez-ZhD');
 let sbUser=null,sbProfile=null;
 async function logout(){await SB.auth.signOut();location.href='pages/auth.html';}
+function applyGuestNav(){
+  const profileBtn=document.getElementById('navProfileBtn');
+  if(profileBtn){profileBtn.textContent='Войти';profileBtn.href='pages/auth.html';}
+  const logoutBtn=document.getElementById('navLogoutBtn');
+  if(logoutBtn)logoutBtn.style.display='none';
+}
 async function sbInit(){
   const{data:{session}}=await SB.auth.getSession();
-  if(!session)return;
+  if(!session){applyGuestNav();return;}
   sbUser=session.user;
   SB.from('profiles').update({last_seen_at:new Date().toISOString()}).eq('id',sbUser.id).select().then(({data,error})=>{if(error)console.error('last_seen_at update failed:',error);else if(!data||!data.length)console.warn('last_seen_at: 0 строк обновлено — возможно, истекла сессия');});
   const{data:p}=await SB.from('profiles').select('*').eq('id',sbUser.id).single();

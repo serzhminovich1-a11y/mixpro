@@ -91,9 +91,7 @@ const BSETS={easy:['bass','lowmid','mid','uppermid'],medium:FREQ_BANDS.map(b=>b.
 const BOOST={easy:14,medium:10,hard:7};const QVAL={easy:1.8,medium:1.4,hard:.9};
 
 let vip=false;
-let streak=0,bpm=120,curTrack='noise',diff='medium';
-let cBand=null,cFreq=null,answered=false,qStart=0;
-let aCtx=null,aGain=null,pNodes=[];
+let bpm=120;
 let taps=[],lastTap=0,compType='Вокал';
 
 function tab(id,btn){
@@ -308,19 +306,6 @@ function tapTempo(){
   const now=Date.now();if(lastTap&&now-lastTap>2500)taps=[];taps.push(now);lastTap=now;
   if(taps.length>1){const avg=taps.slice(1).map((t,i)=>t-taps[i]).reduce((a,b)=>a+b)/(taps.length-1);syncBpm(Math.round(60000/avg));}
 }
-
-
-
-function setDiff(v){diff=v;buildBands();}
-
-
-function pink(ctx,dur){
-  const sr=ctx.sampleRate,n=Math.ceil(sr*(dur+.1)),buf=ctx.createBuffer(2,n,sr);
-  for(let ch=0;ch<2;ch++){const d=buf.getChannelData(ch);let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
-    for(let i=0;i<n;i++){const w=Math.random()*2-1;b0=.99886*b0+w*.0555179;b1=.99332*b1+w*.0750759;b2=.969*b2+w*.153852;b3=.8665*b3+w*.3104856;b4=.55*b4+w*.5329522;b5=-.7616*b5-w*.016898;d[i]=(b0+b1+b2+b3+b4+b5+b6+w*.5362)*.10;b6=w*.115926;}}
-  return buf;
-}
-
 
 
 

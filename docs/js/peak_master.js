@@ -504,7 +504,6 @@ function newRound(){
 }
 
 function sliderToFreq(v){return Math.pow(10,LO+v*(HI-LO))}
-function freqToSlider(f){return(Math.log10(f)-LO)/(HI-LO)}
 
 // ── Угадывание прямо на графике: тронул → провёл → отпустил ──
 function graphFracFromEvent(e){

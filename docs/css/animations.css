@@ -81,19 +81,19 @@
   /* ── Заметный фокус с клавиатуры ── */
   button:focus-visible,a:focus-visible,input:focus-visible,
   textarea:focus-visible,select:focus-visible{
-    outline:2px solid rgba(74,222,128,.6);
+    outline:2px solid var(--amber-glow-strong,rgba(74,222,128,.6));
     outline-offset:2px;
     transition:outline-offset .12s ease;
   }
 
   /* ── Скелетон-заглушка на время загрузки данных ── */
   .skeleton{
-    position:relative;overflow:hidden;background:rgba(255,255,255,.04);
+    position:relative;overflow:hidden;background:var(--s2,rgba(255,255,255,.04));
     border-radius:8px;color:transparent!important;pointer-events:none;
   }
   .skeleton::after{
     content:'';position:absolute;inset:0;
-    background:linear-gradient(90deg,transparent,rgba(255,255,255,.06),transparent);
+    background:linear-gradient(90deg,transparent,var(--s2,rgba(255,255,255,.06)),transparent);
     animation:shimmer 1.4s ease-in-out infinite;
   }
   @keyframes shimmer{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}

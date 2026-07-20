@@ -1,7 +1,8 @@
 /* Токены тем — в общем css/themes.css (подключён перед этим файлом). */
 *,*::before,*::after{box-sizing:border-box;margin:var(--space-0);padding:var(--space-0)}
 body{background:radial-gradient(1100px 560px at 82% -10%,var(--bg-glow-1),transparent),radial-gradient(900px 480px at 4% 100%,var(--bg-glow-2),transparent),var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh}
-nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:var(--space-3) var(--space-6);border-bottom:var(--bw) solid var(--border);background:var(--nav-bg);backdrop-filter:blur(14px) saturate(140%);box-shadow:0 18px 32px -28px rgba(0,0,0,.6)}
+nav{position:sticky;top:0;z-index:20;padding:var(--space-3) var(--space-6);border-bottom:var(--bw) solid var(--border);background:var(--nav-bg);backdrop-filter:blur(14px) saturate(140%);box-shadow:0 18px 32px -28px rgba(0,0,0,.6)}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;max-width:1240px;margin:0 auto}
 .logo{font-family:var(--display);font-weight:800;color:var(--text);text-decoration:none;letter-spacing:-.2px;display:flex;flex-direction:column;gap:2px;line-height:1;transition:opacity .18s ease}
 .logo:hover{opacity:.82}
 .logo-name{font-size:var(--text-body-2-size);letter-spacing:.01em;text-align:center}
@@ -36,7 +37,7 @@ nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-con
 .burger-link.danger:hover{background:var(--red-glow-strong)}
 .burger-divider{height:var(--bw);background:var(--border);margin:var(--space-2) 0}
 @media(max-width:900px){
-  nav{flex-wrap:wrap;row-gap:var(--space-2)}
+  .nav-inner{flex-wrap:wrap;row-gap:var(--space-2)}
 }
 .wrap{max-width:640px;margin:0 auto;padding:32px 20px 80px;display:flex;flex-direction:column;gap:var(--space-5)}
 
@@ -165,7 +166,8 @@ nav{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-con
 /* Навигация на узких экранах — иначе шапка вылезает за края и часть
    ссылок (включая Профиль/Выйти) становится недостижимой */
 @media(max-width:760px){
-  nav{flex-wrap:wrap;height:auto;row-gap:var(--space-2)}
+  nav{height:auto}
+  .nav-inner{flex-wrap:wrap;row-gap:var(--space-2)}
   .nav-links{width:100%;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none}
   .nav-links::-webkit-scrollbar{display:none}
   .nav-btn{white-space:nowrap;flex-shrink:0}

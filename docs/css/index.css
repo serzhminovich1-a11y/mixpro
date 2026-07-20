@@ -211,6 +211,16 @@ select option{background:var(--elev2)}
 .gloss-rich-content td,.gloss-rich-content th{border:var(--bw) solid var(--border);padding:var(--space-2);text-align:left}
 .gloss-rich-content th{background:var(--s2);font-weight:700}
 
+/* ── GLOSSARY: баннер "освежить знания" после долгого перерыва ── */
+.gloss-refresh-banner{display:flex;align-items:center;gap:var(--space-3);margin-top:var(--space-5);padding:var(--space-4);border-radius:var(--r-card);border:var(--bw) solid var(--amber-glow-strong);box-shadow:0 0 22px -12px var(--amber-glow-strong);background:var(--amber-glow)}
+.gloss-refresh-banner svg{width:20px;height:20px;flex-shrink:0;color:var(--amber)}
+.gloss-refresh-banner span{flex:1;font-family:var(--display);font-weight:700;color:var(--text)}
+.gloss-refresh-btn{font-family:var(--display);font-size:var(--text-caption-1-size);font-weight:700;padding:var(--space-2) var(--space-4);border-radius:var(--r-pill);border:none;background:linear-gradient(90deg,var(--amber),var(--amber-dim));color:var(--on-accent);cursor:pointer;transition:.15s;white-space:nowrap}
+.gloss-refresh-btn:hover{opacity:.9}
+.gloss-refresh-close{background:none;border:none;color:var(--muted2);cursor:pointer;font-size:var(--text-body-1-size);padding:var(--space-1);line-height:1}
+.gloss-refresh-close:hover{color:var(--text)}
+@media(max-width:600px){.gloss-refresh-banner{flex-wrap:wrap}.gloss-refresh-banner span{flex-basis:100%}}
+
 /* ── GLOSSARY: режим отображения (список/карточки) ── */
 .gloss-mode-toggle{display:flex;gap:var(--space-half);background:var(--surface);border:var(--bw) solid var(--border);border-radius:var(--r-md);padding:var(--space-half);flex-shrink:0}
 .gloss-mode-btn{font-family:var(--display);font-size:var(--text-caption-1-size);font-weight:700;padding:var(--space-2) var(--space-4);border-radius:var(--r-sm);border:none;background:transparent;color:var(--muted2);cursor:pointer;transition:.15s;white-space:nowrap}

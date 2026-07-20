@@ -13,6 +13,81 @@ let glossCardItems=[], glossCardIndex=0, glossCardsSinceQuiz=0, glossQuizPool=[]
 let glossQuizActive=false, glossQuizQuestions=[], glossQuizAnswers=null;
 const GLOSS_QUIZ_TRIGGER=10, GLOSS_QUIZ_LEN=5;
 const GLOSS_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><path d="M9 3v18"/></svg>';
+
+// ── Прогресс по карточкам — синхронизирован через аккаунт, тот же
+// паттерн, что у ежедневного стрика тренажёров (pan_trainer.js/
+// peak_master.js: localStorage сразу + тихая синхронизация в Supabase,
+// сверка при следующем визите). Нужен для двух вещей: колода
+// перемешивается для тех, кто уже проходил карточки, и баннер
+// "освежить знания" после долгого перерыва.
+const GLOSS_PROGRESS_KEY='mixpro_gloss_progress';
+const GLOSS_REFRESH_DAYS=3;
+let glossProgress={seenIds:[],lastVisit:null};
+function loadGlossProgressLocal(){
+  try{
+    const p=JSON.parse(localStorage.getItem(GLOSS_PROGRESS_KEY)||'null');
+    if(p&&Array.isArray(p.seenIds))return p;
+  }catch(e){}
+  return{seenIds:[],lastVisit:null};
+}
+function saveGlossProgress(p){
+  glossProgress=p;
+  try{localStorage.setItem(GLOSS_PROGRESS_KEY,JSON.stringify(p));}catch(e){}
+  syncGlossProgressToSupabase(p);
+}
+async function syncGlossProgressToSupabase(p){
+  if(!sbUser)return;
+  await SB.from('glossary_progress').upsert({
+    user_id:sbUser.id,
+    seen_term_ids:p.seenIds,
+    last_visit:p.lastVisit?new Date(p.lastVisit).toISOString():null,
+  },{onConflict:'user_id'});
+}
+// Сверяет локальный и серверный прогресс (кто новее — тот и побеждает
+// по last_visit, seenIds объединяются), затем решает: показывать ли
+// баннер "освежить знания" — и только ПОСЛЕ этого решения обновляет
+// lastVisit на текущий момент (иначе сравнение всегда будет "только что").
+async function reconcileGlossProgress(){
+  const local=loadGlossProgressLocal();
+  let merged=local;
+  if(sbUser){
+    const{data:remote}=await SB.from('glossary_progress').select('*').eq('user_id',sbUser.id).maybeSingle();
+    if(remote){
+      const remoteLastVisit=remote.last_visit?new Date(remote.last_visit).getTime():0;
+      merged={
+        seenIds:Array.from(new Set([...(remote.seen_term_ids||[]),...local.seenIds])),
+        lastVisit:Math.max(remoteLastVisit,local.lastVisit||0)||null,
+      };
+    }
+  }
+  glossProgress=merged;
+  const prevVisit=merged.lastVisit;
+  if(merged.seenIds.length&&prevVisit){
+    const days=Math.floor((Date.now()-prevVisit)/86400000);
+    if(days>=GLOSS_REFRESH_DAYS)showGlossRefreshBanner(days);
+  }
+  saveGlossProgress({...merged,lastVisit:Date.now()});
+}
+function markTermSeen(termId){
+  if(glossProgress.seenIds.includes(termId))return;
+  saveGlossProgress({...glossProgress,seenIds:[...glossProgress.seenIds,termId]});
+}
+function showGlossRefreshBanner(days){
+  const banner=document.getElementById('glossRefreshBanner');
+  if(!banner)return;
+  const word=days===1?'день':(days>=2&&days<=4?'дня':'дней');
+  document.getElementById('glossRefreshBannerText').textContent=
+    'Прошло '+days+' '+word+' с последнего повторения — освежить знания?';
+  banner.style.display='';
+}
+function hideGlossRefreshBanner(){
+  const banner=document.getElementById('glossRefreshBanner');
+  if(banner)banner.style.display='none';
+}
+function startGlossRefresh(){
+  hideGlossRefreshBanner();
+  setGlossMode('cards');
+}
 async function loadGlossary(){
   if(glossLoading)return glossLoading;
   glossLoading=(async()=>{
@@ -152,7 +227,11 @@ function setGlossMode(mode){
 
 // ── Карточный режим — одна карточка на экран, свайп/кнопки листают ──
 function startGlossCards(items){
-  glossCardItems=items;
+  // Для тех, кто уже проходил карточки раньше — колода перемешивается,
+  // чтобы каждый заход не начинался с одного и того же термина. Новый
+  // пользователь (seenIds пуст) видит естественный порядок категорий —
+  // так понятнее при первом знакомстве с темой.
+  glossCardItems=glossProgress.seenIds.length?glossShuffle(items):items;
   glossCardIndex=0;
   glossCardsSinceQuiz=0;
   glossQuizPool=[];
@@ -166,6 +245,7 @@ function renderGlossCard(){
     return;
   }
   const term=glossCardItems[glossCardIndex];
+  markTermSeen(term.id);
   const hasEx=glossHasExamples(term);
   stage.innerHTML=
     '<div class="gloss-swipe-progress">'+(glossCardIndex+1)+' / '+glossCardItems.length+'</div>'+
@@ -367,7 +447,7 @@ function tab(id,btn){
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
   document.getElementById(id).classList.add('active');btn.classList.add('active');
   if(id==='tools')setTimeout(drawEnvelope,50);
-  if(id==='glossary')renderGlossary();
+  if(id==='glossary'){renderGlossary();reconcileGlossProgress();}
   closeBurgerMenu();
 }
 

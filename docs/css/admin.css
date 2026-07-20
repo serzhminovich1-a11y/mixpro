@@ -91,6 +91,10 @@ button.stat-box:hover{border-color:var(--amber-glow-strong);box-shadow:var(--sha
 .course-program-legacy-title{padding:var(--space-2) var(--space-3);font-family:var(--mono);font-size:var(--text-caption-2-size);color:var(--muted2);text-transform:uppercase;letter-spacing:.06em}
 @keyframes program-section-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 
+.gloss-example-field{margin-top:var(--space-3)}
+.gloss-example-upload{display:flex;align-items:center;gap:var(--space-3);margin-top:var(--space-2)}
+.gloss-example-current{font-family:var(--mono);font-size:var(--text-caption-2-size);color:var(--muted2);white-space:nowrap}
+
 @media(max-width:760px){
   .admin-shell{flex-direction:column}
   .admin-sidebar{width:100%;height:auto;position:static;flex-direction:row;overflow-x:auto;padding:var(--space-2);gap:var(--space-1)}

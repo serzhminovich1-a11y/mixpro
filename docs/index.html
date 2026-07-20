@@ -347,8 +347,24 @@
       <select class="gloss-cat-select" id="glossCatSelect" onchange="renderGlossary()">
         <option value="all">Все категории</option>
       </select>
+      <div class="gloss-mode-toggle">
+        <button type="button" class="gloss-mode-btn active" id="glossModeListBtn" onclick="setGlossMode('list')">Список</button>
+        <button type="button" class="gloss-mode-btn" id="glossModeCardsBtn" onclick="setGlossMode('cards')">Карточки</button>
+      </div>
     </div>
     <div class="gloss-grid" id="glossGrid"><div class="empty">Загружаем словарь…</div></div>
+    <div class="gloss-swipe-stage" id="glossSwipeStage" style="display:none"></div>
+  </div>
+</div>
+
+<!-- ══ GLOSSARY DETAIL MODAL ══ -->
+<div class="overlay" id="glossDetailOverlay">
+  <div class="modal gloss-detail-modal">
+    <div class="gloss-cat-tag" id="glossDetailCat" style="display:none"></div>
+    <h2 id="glossDetailTerm">—</h2>
+    <div class="gloss-def gloss-rich-content" id="glossDetailDef"></div>
+    <div class="gloss-example-compare" id="glossDetailExamples" style="display:none"></div>
+    <button type="button" class="modal-close" onclick="closeGlossaryDetail()">Закрыть</button>
   </div>
 </div>
 

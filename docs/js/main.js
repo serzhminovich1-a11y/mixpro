@@ -8,6 +8,10 @@
 //   администратора. Здесь только загрузка и рендер на Главной.
 // ══════════════════════════════════════
 let glossCategories=[], glossTerms=[], glossLoaded=false, glossLoading=null;
+let glossViewMode='list';
+let glossCardItems=[], glossCardIndex=0, glossCardsSinceQuiz=0, glossQuizPool=[];
+let glossQuizActive=false, glossQuizQuestions=[], glossQuizAnswers=null;
+const GLOSS_QUIZ_TRIGGER=10, GLOSS_QUIZ_LEN=5;
 const GLOSS_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><path d="M9 3v18"/></svg>';
 async function loadGlossary(){
   if(glossLoading)return glossLoading;
@@ -30,32 +34,283 @@ async function loadGlossary(){
 function escapeGlossHtml(s){
   const d=document.createElement('div');d.textContent=s||'';return d.innerHTML;
 }
+function glossCatTitle(id){
+  const c=glossCategories.find(c=>c.id===id);
+  return c?c.title:'';
+}
+// Плоский текст из rich-HTML определения, обрезанный до maxLen — для
+// компактной карточки в списке и для формулировки вопроса теста.
+function glossExcerpt(html, maxLen){
+  const d=document.createElement('div');
+  d.innerHTML=window.sanitizeRichHtml?sanitizeRichHtml(html||''):'';
+  const text=(d.textContent||'').replace(/\s+/g,' ').trim();
+  if(text.length<=maxLen)return{text,truncated:false};
+  return{text:text.slice(0,maxLen).trim()+'…',truncated:true};
+}
+function glossFilteredItems(){
+  const catSel=document.getElementById('glossCatSelect');
+  const glossCat=catSel?catSel.value:'all';
+  const q=(document.getElementById('glossSearch').value||'').trim().toLowerCase();
+  return glossTerms.filter(g=>{
+    if(glossCat!=='all'&&g.category_id!==glossCat)return false;
+    if(!q)return true;
+    const plain=(g.term+' '+g.definition).toLowerCase();
+    return plain.includes(q);
+  });
+}
+// Два аудио "До"/"После" — общий кусок разметки для развёрнутой модалки
+// и для карточки в режиме свайпа. Возвращает только колонки — обёртку
+// .gloss-example-compare добавляет каждый вызывающий по месту.
+function glossExampleColsHtml(term){
+  const col=(url,label,num,fallback)=>!url?'':
+    '<div class="gloss-example-col"><div class="gloss-example-label">'+num+' — '+escapeGlossHtml(label||fallback)+'</div><audio controls preload="metadata" src="'+url+'"></audio></div>';
+  return col(term.example_a_url,term.example_a_label,'A','До')+col(term.example_b_url,term.example_b_label,'Б','После');
+}
+function glossHasExamples(term){
+  return!!(term.example_a_url||term.example_b_url);
+}
+function glossCardHtml(g){
+  const excerpt=glossExcerpt(g.definition,160);
+  const showMore=excerpt.truncated||glossHasExamples(g);
+  return'<div class="gloss-card" data-id="'+g.id+'">'+
+    '<div class="gloss-term">'+GLOSS_ICON+'<span>'+escapeGlossHtml(g.term)+'</span></div>'+
+    (g.category_id?'<div class="gloss-cat-tag">'+escapeGlossHtml(glossCatTitle(g.category_id))+'</div>':'')+
+    '<div class="gloss-def">'+escapeGlossHtml(excerpt.text)+'</div>'+
+    (showMore?'<button type="button" class="gloss-card-more" data-id="'+g.id+'">Читать дальше →</button>':'')+
+  '</div>';
+}
 async function renderGlossary(){
   const grid=document.getElementById('glossGrid');
   if(!glossLoaded){
     grid.innerHTML='<div class="empty">Загружаем словарь…</div>';
     await loadGlossary();
   }
-  const catSel=document.getElementById('glossCatSelect');
-  const glossCat=catSel?catSel.value:'all';
-  const q=(document.getElementById('glossSearch').value||'').trim().toLowerCase();
-  const catTitle=id=>{const c=glossCategories.find(c=>c.id===id);return c?c.title:'';};
-  const items=glossTerms.filter(g=>{
-    if(glossCat!=='all'&&g.category_id!==glossCat)return false;
-    if(!q)return true;
-    const plain=(g.term+' '+g.definition).toLowerCase();
-    return plain.includes(q);
-  });
+  const items=glossFilteredItems();
+  if(glossViewMode==='cards'){startGlossCards(items);return;}
   if(!items.length){
     grid.innerHTML='<div class="empty" style="grid-column:1/-1">Ничего не нашлось — попробуй другое слово или выбери «Все категории»</div>';
     return;
   }
-  grid.innerHTML=items.map(g=>
-    '<div class="gloss-card"><div class="gloss-term">'+GLOSS_ICON+'<span>'+escapeGlossHtml(g.term)+'</span></div>'+
-    (g.category_id?'<div class="gloss-cat-tag">'+escapeGlossHtml(catTitle(g.category_id))+'</div>':'')+
-    '<div class="gloss-def gloss-rich-content">'+(window.sanitizeRichHtml?sanitizeRichHtml(g.definition||''):'')+'</div></div>'
-  ).join('');
+  grid.innerHTML=items.map(glossCardHtml).join('');
   if(window.animateChildren)animateChildren(grid);
+}
+
+// ── Развёрнутый вид термина (модалка) — полный текст + примеры А/Б ──
+function openGlossaryDetail(term){
+  const catEl=document.getElementById('glossDetailCat');
+  const title=glossCatTitle(term.category_id);
+  catEl.textContent=title;
+  catEl.style.display=title?'':'none';
+  document.getElementById('glossDetailTerm').textContent=term.term;
+  document.getElementById('glossDetailDef').innerHTML=window.sanitizeRichHtml?sanitizeRichHtml(term.definition||''):'';
+  const exWrap=document.getElementById('glossDetailExamples');
+  const hasEx=glossHasExamples(term);
+  exWrap.innerHTML=hasEx?glossExampleColsHtml(term):'';
+  exWrap.style.display=hasEx?'':'none';
+  const ov=document.getElementById('glossDetailOverlay');
+  ov.classList.add('open');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>ov.classList.add('show')));
+}
+function closeGlossaryDetail(){
+  const ov=document.getElementById('glossDetailOverlay');
+  ov.classList.remove('show');
+  setTimeout(()=>ov.classList.remove('open'),200);
+}
+document.getElementById('glossDetailOverlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeGlossaryDetail();});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&document.getElementById('glossDetailOverlay').classList.contains('open'))closeGlossaryDetail();
+});
+document.getElementById('glossGrid').addEventListener('click',e=>{
+  const btn=e.target.closest('.gloss-card-more');
+  if(!btn)return;
+  const term=glossTerms.find(t=>t.id===btn.dataset.id);
+  if(term)openGlossaryDetail(term);
+});
+
+// ── Переключатель режима отображения (список / карточки) ──
+function setGlossMode(mode){
+  glossViewMode=mode;
+  document.getElementById('glossModeListBtn').classList.toggle('active',mode==='list');
+  document.getElementById('glossModeCardsBtn').classList.toggle('active',mode==='cards');
+  document.getElementById('glossGrid').style.display=mode==='list'?'':'none';
+  document.getElementById('glossSwipeStage').style.display=mode==='cards'?'':'none';
+  renderGlossary();
+}
+
+// ── Карточный режим — одна карточка на экран, свайп/кнопки листают ──
+function startGlossCards(items){
+  glossCardItems=items;
+  glossCardIndex=0;
+  glossCardsSinceQuiz=0;
+  glossQuizPool=[];
+  glossQuizActive=false;
+  renderGlossCard();
+}
+function renderGlossCard(){
+  const stage=document.getElementById('glossSwipeStage');
+  if(!glossCardItems.length){
+    stage.innerHTML='<div class="empty">Ничего не нашлось — попробуй другое слово или выбери «Все категории»</div>';
+    return;
+  }
+  const term=glossCardItems[glossCardIndex];
+  const hasEx=glossHasExamples(term);
+  stage.innerHTML=
+    '<div class="gloss-swipe-progress">'+(glossCardIndex+1)+' / '+glossCardItems.length+'</div>'+
+    '<div class="gloss-swipe-card" id="glossSwipeCard">'+
+      (term.category_id?'<div class="gloss-cat-tag">'+escapeGlossHtml(glossCatTitle(term.category_id))+'</div>':'')+
+      '<div class="gloss-term">'+GLOSS_ICON+'<span>'+escapeGlossHtml(term.term)+'</span></div>'+
+      '<div class="gloss-def gloss-rich-content">'+(window.sanitizeRichHtml?sanitizeRichHtml(term.definition||''):'')+'</div>'+
+      (hasEx?'<div class="gloss-example-compare">'+glossExampleColsHtml(term)+'</div>':'')+
+    '</div>'+
+    '<div class="gloss-swipe-nav">'+
+      '<button type="button" class="gloss-swipe-btn" id="glossPrevBtn"'+(glossCardIndex===0?' disabled':'')+'>‹ Назад</button>'+
+      '<button type="button" class="gloss-swipe-btn primary" id="glossNextBtn">'+(glossCardIndex===glossCardItems.length-1?'Готово':'Дальше ›')+'</button>'+
+    '</div>';
+  document.getElementById('glossPrevBtn').addEventListener('click',()=>glossCardStep(-1));
+  document.getElementById('glossNextBtn').addEventListener('click',()=>glossCardStep(1));
+  wireGlossSwipeGesture(document.getElementById('glossSwipeCard'));
+  if(window.animateIn)animateIn(document.getElementById('glossSwipeCard'));
+}
+function renderGlossCardsDone(){
+  const stage=document.getElementById('glossSwipeStage');
+  stage.innerHTML='<div class="empty">Ты просмотрел все карточки в этой подборке.<br><button type="button" class="gloss-swipe-btn primary" id="glossBackToListBtn" style="margin-top:12px">К списку</button></div>';
+  document.getElementById('glossBackToListBtn').addEventListener('click',()=>setGlossMode('list'));
+}
+function glossCardStep(delta){
+  if(glossQuizActive)return;
+  if(delta>0){
+    glossQuizPool.push(glossCardItems[glossCardIndex]);
+    glossCardsSinceQuiz++;
+  }
+  const nextIndex=glossCardIndex+delta;
+  if(nextIndex<0)return;
+  if(glossCardsSinceQuiz>=GLOSS_QUIZ_TRIGGER){
+    glossCardIndex=Math.min(nextIndex,glossCardItems.length-1);
+    showGlossQuiz();
+    return;
+  }
+  if(nextIndex>=glossCardItems.length){
+    renderGlossCardsDone();
+    return;
+  }
+  glossCardIndex=nextIndex;
+  renderGlossCard();
+}
+
+// ── Свайп жестом — Pointer Events, тот же приём, что у скраба волны
+// (waveform_player.js): один листенер вместо раздельных mouse/touch. ──
+function wireGlossSwipeGesture(cardEl){
+  if(!cardEl)return;
+  let startX=0,dx=0,dragging=false;
+  cardEl.addEventListener('pointerdown',e=>{
+    if(e.target.closest('audio, button, a'))return;
+    dragging=true;startX=e.clientX;dx=0;
+    cardEl.setPointerCapture(e.pointerId);
+    cardEl.classList.add('dragging');
+  });
+  cardEl.addEventListener('pointermove',e=>{
+    if(!dragging)return;
+    dx=e.clientX-startX;
+    cardEl.style.transform='translateX('+dx+'px) rotate('+(dx/18)+'deg)';
+  });
+  function endDrag(){
+    if(!dragging)return;
+    dragging=false;
+    cardEl.classList.remove('dragging');
+    const threshold=Math.max(80,cardEl.offsetWidth*0.25);
+    cardEl.style.transition='transform .25s ease';
+    if(Math.abs(dx)>threshold){
+      const dir=dx<0?1:-1;
+      cardEl.style.transform='translateX('+(dir>0?-1:1)*600+'px) rotate('+(dir>0?-20:20)+'deg)';
+      setTimeout(()=>glossCardStep(dir),180);
+    }else{
+      cardEl.style.transform='';
+      setTimeout(()=>{cardEl.style.transition='';},260);
+    }
+  }
+  cardEl.addEventListener('pointerup',endDrag);
+  cardEl.addEventListener('pointercancel',endDrag);
+}
+
+// ── Тест каждые 10 карточек — самопроверка, без XP. Term→определение и
+// обратно вперемешку, отвлекающие варианты сперва из той же категории. ──
+function glossShuffle(arr){return arr.slice().sort(()=>Math.random()-0.5);}
+function buildGlossQuizQuestions(pool,allItems){
+  return glossShuffle(pool).slice(0,GLOSS_QUIZ_LEN).map(term=>{
+    const direction=Math.random()<0.5?'term2def':'def2term';
+    const sameCat=allItems.filter(t=>t.id!==term.id&&t.category_id===term.category_id);
+    const distractorPool=sameCat.length>=3?sameCat:allItems.filter(t=>t.id!==term.id);
+    const distractors=glossShuffle(distractorPool).slice(0,Math.min(3,distractorPool.length));
+    return{term,direction,options:glossShuffle([term,...distractors])};
+  });
+}
+function showGlossQuiz(){
+  glossQuizActive=true;
+  glossQuizQuestions=buildGlossQuizQuestions(glossQuizPool,glossCardItems);
+  glossQuizAnswers={correct:0,total:glossQuizQuestions.length,index:0};
+  renderGlossQuizQuestion();
+}
+function renderGlossQuizQuestion(){
+  const stage=document.getElementById('glossSwipeStage');
+  const q=glossQuizQuestions[glossQuizAnswers.index];
+  const isT2D=q.direction==='term2def';
+  const promptHtml=isT2D
+    ?'<div class="gloss-quiz-prompt-label">Что означает термин?</div><div class="gloss-quiz-prompt-main">'+escapeGlossHtml(q.term.term)+'</div>'
+    :'<div class="gloss-quiz-prompt-label">Какой термин соответствует определению?</div><div class="gloss-quiz-prompt-main gloss-quiz-prompt-def">'+escapeGlossHtml(glossExcerpt(q.term.definition,140).text)+'</div>';
+  const optsHtml=q.options.map(opt=>{
+    const label=isT2D?escapeGlossHtml(glossExcerpt(opt.definition,90).text):escapeGlossHtml(opt.term);
+    return'<button type="button" class="gloss-quiz-opt" data-id="'+opt.id+'" data-correct="'+(opt.id===q.term.id)+'">'+label+'</button>';
+  }).join('');
+  stage.innerHTML=
+    '<div class="gloss-quiz-card">'+
+      '<div class="gloss-quiz-progress">Тест по последним карточкам · '+(glossQuizAnswers.index+1)+' / '+glossQuizAnswers.total+
+        ' <button type="button" class="gloss-quiz-skip-inline" id="glossQuizSkipBtn">Пропустить</button></div>'+
+      promptHtml+
+      '<div class="gloss-quiz-opts">'+optsHtml+'</div>'+
+      '<div class="gloss-quiz-fb" id="glossQuizFb"></div>'+
+    '</div>';
+  stage.querySelectorAll('.gloss-quiz-opt').forEach(btn=>btn.addEventListener('click',()=>handleGlossQuizAnswer(btn)));
+  document.getElementById('glossQuizSkipBtn').addEventListener('click',finishGlossQuiz);
+  if(window.animateIn)animateIn(stage.querySelector('.gloss-quiz-card'));
+}
+function handleGlossQuizAnswer(btn){
+  const stage=document.getElementById('glossSwipeStage');
+  if(stage.querySelector('.gloss-quiz-opt.correct, .gloss-quiz-opt.wrong'))return;
+  const opts=stage.querySelectorAll('.gloss-quiz-opt');
+  const correctBtn=Array.from(opts).find(o=>o.dataset.correct==='true');
+  const isRight=btn.dataset.correct==='true';
+  btn.classList.add(isRight?'correct':'wrong');
+  if(!isRight&&correctBtn)correctBtn.classList.add('correct');
+  opts.forEach(o=>o.disabled=true);
+  const fb=document.getElementById('glossQuizFb');
+  fb.textContent=isRight?'Верно!':'Правильный вариант выделен зелёным';
+  fb.className='gloss-quiz-fb '+(isRight?'correct':'wrong');
+  if(isRight)glossQuizAnswers.correct++;
+  setTimeout(()=>{
+    glossQuizAnswers.index++;
+    if(glossQuizAnswers.index<glossQuizQuestions.length)renderGlossQuizQuestion();
+    else renderGlossQuizResult();
+  },1100);
+}
+function renderGlossQuizResult(){
+  const stage=document.getElementById('glossSwipeStage');
+  stage.innerHTML=
+    '<div class="gloss-quiz-card gloss-quiz-result">'+
+      '<div class="gloss-quiz-score">'+glossQuizAnswers.correct+' / '+glossQuizAnswers.total+'</div>'+
+      '<div class="gloss-quiz-score-label">Правильных ответов</div>'+
+      '<button type="button" class="gloss-swipe-btn primary" id="glossQuizContinueBtn">Продолжить карточки</button>'+
+      '<button type="button" class="gloss-quiz-skip-inline" id="glossQuizListBtn2">К списку</button>'+
+    '</div>';
+  document.getElementById('glossQuizContinueBtn').addEventListener('click',finishGlossQuiz);
+  document.getElementById('glossQuizListBtn2').addEventListener('click',()=>setGlossMode('list'));
+}
+function finishGlossQuiz(){
+  glossQuizActive=false;
+  glossQuizPool=[];
+  glossCardsSinceQuiz=0;
+  if(glossCardIndex>=glossCardItems.length)glossCardIndex=glossCardItems.length-1;
+  if(glossCardIndex<0){renderGlossCardsDone();return;}
+  renderGlossCard();
 }
 
 const FREQ_BANDS = [

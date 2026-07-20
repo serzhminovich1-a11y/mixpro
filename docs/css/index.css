@@ -210,6 +210,66 @@ select option{background:var(--elev2)}
 .gloss-rich-content td,.gloss-rich-content th{border:var(--bw) solid var(--border);padding:var(--space-2);text-align:left}
 .gloss-rich-content th{background:var(--s2);font-weight:700}
 
+/* ── GLOSSARY: режим отображения (список/карточки) ── */
+.gloss-mode-toggle{display:flex;gap:var(--space-half);background:var(--surface);border:var(--bw) solid var(--border);border-radius:var(--r-md);padding:var(--space-half);flex-shrink:0}
+.gloss-mode-btn{font-family:var(--display);font-size:var(--text-caption-1-size);font-weight:700;padding:var(--space-2) var(--space-4);border-radius:var(--r-sm);border:none;background:transparent;color:var(--muted2);cursor:pointer;transition:.15s;white-space:nowrap}
+.gloss-mode-btn:hover{color:var(--text)}
+.gloss-mode-btn.active{background:var(--amber);color:var(--on-accent)}
+
+/* ── GLOSSARY: карточка в списке — кнопка "читать дальше" ── */
+.gloss-card-more{margin-top:var(--space-3);font-family:var(--display);font-size:var(--text-caption-1-size);font-weight:700;color:var(--amber);background:none;border:none;padding:0;cursor:pointer;transition:.15s}
+.gloss-card-more:hover{opacity:.8}
+
+/* ── GLOSSARY: развёрнутая модалка термина ── */
+.gloss-detail-modal{max-width:680px;max-height:82vh;overflow-y:auto;text-align:left}
+.gloss-detail-modal .gloss-def{margin-bottom:var(--space-4)}
+
+/* ── GLOSSARY: примеры А/Б — два аудио бок о бок (на узких экранах — колонкой) ── */
+.gloss-example-compare{display:flex;gap:var(--space-4);margin:var(--space-4) 0;flex-wrap:wrap}
+.gloss-example-col{flex:1;min-width:220px;background:var(--s2);border:var(--bw) solid var(--border);border-radius:var(--r-sm);padding:var(--space-3)}
+.gloss-example-label{font-family:var(--mono);font-size:var(--text-caption-2-size);font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--amber);margin-bottom:var(--space-2)}
+.gloss-example-col audio{width:100%;display:block}
+
+/* ── GLOSSARY: карточный режим со свайпом ── */
+.gloss-swipe-stage{max-width:520px;margin:var(--space-5) auto 0;display:flex;flex-direction:column;align-items:center;gap:var(--space-4)}
+.gloss-swipe-progress{font-family:var(--mono);font-size:var(--text-caption-2-size);color:var(--muted);letter-spacing:.06em}
+.gloss-swipe-card{width:100%;background:linear-gradient(180deg,var(--surf-top),var(--surf-bot)),var(--bg);border:var(--bw) solid var(--border);border-radius:var(--r-card);padding:var(--space-6) var(--space-5);box-shadow:var(--shadow-lift);box-sizing:border-box;touch-action:pan-y;cursor:grab;user-select:none}
+.gloss-swipe-card.dragging{cursor:grabbing;box-shadow:var(--shadow-lift-hover)}
+.gloss-swipe-card audio{user-select:auto}
+.gloss-swipe-card .gloss-def{margin-top:var(--space-3)}
+.gloss-swipe-nav{display:flex;gap:var(--space-3);width:100%}
+.gloss-swipe-btn{flex:1;font-family:var(--display);font-size:var(--text-body-1-size);font-weight:700;padding:var(--space-3) var(--space-4);border-radius:var(--r-pill);border:var(--bw) solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;transition:.15s}
+.gloss-swipe-btn:hover:not(:disabled){border-color:var(--amber-dim)}
+.gloss-swipe-btn:disabled{opacity:.4;cursor:default}
+.gloss-swipe-btn.primary{background:linear-gradient(90deg,var(--amber),var(--amber-dim));color:var(--on-accent);border:none}
+
+/* ── GLOSSARY: тест каждые 10 карточек — самопроверка, без XP ── */
+.gloss-quiz-card{width:100%;background:linear-gradient(180deg,var(--surf-top),var(--surf-bot)),var(--bg);border:var(--bw) solid var(--border);border-radius:var(--r-card);padding:var(--space-6) var(--space-5);box-shadow:var(--shadow-lift);box-sizing:border-box}
+.gloss-quiz-progress{font-family:var(--mono);font-size:var(--text-caption-2-size);color:var(--muted);letter-spacing:.06em;margin-bottom:var(--space-4);display:flex;justify-content:space-between;align-items:center;gap:var(--space-3)}
+.gloss-quiz-skip-inline{font-family:var(--mono);font-size:var(--text-caption-2-size);color:var(--muted2);background:none;border:none;cursor:pointer;text-decoration:underline;white-space:nowrap}
+.gloss-quiz-skip-inline:hover{color:var(--text)}
+.gloss-quiz-prompt-label{font-family:var(--sans);font-size:var(--text-caption-1-size);color:var(--muted2);margin-bottom:var(--space-2)}
+.gloss-quiz-prompt-main{font-family:var(--display);font-size:var(--text-header-2-size);font-weight:800;color:var(--text);margin-bottom:var(--space-5)}
+.gloss-quiz-prompt-def{font-family:var(--sans);font-size:var(--text-body-1-size);font-weight:400}
+.gloss-quiz-opts{display:flex;flex-direction:column;gap:var(--space-2)}
+.gloss-quiz-opt{text-align:left;font-family:var(--sans);font-size:var(--text-body-1-size);padding:var(--space-3) var(--space-4);border-radius:var(--r-sm);border:var(--bw) solid var(--border);background:var(--s2);color:var(--text);cursor:pointer;transition:.15s}
+.gloss-quiz-opt:hover:not(:disabled){border-color:var(--amber-dim)}
+.gloss-quiz-opt:disabled{cursor:default}
+.gloss-quiz-opt.correct{border-color:var(--green);background:var(--green-glow);color:var(--green)}
+.gloss-quiz-opt.wrong{border-color:var(--red);background:var(--red-glow);color:var(--red)}
+.gloss-quiz-fb{margin-top:var(--space-4);font-family:var(--display);font-weight:700;font-size:var(--text-body-1-size);min-height:1.4em}
+.gloss-quiz-fb.correct{color:var(--green)}
+.gloss-quiz-fb.wrong{color:var(--red)}
+.gloss-quiz-result{text-align:center;display:flex;flex-direction:column;align-items:center;gap:var(--space-2)}
+.gloss-quiz-score{font-family:var(--display);font-size:var(--text-display-2-size);font-weight:800;color:var(--amber)}
+.gloss-quiz-score-label{font-family:var(--mono);font-size:var(--text-caption-2-size);color:var(--muted);letter-spacing:.06em;margin-bottom:var(--space-3)}
+.gloss-quiz-result .gloss-swipe-btn{width:100%}
+.gloss-quiz-result .gloss-quiz-skip-inline{margin-top:var(--space-2)}
+@media(max-width:600px){
+  .gloss-toolbar{flex-direction:column;align-items:stretch}
+  .gloss-mode-toggle{align-self:flex-start}
+}
+
 /* COMPRESSOR */
 .comp-types{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--space-2);margin-bottom:var(--space-3)}
 .comp-type-btn{padding:var(--space-2) var(--space-1);border-radius:var(--r-sm);border:var(--bw) solid var(--border);background:var(--surface);color:var(--muted);font-family:var(--display);font-size:var(--text-caption-2-size);font-weight:600;cursor:pointer;transition:.15s;text-align:center}

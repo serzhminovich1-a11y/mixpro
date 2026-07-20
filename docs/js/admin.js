@@ -975,6 +975,28 @@ function glossaryTermRow(term, categories){
   return wrap;
 }
 
+// Поле загрузки одного из примеров А/Б — подпись (необязательная) +
+// файл. Загрузка идёт сразу при выборе файла (как у картинки/файла в
+// самом рич-редакторе), а не по кнопке "Сохранить" — так видно, что
+// именно уйдёт в базу, до нажатия основной кнопки сохранения формы.
+// key — ASCII-суффикс для CSS-классов ('A'/'B'), letter — кириллица для
+// подписи на экране ('А'/'Б') — разные, чтобы не городить class="...А..."
+const GLOSS_EXAMPLE_SLOTS = [
+  { key: 'A', letter: 'А', hint: '(например, «до»)' },
+  { key: 'B', letter: 'Б', hint: '(например, «после»)' },
+];
+function glossaryExampleFieldHtml(slot, url, label){
+  return `
+    <div class="field gloss-example-field">
+      <label>Пример ${slot.letter} ${slot.hint}</label>
+      <input type="text" class="gtEx${slot.key}Label" placeholder="Подпись (необязательно)" value="${escapeAttr(label || '')}">
+      <div class="gloss-example-upload">
+        <input type="file" class="gtEx${slot.key}File" accept="audio/*">
+        <span class="gloss-example-current gtEx${slot.key}Current">${url ? 'Файл загружен ✓' : 'Файл не выбран'}</span>
+      </div>
+    </div>`;
+}
+
 function buildGlossaryTermEditForm(term, categories, panel){
   const catOptions = categories.map(c => `<option value="${c.id}" ${c.id === term.category_id ? 'selected' : ''}>${escapeHtml(c.title)}</option>`).join('');
   panel.innerHTML = `
@@ -982,22 +1004,56 @@ function buildGlossaryTermEditForm(term, categories, panel){
       <div class="field"><label>Термин</label><input type="text" class="gtTitle" value="${escapeAttr(term.term)}"></div>
       <div class="field"><label>Категория</label><select class="gtCat"><option value="">Без категории</option>${catOptions}</select></div>
       <div class="field"><label>Описание</label>${courseRichEditorHtml('gtDef', term.definition || '')}</div>
+      ${glossaryExampleFieldHtml(GLOSS_EXAMPLE_SLOTS[0], term.example_a_url, term.example_a_label)}
+      ${glossaryExampleFieldHtml(GLOSS_EXAMPLE_SLOTS[1], term.example_b_url, term.example_b_label)}
       <button type="button" class="submit-btn gtSaveBtn">Сохранить</button>
       <div class="form-status gtStatus"></div>
     </div>`;
   makeRichEditor(panel.querySelector('.course-rich-editor'), { full: true, onImageUpload: async file => (await uploadCourseAsset(file)).url, onFileUpload: uploadCourseAsset });
-  panel.querySelector('.gtSaveBtn').addEventListener('click', () => handleSaveGlossaryTerm(term, panel));
+
+  const exampleUrls = { A: term.example_a_url || null, B: term.example_b_url || null };
+  wireGlossaryExampleUpload(panel, 'A', (url) => { exampleUrls.A = url; });
+  wireGlossaryExampleUpload(panel, 'B', (url) => { exampleUrls.B = url; });
+
+  panel.querySelector('.gtSaveBtn').addEventListener('click', () => handleSaveGlossaryTerm(term, panel, exampleUrls));
 }
 
-async function handleSaveGlossaryTerm(term, panel){
+function wireGlossaryExampleUpload(panel, key, onUploaded){
+  const fileInput = panel.querySelector(`.gtEx${key}File`);
+  const currentEl = panel.querySelector(`.gtEx${key}Current`);
+  fileInput.addEventListener('change', async () => {
+    const file = fileInput.files[0];
+    fileInput.value = '';
+    if (!file) return;
+    currentEl.textContent = 'Загружаем...';
+    try {
+      const asset = await uploadCourseAsset(file);
+      onUploaded(asset.url);
+      currentEl.textContent = 'Файл загружен ✓';
+    } catch (e) {
+      currentEl.textContent = 'Файл не выбран';
+      alert('Не удалось загрузить: ' + (e && e.message ? e.message : e));
+    }
+  });
+}
+
+async function handleSaveGlossaryTerm(term, panel, exampleUrls){
   const statusEl = panel.querySelector('.gtStatus');
   const saveBtn = panel.querySelector('.gtSaveBtn');
   const title = panel.querySelector('.gtTitle').value.trim();
   if (!title) { statusEl.textContent = 'Укажи название термина'; statusEl.className = 'form-status error'; return; }
   const catId = panel.querySelector('.gtCat').value || null;
   const html = sanitizeRichHtml(panel.querySelector('.rt-editable').innerHTML);
+  const exampleALabel = panel.querySelector('.gtExALabel').value.trim() || null;
+  const exampleBLabel = panel.querySelector('.gtExBLabel').value.trim() || null;
   saveBtn.disabled = true;
-  const { error } = await SB.from('glossary_terms').update({ term: title, category_id: catId, definition: html }).eq('id', term.id);
+  const { error } = await SB.from('glossary_terms').update({
+    term: title, category_id: catId, definition: html,
+    example_a_url: exampleUrls.A,
+    example_a_label: exampleALabel,
+    example_b_url: exampleUrls.B,
+    example_b_label: exampleBLabel,
+  }).eq('id', term.id);
   saveBtn.disabled = false;
   if (error) { statusEl.textContent = 'Ошибка: ' + error.message; statusEl.className = 'form-status error'; return; }
   statusEl.textContent = 'Сохранено!';

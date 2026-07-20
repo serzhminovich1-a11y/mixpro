@@ -69,14 +69,17 @@ function glossExampleColsHtml(term){
 function glossHasExamples(term){
   return!!(term.example_a_url||term.example_b_url);
 }
+// Вся карточка кликабельна и открывает развёрнутый вид термина — не
+// только у "длинных" терминов. Показываем ПОЛНЫЙ rich-контент (не
+// эксцерпт), чтобы картинки/гифки/видео из определения были видны сразу
+// в списке — высота карточки просто ограничена CSS с fade-затуханием
+// снизу (.gloss-card-preview), не самим содержимым.
 function glossCardHtml(g){
-  const excerpt=glossExcerpt(g.definition,160);
-  const showMore=excerpt.truncated||glossHasExamples(g);
-  return'<div class="gloss-card" data-id="'+g.id+'">'+
+  return'<div class="gloss-card" data-id="'+g.id+'" tabindex="0" role="button">'+
     '<div class="gloss-term">'+GLOSS_ICON+'<span>'+escapeGlossHtml(g.term)+'</span></div>'+
     (g.category_id?'<div class="gloss-cat-tag">'+escapeGlossHtml(glossCatTitle(g.category_id))+'</div>':'')+
-    '<div class="gloss-def">'+escapeGlossHtml(excerpt.text)+'</div>'+
-    (showMore?'<button type="button" class="gloss-card-more" data-id="'+g.id+'">Читать дальше →</button>':'')+
+    '<div class="gloss-def gloss-rich-content gloss-card-preview">'+(window.sanitizeRichHtml?sanitizeRichHtml(g.definition||''):'')+'</div>'+
+    '<div class="gloss-card-enter">Открыть термин →</div>'+
   '</div>';
 }
 async function renderGlossary(){
@@ -120,11 +123,21 @@ document.getElementById('glossDetailOverlay').addEventListener('click',e=>{if(e.
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'&&document.getElementById('glossDetailOverlay').classList.contains('open'))closeGlossaryDetail();
 });
-document.getElementById('glossGrid').addEventListener('click',e=>{
-  const btn=e.target.closest('.gloss-card-more');
-  if(!btn)return;
-  const term=glossTerms.find(t=>t.id===btn.dataset.id);
+// Клик по любому месту карточки (кроме видео/аудио/ссылок внутри
+// определения — им не мешаем) открывает термин целиком.
+function glossCardClickToDetail(target){
+  if(target.closest('video, audio, a, button'))return;
+  const card=target.closest('.gloss-card');
+  if(!card)return;
+  const term=glossTerms.find(t=>t.id===card.dataset.id);
   if(term)openGlossaryDetail(term);
+}
+document.getElementById('glossGrid').addEventListener('click',e=>glossCardClickToDetail(e.target));
+document.getElementById('glossGrid').addEventListener('keydown',e=>{
+  if(e.key!=='Enter'&&e.key!==' ')return;
+  if(!e.target.closest('.gloss-card'))return;
+  e.preventDefault();
+  glossCardClickToDetail(e.target);
 });
 
 // ── Переключатель режима отображения (список / карточки) ──

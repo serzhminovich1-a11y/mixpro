@@ -56,11 +56,17 @@
 .rt-editable pre{margin:var(--space-3) 0;padding:var(--space-3);border-radius:var(--r-sm);background:var(--elev2);border:var(--bw) solid var(--border);white-space:pre-wrap;line-height:1.5;color:var(--text)}
 .rt-editable .rt-formula{display:inline-block;padding:var(--space-half) var(--space-2);border-radius:var(--r-xs);background:var(--s2);color:var(--amber);font-family:var(--mono);font-size:var(--text-caption-1-size)}
 .rt-editable a{color:var(--amber);text-decoration:underline;word-break:break-word}
-.rt-editable img{max-width:100%;border-radius:var(--r-md);margin:var(--space-2) 0;display:block}
+.rt-editable img{max-width:100%;border-radius:var(--r-md);margin:var(--space-2) 0;display:block;cursor:pointer}
 .rt-editable video,.rt-editable iframe{display:block;width:min(100%,760px);aspect-ratio:16/9;border:0;border-radius:var(--r-md);background:#000;margin:var(--space-3) 0}
 .rt-editable audio{display:block;width:min(100%,620px);margin:var(--space-3) 0}
 .rt-editable .rt-attachment{display:inline-flex;align-items:center;gap:var(--space-2);padding:var(--space-2) var(--space-3);border:var(--bw) solid var(--amber-glow-strong);border-radius:var(--r-sm);background:var(--amber-glow);color:var(--text);font-weight:700;text-decoration:none}
 .rt-editable .rt-attachment:hover{border-color:var(--amber);background:var(--amber-glow-strong)}
+
+/* ── Попап пресетов размера картинки (клик по img в редакторе) ── */
+.rt-img-resize-pop{position:fixed;z-index:60;display:flex;gap:4px;background:var(--elev2);border:var(--bw) solid var(--border);border-radius:var(--r-sm);padding:4px;box-shadow:var(--shadow-lift)}
+.rt-img-resize-btn{font-family:var(--mono);font-size:var(--text-caption-2-size);padding:var(--space-1) var(--space-3);border-radius:var(--r-xs);border:var(--bw) solid var(--border);background:var(--s2);color:var(--muted2);cursor:pointer;transition:.12s}
+.rt-img-resize-btn:hover{color:var(--text);border-color:var(--amber-glow-strong)}
+.rt-img-resize-btn.active{color:var(--amber);border-color:var(--amber);background:var(--amber-glow)}
 
 @keyframes rt-editor-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .rt-editable table{width:100%;border-collapse:collapse;margin:var(--space-3) 0;font-size:var(--text-body-1-size)}

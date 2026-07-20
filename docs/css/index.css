@@ -192,8 +192,9 @@ select option{background:var(--elev2)}
 .gloss-cat-select:hover{border-color:var(--border-hi)}
 .gloss-cat-select:focus{outline:none;border-color:var(--amber-dim)}
 .gloss-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:var(--space-4);margin-top:var(--space-5)}
-.gloss-card{background:linear-gradient(180deg,var(--surf-top),var(--surf-bot)),var(--bg);border:var(--bw) solid var(--border);border-radius:var(--r-card);padding:var(--space-5);box-shadow:var(--shadow-lift);transition:.18s}
+.gloss-card{background:linear-gradient(180deg,var(--surf-top),var(--surf-bot)),var(--bg);border:var(--bw) solid var(--border);border-radius:var(--r-card);padding:var(--space-5);box-shadow:var(--shadow-lift);transition:.18s;cursor:pointer}
 .gloss-card:hover{border-color:var(--amber-dim);transform:translateY(-2px)}
+.gloss-card:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 .gloss-term{font-family:var(--display);font-weight:700;font-size:var(--text-body-2-size);color:var(--text);display:flex;align-items:center;gap:var(--space-2)}
 .gloss-term svg{width:16px;height:16px;flex-shrink:0;color:var(--amber)}
 .gloss-cat-tag{font-family:var(--mono);font-size:var(--text-caption-1-size);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:var(--space-2) var(--space-0)}
@@ -216,9 +217,12 @@ select option{background:var(--elev2)}
 .gloss-mode-btn:hover{color:var(--text)}
 .gloss-mode-btn.active{background:var(--amber);color:var(--on-accent)}
 
-/* ── GLOSSARY: карточка в списке — кнопка "читать дальше" ── */
-.gloss-card-more{margin-top:var(--space-3);font-family:var(--display);font-size:var(--text-caption-1-size);font-weight:700;color:var(--amber);background:none;border:none;padding:0;cursor:pointer;transition:.15s}
-.gloss-card-more:hover{opacity:.8}
+/* ── GLOSSARY: карточка в списке — превью ограничено по высоте, снизу
+   fade вместо жёсткой обрезки, вся карточка кликабельна целиком ── */
+.gloss-card-preview{max-height:200px;overflow:hidden;position:relative}
+.gloss-card-preview::after{content:'';position:absolute;left:0;right:0;bottom:0;height:44px;background:linear-gradient(180deg,transparent,var(--surf-bot))}
+.gloss-card-enter{margin-top:var(--space-3);font-family:var(--display);font-size:var(--text-caption-1-size);font-weight:700;color:var(--amber)}
+.gloss-card:hover .gloss-card-enter{opacity:.8}
 
 /* ── GLOSSARY: развёрнутая модалка термина ── */
 .gloss-detail-modal{max-width:680px;max-height:82vh;overflow-y:auto;text-align:left}

@@ -95,6 +95,11 @@ function sanitizeRichNode(node){
         const alt = child.getAttribute('alt');
         if (alt) img.setAttribute('alt', alt.replace(/[<>"]/g, ''));
         img.setAttribute('loading', 'lazy');
+        // Ширина от кнопки resize в тулбаре (см. makeRichEditor ниже) —
+        // узкий белый список (только "NN%"), IMG не входит в
+        // RICH_STYLEABLE_TAGS и через extractSafeStyle не проходит.
+        const width = (child.style.width || '').trim();
+        if (/^\d{1,3}%$/.test(width)) img.style.width = width;
         out.appendChild(img);
       }
       return;
@@ -431,6 +436,49 @@ function makeRichEditor(container, opts){
       imgBtn.disabled = false;
     });
   }
+
+  // ── Resize картинки/гифки — клик по ней внутри редактора открывает
+  // маленький попап с пресетами ширины (в процентах — картинка из
+  // одного и того же текста показывается в контейнерах совершенно
+  // разной ширины: карточка, модалка, страница курса, форум). Тот же
+  // приём открытия/закрытия, что у .rt-color-pop выше: клик снаружи
+  // или Escape закрывает, document-листенер живёт в замыкании этого
+  // конкретного вызова makeRichEditor.
+  const IMG_RESIZE_PRESETS = ['25%', '50%', '75%', '100%'];
+  let imgResizePop = null;
+  function closeImgResizePop(){
+    if (imgResizePop) { imgResizePop.remove(); imgResizePop = null; }
+  }
+  function openImgResizePop(img){
+    closeImgResizePop();
+    const currentWidth = img.style.width || '100%';
+    const pop = document.createElement('div');
+    pop.className = 'rt-img-resize-pop';
+    pop.innerHTML = IMG_RESIZE_PRESETS.map(pct =>
+      `<button type="button" class="rt-img-resize-btn${pct === currentWidth ? ' active' : ''}" data-pct="${pct}">${pct}</button>`
+    ).join('');
+    document.body.appendChild(pop);
+    const imgRect = img.getBoundingClientRect();
+    const popRect = pop.getBoundingClientRect();
+    pop.style.left = Math.max(8, Math.min(imgRect.left + imgRect.width / 2 - popRect.width / 2, window.innerWidth - popRect.width - 8)) + 'px';
+    pop.style.top = Math.max(8, imgRect.top - popRect.height - 8) + 'px';
+    pop.querySelectorAll('.rt-img-resize-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        img.style.width = btn.dataset.pct === '100%' ? '' : btn.dataset.pct;
+        closeImgResizePop();
+      });
+    });
+    imgResizePop = pop;
+  }
+  editable.addEventListener('click', (e) => {
+    if (e.target.tagName === 'IMG') openImgResizePop(e.target);
+    else closeImgResizePop();
+  });
+  document.addEventListener('click', (e) => {
+    if (imgResizePop && !imgResizePop.contains(e.target) && e.target.tagName !== 'IMG') closeImgResizePop();
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeImgResizePop(); });
 
   // ── Файл — загружаем в Storage и вставляем подходящий элемент: картинку,
   // видео, аудио или компактную карточку скачивания. ──

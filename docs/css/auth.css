@@ -13,8 +13,9 @@ body {
   justify-content: center;
   padding: var(--space-5);
 }
-.logo { font-family: var(--display); font-size: var(--text-header-2-size); font-weight: 800; color: var(--text); letter-spacing: .05em; text-align: center; margin-bottom: var(--space-8); text-decoration: none; display: block; }
-.logo span { color: var(--amber); }
+.logo { font-family: var(--display); font-weight: 800; color: var(--text); text-decoration: none; text-align: center; margin-bottom: var(--space-8); display: inline-flex; flex-direction: column; align-items: center; gap: 4px; }
+.logo-name { font-size: var(--text-header-2-size); letter-spacing: .01em; }
+.logo-sub { font-family: var(--mono); font-size: 10px; font-weight: 600; letter-spacing: .26em; color: var(--muted2); text-transform: uppercase; border-top: var(--bw) solid var(--border-hi); padding-top: 5px; margin-top: 2px; margin-right: -.26em; }
 .card { width: 100%; max-width: 420px; background: linear-gradient(180deg,var(--surf-top),var(--surf-bot)),var(--bg); border: var(--bw) solid var(--border); border-radius: var(--r-lg); padding: var(--space-8); box-shadow: var(--shadow-lift); }
 [data-theme="glass"] .card { background: var(--card); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
 .tabs { display: flex; background: var(--s2); border-radius: var(--r-sm); padding: var(--space-half); margin-bottom: var(--space-7); }

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <style>
+    text{fill:#0a0b16}
+    @media (prefers-color-scheme: dark){ text{fill:#eef0fb} }
+  </style>
+  <text x="16" y="23" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="23" letter-spacing="-1" text-anchor="middle">M</text>
+</svg>

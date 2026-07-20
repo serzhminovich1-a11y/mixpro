@@ -38,7 +38,7 @@
       <div class="pm-vol-wrap">
         <div class="pm-vol-fill" id="volFill" style="width:20%"></div>
         <div class="pm-vol-dot" id="volDot" style="left:20%"></div>
-        <input type="range" min="0" max="100" value="20" oninput="setVolume(this.value)" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;margin:0">
+        <input type="range" min="0" max="100" value="20" oninput="setVolume(this.value)" aria-label="Громкость" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;margin:0">
       </div>
       <span class="vol-pct" id="volPct">20%</span>
     </div>
@@ -175,7 +175,7 @@
 
     <!-- Transport -->
     <div class="pm-transport">
-      <button class="pm-play-circle" id="playBtn" onclick="togglePlay()">
+      <button class="pm-play-circle" id="playBtn" onclick="togglePlay()" aria-label="Слушать">
         <div class="pm-play-triangle" id="playIcon"></div>
       </button>
     </div>

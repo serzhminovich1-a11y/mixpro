@@ -275,6 +275,7 @@ async function startAudio(){
   playing=true;
   const pb=document.getElementById('playBtn');
   pb.classList.add('playing');
+  pb.setAttribute('aria-label','Пауза');
   pb.innerHTML='<div class="pm-pause"><span class="pm-pause-bar"></span><span class="pm-pause-bar"></span></div>';
   if(qStart===0){qStart=Date.now();maybeStartAnswerTimer();}
   document.getElementById('hint').textContent=comparing?'Оригинал без буста':'С EQ бустом — слушай';
@@ -287,6 +288,7 @@ function stopAudio(){
   playing=false;
   const pb=document.getElementById('playBtn');
   pb.classList.remove('playing');
+  pb.setAttribute('aria-label','Слушать');
   pb.innerHTML='<div class="pm-play-triangle"></div>';
   if(!os)return;
   if(og&&actx&&actx.state!=='closed'){

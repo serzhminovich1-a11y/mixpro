@@ -43,7 +43,7 @@
         <div class="pm-vol-wrap" id="volWrap">
           <div class="pm-vol-fill" id="volFill" style="width:20%"></div>
           <div class="pm-vol-dot" id="volDot" style="left:20%"></div>
-          <input type="range" min="0" max="100" value="20" oninput="setVolume(this.value)" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;margin:0">
+          <input type="range" min="0" max="100" value="20" oninput="setVolume(this.value)" aria-label="Громкость" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;margin:0">
         </div>
         <span class="vol-pct" id="volPct">20%</span>
       </div>
@@ -255,7 +255,7 @@
 
     <!-- Transport -->
     <div class="pm-transport">
-      <button class="pm-play-circle" id="playBtn" onclick="togglePlay()">
+      <button class="pm-play-circle" id="playBtn" onclick="togglePlay()" aria-label="Слушать">
         <div class="pm-play-triangle" id="playIcon"></div>
       </button>
       <button class="pm-compare-btn" id="cmpBtn"
@@ -303,19 +303,19 @@
       </div>
 
       <div class="train-row">
-        <div><div class="train-label">Уровень буста / среза</div><div class="train-sub">В децибелах</div></div>
+        <div><div class="train-label" id="gainLabel">Уровень буста / среза</div><div class="train-sub">В децибелах</div></div>
         <div style="display:flex;align-items:center;gap:10px">
           <input class="train-slider" type="range" min="3" max="18" value="9" id="gainSlider"
-            oninput="setTrainSlider('gain',this)">
+            aria-labelledby="gainLabel" oninput="setTrainSlider('gain',this)">
           <span class="train-val" id="gainVal">+9 dB</span>
         </div>
       </div>
 
       <div class="train-row">
-        <div><div class="train-label">Ширина Q</div><div class="train-sub">Узко — сложнее, широко — легче</div></div>
+        <div><div class="train-label" id="qLabel">Ширина Q</div><div class="train-sub">Узко — сложнее, широко — легче</div></div>
         <div style="display:flex;align-items:center;gap:10px">
           <input class="train-slider" type="range" min="1" max="10" value="5" id="qSlider"
-            oninput="setTrainSlider('q',this)">
+            aria-labelledby="qLabel" oninput="setTrainSlider('q',this)">
           <span class="train-val" id="qVal">Q 1.2</span>
         </div>
       </div>

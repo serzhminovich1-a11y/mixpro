@@ -12,31 +12,60 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);-webkit-font
   max-width:1200px;margin:0 auto;
 }
 
-/* ── NAV ── */
-.pm-nav{display:flex;align-items:center;justify-content:space-between;gap:var(--space-5);flex-wrap:wrap}
+/* ── NAV — три зоны (слева назад+лого, центр рейтинг+обучение, справа
+   уведомления+профиль+бургер), тот же принцип центрирования/бургера,
+   что и на остальных 12 страницах сайта (см. .nav-inner/.burger-*). ── */
+.pm-nav{display:flex;flex-direction:column;gap:var(--space-4)}
+.pm-nav-inner{display:flex;align-items:center;justify-content:space-between;gap:var(--space-4);flex-wrap:wrap;max-width:1240px;margin:0 auto;width:100%}
+.pm-nav-left{display:flex;align-items:center;gap:var(--space-4)}
+.pm-nav-mid{display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap}
+.pm-nav-right{display:flex;align-items:center;gap:var(--space-3)}
+
 .pm-logo{font-family:var(--display);font-size:var(--text-header-1-size);letter-spacing:.5px;text-decoration:none;transition:opacity .18s ease}
 .pm-logo:hover{opacity:.82}
 .pm-logo-peak{color:var(--amber);font-weight:800}
 .pm-logo-master{color:var(--text);font-weight:600}
+
 .pm-back{-webkit-appearance:none;appearance:none;position:relative;font-family:var(--display);font-weight:600;font-size:var(--text-caption-2-size);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-decoration:none;padding:var(--space-2) 0;border:none;transition:color .16s ease;background:transparent;cursor:pointer}
 .pm-back::after{content:'';position:absolute;left:0;right:0;bottom:-3px;height:2px;border-radius:2px;background:var(--amber);transform:scaleX(0);transform-origin:center;transition:transform .22s cubic-bezier(.2,.8,.3,1)}
 .pm-back:hover{color:var(--text)}
 .pm-back:hover::after{transform:scaleX(.55)}
-.pm-nav-links{display:flex;align-items:center;gap:var(--space-5)}
-.pm-nav-center{display:flex;align-items:center;gap:var(--space-4);flex-wrap:wrap}
-.pm-nav-right{display:flex;align-items:center;gap:var(--space-5);flex-wrap:wrap;justify-content:flex-end}
-.pm-nav-link{-webkit-appearance:none;appearance:none;position:relative;font-family:var(--display);font-weight:600;font-size:var(--text-caption-2-size);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:transparent;cursor:pointer;text-decoration:none;padding:var(--space-2) 0;border:none;transition:color .16s ease}
-.pm-nav-link::after{content:'';position:absolute;left:0;right:0;bottom:-3px;height:2px;border-radius:2px;background:var(--amber);transform:scaleX(0);transform-origin:center;transition:transform .22s cubic-bezier(.2,.8,.3,1)}
-.pm-nav-link:hover{color:var(--text)}
-.pm-nav-link:hover::after{transform:scaleX(.55)}
-.pm-nav-link.danger:hover{color:var(--red)}
-.pm-nav-link.danger:hover::after{background:var(--red)}
-.pm-nav-link.accent{font-weight:700;padding:var(--space-1) var(--space-3);border-radius:var(--r-pill);border:var(--bw) solid var(--gold);color:var(--gold)}
-.pm-nav-link.accent::after{display:none}
-.pm-nav-link.accent:hover{background:var(--gold);color:var(--on-gold)}
-.pm-nav-link.primary{font-weight:700;padding:var(--space-2) var(--space-5);border-radius:var(--r-pill);background:var(--amber);color:var(--on-accent);transition:transform .16s ease,box-shadow .16s ease}
-.pm-nav-link.primary::after{display:none}
-.pm-nav-link.primary:hover{color:var(--on-accent);transform:translateY(-1px);box-shadow:0 8px 20px -8px var(--amber-glow-strong)}
+
+/* Кнопка "Назад" в MIXPRO — обычный (не капслочный) шрифт, как у .nav-btn
+   на остальных страницах, а не как у текстовых "капслок" пунктов игры. */
+.pm-back-btn{display:inline-flex;align-items:center;gap:6px;font-family:var(--display);font-weight:600;font-size:var(--text-body-2-size);color:var(--muted2);text-decoration:none;padding:var(--space-2) var(--space-3);border-radius:var(--r-sm);transition:.15s}
+.pm-back-btn svg{width:16px;height:16px;flex-shrink:0}
+.pm-back-btn:hover{color:var(--text);background:var(--s2)}
+
+/* Рейтинг — была голая текстовая ссылка, теперь заметная интерактивная
+   пилюля с иконкой, как остальные акцентные кнопки игры (hover-подъём). */
+.pm-rank-btn{display:inline-flex;align-items:center;gap:6px;font-family:var(--display);font-weight:700;font-size:var(--text-caption-1-size);color:var(--gold);background:var(--gold-glow);border:var(--bw) solid var(--gold-glow-strong);padding:var(--space-2) var(--space-4);border-radius:var(--r-pill);text-decoration:none;transition:.15s}
+.pm-rank-btn svg{width:15px;height:15px;flex-shrink:0}
+.pm-rank-btn:hover{background:var(--gold);color:var(--on-gold);transform:translateY(-1px);box-shadow:0 8px 18px -8px var(--gold-glow-strong)}
+
+.pm-nav-link{display:inline-flex;align-items:center;gap:6px;font-family:var(--display);font-weight:700;font-size:var(--text-caption-1-size);text-decoration:none;cursor:pointer;border:none}
+.pm-nav-link.primary{padding:var(--space-2) var(--space-4);border-radius:var(--r-pill);background:var(--amber);color:var(--on-accent);transition:transform .16s ease,box-shadow .16s ease}
+.pm-nav-link.primary:hover{transform:translateY(-1px);box-shadow:0 8px 20px -8px var(--amber-glow-strong)}
+
+/* Бургер-меню — тот же паттерн, что на остальных 12 страницах сайта
+   (nav_burger.js), скопирован 1:1, здесь впервые подключается. */
+.nav-burger-wrap{position:relative}
+.nav-burger-btn{width:34px;height:34px;border-radius:var(--r-pill);border:var(--bw) solid var(--border);background:transparent;color:var(--muted2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;flex-shrink:0}
+.nav-burger-btn:hover{color:var(--text);background:var(--s2);border-color:var(--border-hi)}
+.nav-burger-btn svg{width:16px;height:16px}
+.nav-burger-panel{position:absolute;top:calc(100% + 10px);right:0;width:200px;background:var(--card);background:color-mix(in srgb,var(--card) 4%,var(--bg) 96%);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:var(--bw) solid var(--border-hi);border-radius:var(--r-card);padding:var(--space-3);box-shadow:var(--shadow-lift-hover);opacity:0;visibility:hidden;transform:translateY(-6px);transition:.18s cubic-bezier(.16,1,.3,1);z-index:150;display:flex;flex-direction:column;gap:2px}
+.nav-burger-panel.open{opacity:1;visibility:visible;transform:translateY(0)}
+.burger-section-title{font-family:var(--display);font-size:var(--text-caption-2-size);font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:var(--space-2) var(--space-2) var(--space-1)}
+.burger-link{display:flex;align-items:center;gap:var(--space-2);width:100%;padding:var(--space-2) var(--space-2);border-radius:var(--r-sm);border:none;background:transparent;color:var(--text);text-decoration:none;font-family:var(--sans);font-size:var(--text-body-1-size);font-weight:600;cursor:pointer;text-align:left;transition:.15s}
+.burger-link:hover{background:var(--s2)}
+.burger-link.accent{color:var(--gold)}
+.burger-link.accent:hover{background:var(--gold);color:var(--on-gold)}
+.burger-link.danger{color:var(--red)}
+.burger-link.danger:hover{background:var(--red-glow-strong)}
+
+/* ── HUD — громкость + статистика, отдельной строкой под основной
+   шапкой (раньше жили в одном ряду с кнопками навигации). ── */
+.pm-hud{display:flex;align-items:center;gap:var(--space-5);flex-wrap:wrap;max-width:1240px;margin:0 auto;width:100%}
 
 /* Volume */
 .pm-vol{display:flex;align-items:center;gap:var(--space-2)}
@@ -49,14 +78,14 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);-webkit-font
 .vol-pct{font-size:var(--text-caption-2-size);color:var(--muted);min-width:34px}
 
 /* Stats */
-.pm-stats{display:flex;align-items:center;gap:var(--space-4)}
-.pm-stat{display:flex;flex-direction:column;gap:var(--space-half);align-items:flex-end}
-.pm-num{font-family:var(--display);font-weight:700;font-size:var(--text-body-3-size);color:var(--text);line-height:1}
+.pm-stats{display:flex;align-items:center;gap:var(--space-3);flex-wrap:wrap}
+.pm-stat{display:flex;align-items:center;gap:var(--space-2);background:var(--s2);border:var(--bw) solid var(--border);border-radius:var(--r-pill);padding:var(--space-2) var(--space-4)}
+.pm-stat svg{width:15px;height:15px;flex-shrink:0;color:var(--amber)}
+.pm-num{font-family:var(--display);font-weight:700;font-size:var(--text-body-2-size);color:var(--text);line-height:1}
 .pm-num.cyan{color:var(--amber)}
-.pm-label{font-size:var(--text-caption-1-size);letter-spacing:1px;color:var(--muted);font-weight:700;text-transform:uppercase}
-.pm-div{width:1px;height:28px;background:var(--border)}
-.pm-lvl-wrap{min-width:120px}
-.pm-lvl-track{width:100%;height:5px;border-radius:var(--r-xs);background:var(--border);margin-top:var(--space-1);overflow:hidden}
+.pm-label{font-size:var(--text-caption-2-size);letter-spacing:.04em;color:var(--muted);font-weight:600;text-transform:uppercase}
+.pm-lvl-wrap{min-width:110px;flex-direction:column;align-items:flex-start;gap:4px}
+.pm-lvl-track{width:100%;height:5px;border-radius:var(--r-xs);background:var(--border);overflow:hidden}
 .pm-lvl-fill{height:100%;border-radius:var(--r-xs);background:linear-gradient(90deg,var(--amber),var(--amber-dim));box-shadow:0 0 8px var(--amber-glow-strong);transition:width .5s}
 
 /* ── STREAK BANNER ── */
@@ -333,13 +362,15 @@ body.tour-lock{overflow:hidden}
 .tour-text{font-size:var(--text-body-1-size);color:var(--muted2);line-height:1.6;margin-bottom:var(--space-4)}
 .tour-actions{display:flex;align-items:center;justify-content:space-between;gap:var(--space-2)}
 
+@media(max-width:760px){
+  .pm-nav-inner{flex-wrap:wrap}
+  .pm-nav-mid{order:3;width:100%}
+  .pm-hud{flex-direction:column;align-items:flex-start;gap:var(--space-3)}
+  .pm-stats{width:100%}
+}
 @media(max-width:600px){
   .pm-page{padding:var(--space-4) var(--space-3) var(--space-10)}
   .pm-stats{gap:var(--space-2)}.pm-num{font-size:var(--text-body-2-size)}
   .start-card{padding:var(--space-6) var(--space-4)}
-  /* Ссылок в шапке больше, чем помещается в 390px без переноса —
-     иначе .pm-nav-links раздувает всю страницу по горизонтали */
-  .pm-nav-links{width:100%;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none}
-  .pm-nav-links::-webkit-scrollbar{display:none}
-  .pm-nav-link{flex-shrink:0}
+  .pm-back-btn span,.pm-back-btn{font-size:var(--text-caption-1-size)}
 }

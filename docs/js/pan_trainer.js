@@ -390,12 +390,16 @@ function setVolume(v){
   document.getElementById('volFill').style.width=v+'%';
   document.getElementById('volDot').style.left=v+'%';
   document.getElementById('volPct').textContent=v+'%';
-  document.querySelector('.pm-vol-icon').innerHTML=v==0?ICON_VOL_MUTE:v<40?ICON_VOL_LOW:ICON_VOL_HIGH;
+  const icon=document.querySelector('.pm-vol-icon');
+  icon.innerHTML=v==0?ICON_VOL_MUTE:v<40?ICON_VOL_LOW:ICON_VOL_HIGH;
+  icon.setAttribute('aria-label','Выключить звук');
   if(gainNode&&actx) gainNode.gain.setTargetAtTime(vol*.75,actx.currentTime,.02);
 }
 function toggleMute(){
   muted=!muted;
-  document.querySelector('.pm-vol-icon').innerHTML=muted?ICON_VOL_MUTE:ICON_VOL_HIGH;
+  const icon=document.querySelector('.pm-vol-icon');
+  icon.innerHTML=muted?ICON_VOL_MUTE:ICON_VOL_HIGH;
+  icon.setAttribute('aria-label',muted?'Включить звук':'Выключить звук');
   if(gainNode&&actx) gainNode.gain.setTargetAtTime(muted?0:vol*.75,actx.currentTime,.02);
 }
 

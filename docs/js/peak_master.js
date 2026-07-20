@@ -358,12 +358,13 @@ function setVolume(v){
   document.getElementById('volPct').textContent=v+'%';
   const icon=document.querySelector('.pm-vol-icon');
   icon.innerHTML=v==0?ICON_VOL_MUTE:v<40?ICON_VOL_LOW:ICON_VOL_HIGH;
+  icon.setAttribute('aria-label','Выключить звук');
   if(gainNode&&actx) gainNode.gain.setTargetAtTime(vol*.75,actx.currentTime,.02);
 }
 function toggleMute(){
   const s=document.getElementById('volFill');
   if(muted){muted=false;setVolume(Math.round(vol*100||70));}
-  else{muted=true;document.querySelector('.pm-vol-icon').innerHTML=ICON_VOL_MUTE;if(gainNode&&actx)gainNode.gain.setTargetAtTime(0,actx.currentTime,.02);}
+  else{muted=true;const icon=document.querySelector('.pm-vol-icon');icon.innerHTML=ICON_VOL_MUTE;icon.setAttribute('aria-label','Включить звук');if(gainNode&&actx)gainNode.gain.setTargetAtTime(0,actx.currentTime,.02);}
 }
 
 // ══════════════════════════════════════

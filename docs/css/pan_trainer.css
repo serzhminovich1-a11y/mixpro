@@ -36,8 +36,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);-webkit-font
 
 /* Volume */
 .pm-vol{display:flex;align-items:center;gap:var(--space-2)}
-.pm-vol-icon{font-size:var(--text-body-2-size);cursor:pointer;opacity:.7}
+.pm-vol-icon{-webkit-appearance:none;appearance:none;border:none;background:none;padding:0;color:inherit;font-size:var(--text-body-2-size);cursor:pointer;opacity:.7;display:flex;align-items:center}
 .pm-vol-icon:hover{opacity:1}
+.pm-vol-icon svg{width:16px;height:16px;flex-shrink:0}
 .pm-vol-wrap{position:relative;width:100px;height:4px;border-radius:var(--r-xs);background:var(--border);cursor:pointer}
 .pm-vol-fill{position:absolute;left:0;top:0;height:100%;border-radius:var(--r-xs);background:linear-gradient(90deg,var(--amber),var(--amber-dim))}
 .pm-vol-dot{position:absolute;top:50%;width:12px;height:12px;border-radius:var(--r-badge);background:var(--text);transform:translate(-50%,-50%);box-shadow:0 0 8px var(--amber-glow-strong)}

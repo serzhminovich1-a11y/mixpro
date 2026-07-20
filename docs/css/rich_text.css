@@ -24,6 +24,8 @@
 .rt-editor-hint{padding:var(--space-2) var(--space-4);border-top:var(--bw) solid var(--border);font-family:var(--mono);font-size:var(--text-caption-2-size);color:var(--muted)}
 .rt-editable:empty:before{content:attr(data-placeholder);color:var(--muted)}
 .rt-editable b,.rt-editable strong{font-weight:700}
+.rt-editable.rt-drag-over{outline:2px dashed var(--amber);outline-offset:-2px;background:var(--amber-glow);border-radius:var(--r-sm)}
+.rt-editable.rt-uploading{cursor:progress}
 
 /* ── Расширенный тулбар конструктора теории (opts.full в makeRichEditor) ── */
 .rt-toolbar-full{row-gap:var(--space-1)}

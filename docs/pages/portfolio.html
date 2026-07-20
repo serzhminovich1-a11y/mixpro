@@ -95,15 +95,19 @@
       </div>
       <div class="field">
         <label for="fFile">Аудиофайл (MP3, WAV)</label>
-        <input type="file" id="fFile" accept="audio/*" required>
+        <div class="dropzone" id="fFileZone">
+          <input type="file" id="fFile" accept="audio/*" required>
+          <svg class="dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13"/><path d="m7 11 5 5 5-5"/><path d="M4 20h16"/></svg>
+          <div class="dropzone-text" id="fFileText">Перетащите трек сюда или нажмите, чтобы выбрать файл</div>
+        </div>
       </div>
       <div class="field">
         <label for="fCover">Обложка (необязательно)</label>
-        <div class="cover-pick">
+        <div class="cover-pick" id="fCoverZone">
           <div class="cover-pick-preview" id="coverPreview"></div>
           <div class="cover-pick-body">
             <input type="file" id="fCover" accept="image/*">
-            <div class="cover-pick-hint">Квадратная картинка смотрится лучше всего</div>
+            <div class="cover-pick-hint">Квадратная картинка смотрится лучше всего — можно перетащить сюда</div>
           </div>
         </div>
       </div>

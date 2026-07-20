@@ -165,6 +165,51 @@ async function deleteProject(p){
   }
 }
 
+const F_FILE_DEFAULT_TEXT = 'Перетащите трек сюда или нажмите, чтобы выбрать файл';
+
+// Переносит перетащенный файл в обычный <input type="file">, чтобы дальше
+// код (change-слушатели, чтение .files[0] при сабмите) работал ровно так же,
+// как при выборе через системный диалог — второго пути нет.
+function assignFileToInput(input, file){
+  const dt = new DataTransfer();
+  dt.items.add(file);
+  input.files = dt.files;
+  input.dispatchEvent(new Event('change', { bubbles: true }));
+}
+
+// Драг-н-дроп поверх обычного input[type=file]. Если сам input лежит поверх
+// всей зоны (см. .dropzone в CSS) — браузер и так нативно примет файл на
+// него, e.target уже будет самим input, вручную ничего переносить не нужно;
+// если input меньше зоны (обложка — узкое поле рядом с превью) — переносим
+// файл в input сами через assignFileToInput.
+function wireDropzone(zoneId, inputId){
+  const zone = document.getElementById(zoneId);
+  const input = document.getElementById(inputId);
+  let depth = 0;
+  const isFileDrag = e => e.dataTransfer && Array.from(e.dataTransfer.types || []).includes('Files');
+  zone.addEventListener('dragenter', e => {
+    if (!isFileDrag(e)) return;
+    e.preventDefault();
+    depth++;
+    zone.classList.add('drag-over');
+  });
+  zone.addEventListener('dragover', e => { if (isFileDrag(e)) e.preventDefault(); });
+  zone.addEventListener('dragleave', () => {
+    depth = Math.max(0, depth - 1);
+    if (depth === 0) zone.classList.remove('drag-over');
+  });
+  zone.addEventListener('drop', e => {
+    depth = 0;
+    zone.classList.remove('drag-over');
+    const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (!file) return;
+    if (e.target !== input) {
+      e.preventDefault();
+      assignFileToInput(input, file);
+    }
+  });
+}
+
 function setStatus(text, kind){
   const el = document.getElementById('uploadStatus');
   el.textContent = text;
@@ -275,6 +320,8 @@ async function handleUpload(e){
   setStatus('Готово!', 'ok');
   document.getElementById('uploadForm').reset();
   document.getElementById('coverPreview').innerHTML = '';
+  document.getElementById('fFileZone').classList.remove('has-file');
+  document.getElementById('fFileText').textContent = F_FILE_DEFAULT_TEXT;
   document.getElementById('portStats').style.display = '';
   document.getElementById('projSort').style.display = '';
   renderProjects();
@@ -327,6 +374,13 @@ async function init() {
       const preview = document.getElementById('coverPreview');
       preview.innerHTML = file ? `<img src="${URL.createObjectURL(file)}" alt="">` : '';
     });
+    document.getElementById('fFile').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      document.getElementById('fFileZone').classList.toggle('has-file', !!file);
+      document.getElementById('fFileText').textContent = file ? file.name : F_FILE_DEFAULT_TEXT;
+    });
+    wireDropzone('fFileZone', 'fFile');
+    wireDropzone('fCoverZone', 'fCover');
   }
 
   document.getElementById('shareBtn').addEventListener('click', async () => {

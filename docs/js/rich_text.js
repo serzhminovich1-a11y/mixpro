@@ -458,6 +458,48 @@ function makeRichEditor(container, opts){
     });
   }
 
+  // ── Drag-and-drop — перетащить фото/видео/файл прямо в область текста,
+  // без похода к кнопкам тулбара. dragover preventDefault нужен всегда
+  // (даже без onFileUpload/onImageUpload) — иначе браузер по умолчанию
+  // уводит со страницы, открывая файл вместо неё.
+  let dragDepth = 0;
+  function isFileDrag(e){ return e.dataTransfer && Array.from(e.dataTransfer.types || []).includes('Files'); }
+  editable.addEventListener('dragenter', (e) => {
+    if (!isFileDrag(e)) return;
+    e.preventDefault();
+    dragDepth++;
+    editable.classList.add('rt-drag-over');
+  });
+  editable.addEventListener('dragover', (e) => { if (isFileDrag(e)) e.preventDefault(); });
+  editable.addEventListener('dragleave', () => {
+    dragDepth = Math.max(0, dragDepth - 1);
+    if (dragDepth === 0) editable.classList.remove('rt-drag-over');
+  });
+  editable.addEventListener('drop', async (e) => {
+    const files = e.dataTransfer ? Array.from(e.dataTransfer.files || []) : [];
+    dragDepth = 0;
+    editable.classList.remove('rt-drag-over');
+    if (!files.length) return; // не файлы (например, перетянутый внутри самого текста фрагмент) — обычное поведение
+    e.preventDefault();
+    if (!opts.onFileUpload && !opts.onImageUpload) return;
+    editable.classList.add('rt-uploading');
+    const failed = [];
+    for (const file of files) {
+      try {
+        if (opts.onFileUpload) {
+          insertUploadedAsset(await opts.onFileUpload(file));
+        } else if (file.type.startsWith('image/')) {
+          const url = await opts.onImageUpload(file);
+          if (url) { editable.focus(); restoreSelection(); document.execCommand('insertHTML', false, '<img src="' + url + '" alt="">'); saveSelection(); }
+        }
+      } catch (err) {
+        failed.push((file.name || 'файл') + ': ' + (err && err.message ? err.message : err));
+      }
+    }
+    editable.classList.remove('rt-uploading');
+    if (failed.length) alert('Не удалось загрузить:\n' + failed.join('\n'));
+  });
+
   // ── Видео по внешней ссылке: YouTube/Vimeo получают безопасный embed,
   // прямая ссылка на файл открывается нативным video-плеером. ──
   const videoBtn = toolbar.querySelector('.rt-video-btn');

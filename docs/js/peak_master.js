@@ -547,6 +547,11 @@ function setGuessFraction(v){
 }
 
 function graphPointerDown(e){
+  // Правая кнопка на графике — быстрый способ сравнить A/Б без наведения
+  // на отдельную кнопку: используем ту же startCompare()/endCompare(),
+  // что и у #cmpBtn (endCompare уже глобально висит на mouseup, см.
+  // регистрацию listener'ов ниже), к угадыванию по клику не относится.
+  if(e.button===2){e.preventDefault();startCompare();return;}
   if(answered)return;
   if(qStart===0){
     // Ещё не начали слушать — угадывать рано
@@ -1346,7 +1351,7 @@ const TOUR_STEPS=[
   {sel:'#playBtn',title:'▶ Слушай звук',
     text:'Нажми PLAY — услышишь шум с поднятой (или вырезанной) частотой. Это то, что нужно найти на слух.'},
   {sel:'#cmpBtn',title:'Сравнение A / B',
-    text:'Зажми эту кнопку — услышишь оригинал без изменений. Отпусти — снова буст. Сравнивай туда-обратно.'},
+    text:'Зажми эту кнопку — услышишь оригинал без изменений. Отпусти — снова буст. Сравнивай туда-обратно. Быстрее: зажми правую кнопку мыши прямо на графике — эффект тот же, без наведения на кнопку.'},
   {sel:'.pm-graph-card',title:ICON_TARGET+'Угадывание на графике',
     text:'Нажми прямо на графике, веди до нужной частоты и отпусти — воротики (⊏ ⊐) показывают, где ты сейчас. Отпустил — ответ сразу засчитан.'},
   {sel:'.pm-freq-guide',title:ICON_BOOK+'Что где живёт',
@@ -1453,6 +1458,7 @@ loadTrackManifest();
 const graphTouchEl=document.getElementById('graphTouch');
 graphTouchEl.addEventListener('mousedown',graphPointerDown);
 graphTouchEl.addEventListener('touchstart',graphPointerDown,{passive:false});
+graphTouchEl.addEventListener('contextmenu',e=>e.preventDefault());
 graphTouchEl.addEventListener('mousemove',graphHoverMove);
 graphTouchEl.addEventListener('mouseleave',graphHoverLeave);
 window.addEventListener('mousemove',graphPointerMove);

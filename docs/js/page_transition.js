@@ -5,8 +5,16 @@
    ощущалось как обрыв между двумя страницами. Появление уже есть в
    animations.css (body{animation:pageIn}) — здесь только уход.
    Подключается на каждой странице, после animations.css.
+
+   Там, где браузер умеет сам (Cross-Document View Transitions —
+   Chrome/Edge, см. @view-transition в animations.css), этот файл
+   вообще ничего не перехватывает — родной переход браузера плавнее
+   любого ручного фейда. Ручной фейд ниже — только fallback туда, где
+   этой поддержки нет (Firefox/Safari на момент написания).
    ══════════════════════════════════════ */
 (function () {
+  if ('onpageswap' in window) return; // браузер справится сам
+
   const reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   document.addEventListener('click', e => {

@@ -106,3 +106,16 @@
 @media (prefers-reduced-motion: reduce) {
   .reveal{opacity:1;transform:none}
 }
+
+/* ── Нативный переход между страницами (View Transitions API) ──
+   Браузер сам плавно перетекает от старой страницы к новой при обычной
+   навигации — без белой вспышки, без ручного JS-фейда. Поддерживается
+   в Chrome/Edge; там, где нет — js/page_transition.js сам определяет
+   отсутствие поддержки и использует свой fallback-фейд вместо этого. */
+@view-transition{navigation:auto}
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root),::view-transition-new(root){animation-duration:.22s}
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*){animation:none!important}
+}

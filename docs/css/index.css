@@ -20,7 +20,8 @@ body{background:radial-gradient(1200px 600px at 82% -10%,var(--bg-glow-1),transp
    вместо прежних одинаковых пилюль-кнопок на каждый пункт — раньше все
    8+ элементов шапки визуально спорили друг с другом за внимание.
    Из "громких" элементов остаётся только один — .nav-link-btn-primary. */
-nav{position:sticky;top:0;z-index:100;background:var(--nav-bg);backdrop-filter:blur(16px);border-bottom:var(--bw) solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:var(--space-0) var(--space-8);height:64px;box-shadow:0 18px 32px -28px rgba(0,0,0,.6)}
+nav{position:sticky;top:0;z-index:100;background:var(--nav-bg);backdrop-filter:blur(16px);border-bottom:var(--bw) solid var(--border);padding:var(--space-0) var(--space-8);height:64px;box-shadow:0 18px 32px -28px rgba(0,0,0,.6)}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;max-width:1240px;margin:0 auto;height:100%}
 .nav-logo{font-family:var(--display);font-weight:800;color:var(--text);text-decoration:none;letter-spacing:-.2px;display:flex;flex-direction:column;gap:2px;line-height:1;transition:opacity .18s ease}
 .nav-logo:hover{opacity:.82}
 .nav-logo-name{font-size:var(--text-body-2-size);letter-spacing:.01em;text-align:center}
@@ -237,8 +238,9 @@ footer{border-top:var(--bw) solid var(--border);padding:var(--space-5) var(--spa
    не было вообще никакого адаптива, логотип/вкладки/иконки просто
    налезали друг на друга. Перенос вкладок на свою строку — та же
    логика, что и на мобильном ниже, только раньше срабатывает. */
-@media(max-width:960px){
-  nav{flex-wrap:wrap;height:auto;row-gap:var(--space-2);padding:var(--space-2) var(--space-6)}
+@media(max-width:1100px){
+  nav{height:auto;padding:var(--space-2) var(--space-6)}
+  .nav-inner{flex-wrap:wrap;row-gap:var(--space-2)}
   .nav-tabs{order:3;width:100%;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none}
   .nav-tabs::-webkit-scrollbar{display:none}
 }

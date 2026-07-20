@@ -1,3 +1,23 @@
+## ⚠️ СРОЧНО, прямо сейчас: `migrations/040_fix_profile_insert_privilege_escalation.sql`
+
+Живая дыра — любой новый пользователь может выдать себе роль ADMIN,
+VIP и XP одним запросом сразу после регистрации (проверено вживую на
+двух одноразовых тестовых аккаунтах: 20.07, оба демоутнуты обратно
+после проверки — очистить их auth-записи вручную в Dashboard →
+Authentication → Users, ищи по `mixpro.rlstest.a.*@mailinator.com` и
+`mixpro.rlstest.b.*@mailinator.com`, не срочно, они безвредны).
+
+Причина: `guard_profile_privileged_fields()` (013/031/032/035) всегда
+вешалась только на UPDATE — INSERT в `profiles` (его делает `auth.js`
+сразу после регистрации через `SB.from('profiles').insert(...)`) им
+не защищён вообще, а политика `profiles_insert_own` ограничивает только
+`id = auth.uid()`, не остальные поля.
+
+**Сделай прямо сейчас:** Supabase Dashboard → SQL Editor → New query →
+вставь весь `migrations/040_fix_profile_insert_privilege_escalation.sql` →
+Run. Ничего в приложении при этом не ломается — обычная регистрация
+как вставляла профиль с полями по умолчанию, так и продолжит.
+
 # MIXPRO LMS — миграции БД (этап 1: архитектура)
 
 Это расширение текущего Supabase-проекта MIXPRO под систему курсов,

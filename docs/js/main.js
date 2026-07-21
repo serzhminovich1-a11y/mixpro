@@ -675,6 +675,26 @@ calcNoteHz();calcLufs();calcRoom();
 setTimeout(drawEnvelope,50);
 sbInit();
 
+// ── Карточка "Статус площадки" в герое — честные живые цифры, не
+// "онлайн сейчас" (на небольшой площадке почти всегда 0, выглядит как
+// заброшенный сайт) — общее число участников только растёт. Публичные
+// таблицы (profiles/glossary_terms/forum_threads все select using(true)),
+// анонимного ключа достаточно, авторизация не нужна.
+async function loadHeroStatus(){
+  const [{count:userCount},{count:termCount},{count:threadCount}]=await Promise.all([
+    SB.from('profiles').select('id',{count:'exact',head:true}),
+    SB.from('glossary_terms').select('id',{count:'exact',head:true}),
+    SB.from('forum_threads').select('id',{count:'exact',head:true}),
+  ]);
+  const userEl=document.getElementById('heroUserCount');
+  const termEl=document.getElementById('heroTermCount');
+  const threadEl=document.getElementById('heroThreadCount');
+  if(userEl)userEl.textContent=userCount??'—';
+  if(termEl)termEl.textContent=termCount??'—';
+  if(threadEl)threadEl.textContent=threadCount??'—';
+}
+loadHeroStatus();
+
 // Ссылки с других страниц ведут на index.html#trainers и т.п. —
 // открываем нужную вкладку сразу, а не всегда «Главную»
 (function(){

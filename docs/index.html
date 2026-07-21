@@ -72,16 +72,29 @@
 
 <!-- ══ HOME ══ -->
 <div id="home" class="section active">
-  <div class="hero hero-centered">
-    <h1>Стань <em>лучшим</em> в работе со звуком</h1>
-    <div class="hero-waves" id="heroWaves" title="Кликни по волне">
-      <canvas id="heroCanvas"></canvas>
+  <div class="hero hero-bento">
+    <div class="hero-main">
+      <div class="hero-eyebrow"><span class="eyebrow-dot"></span>MIXPRO // ЗВУКОИНЖЕНЕРИЯ</div>
+      <h1>Стань <em>лучшим</em> в работе со звуком</h1>
+      <p class="hero-sub">Тренируй слух в играх, изучай сведение, качай пресеты и соревнуйся с другими инженерами.</p>
+      <div class="hero-actions">
+        <button class="btn btn-primary" onclick="tab('trainers',document.getElementById('tabTrainers'))">Начать тренировку →</button>
+        <a class="btn btn-ghost" href="pages/courses.html" style="text-decoration:none;display:inline-block">Смотреть курсы</a>
+      </div>
     </div>
-    <p class="hero-sub">Тренируй слух в играх, изучай сведение, качай пресеты и соревнуйся с другими инженерами.</p>
-    <div class="hero-actions">
-      <button class="btn btn-primary" onclick="tab('trainers',document.getElementById('tabTrainers'))">Начать тренировку →</button>
-      <a class="btn btn-ghost" href="pages/courses.html" style="text-decoration:none;display:inline-block">Смотреть курсы</a>
+    <div class="hero-status">
+      <div class="hero-eyebrow"><span class="eyebrow-dot"></span>СТАТУС ПЛОЩАДКИ</div>
+      <div class="hero-status-num" id="heroUserCount">—</div>
+      <div class="hero-status-sub">участников на площадке</div>
+      <div class="hero-status-grid">
+        <div class="hero-status-item"><div class="hero-status-item-num" id="heroTermCount">—</div><div class="hero-status-item-label">Термины</div></div>
+        <div class="hero-status-item"><div class="hero-status-item-num">2</div><div class="hero-status-item-label">Тренажёры</div></div>
+        <div class="hero-status-item"><div class="hero-status-item-num" id="heroThreadCount">—</div><div class="hero-status-item-label">Тем на форуме</div></div>
+      </div>
     </div>
+  </div>
+  <div class="hero-waves" id="heroWaves" title="Кликни по волне">
+    <canvas id="heroCanvas"></canvas>
   </div>
 
   <div class="whats-inside">

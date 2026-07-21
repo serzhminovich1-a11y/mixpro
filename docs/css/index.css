@@ -95,9 +95,10 @@ nav{position:sticky;top:0;z-index:100;background:var(--nav-bg);backdrop-filter:b
    "СТАТУС ПЛОЩАДКИ") — тот же приём pulse-анимации, что уже есть у
    .pm-streak-icon.lit в peak_master.css, просто на маленькой точке. */
 .hero-eyebrow{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:var(--text-caption-2-size);font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted2);margin-bottom:var(--space-5)}
-.eyebrow-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);flex-shrink:0;animation:eyebrowPulse 1.8s ease-in-out infinite}
-@keyframes eyebrowPulse{0%,100%{opacity:1}50%{opacity:.4}}
-@media(prefers-reduced-motion:reduce){.eyebrow-dot{animation:none}}
+.eyebrow-dot{position:relative;width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);flex-shrink:0}
+.eyebrow-dot::before{content:'';position:absolute;inset:0;border-radius:50%;background:var(--green);animation:eyebrowPing 1.8s cubic-bezier(0,0,.2,1) infinite}
+@keyframes eyebrowPing{0%{transform:scale(1);opacity:.7}100%{transform:scale(2.4);opacity:0}}
+@media(prefers-reduced-motion:reduce){.eyebrow-dot::before{animation:none}}
 
 /* Бенто-раскладка героя: слева заголовок/CTA, справа живая карточка
    статуса площадки — вместо узкой центрированной колонки, чтобы контент
@@ -148,7 +149,7 @@ nav{position:sticky;top:0;z-index:100;background:var(--nav-bg);backdrop-filter:b
 @media(max-width:760px){
   .inside-grid{grid-template-columns:1fr}
 }
-.btn{font-family:var(--display);font-size:var(--text-body-1-size);font-weight:700;padding:var(--space-3) var(--space-7);border-radius:var(--r-pill);cursor:pointer;transition:.15s}
+.btn{font-family:var(--display);font-size:var(--text-caption-2-size);font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:var(--space-4) var(--space-7);border-radius:var(--r-pill);cursor:pointer;transition:.15s}
 .btn-primary{border:none;background:var(--amber);color:var(--on-accent);box-shadow:var(--accent-shadow)}
 .btn-primary:hover{opacity:.88;transform:translateY(-1px)}
 .btn-ghost{border:var(--bw) solid var(--border);background:transparent;color:var(--text)}

@@ -17,7 +17,7 @@
   --amber:#4ade80; --amber-dim:#a78bfa; --amber-glow:rgba(74,222,128,.12);
   --text:#eef0fb; --muted:rgba(255,255,255,.4); --muted2:rgba(255,255,255,.55); --green:#4ade80; --red:#f87171; --gold:#facc15;
   --s2:rgba(255,255,255,.07); --border-hi:rgba(255,255,255,.17);
-  --display:'Golos Text', sans-serif; --mono:'JetBrains Mono',monospace; --sans:'Golos Text', sans-serif;
+  --display:'Space Grotesk', sans-serif; --mono:'JetBrains Mono',monospace; --sans:'DM Sans', sans-serif;
   --surf-top:rgba(255,255,255,.05); --surf-bot:rgba(255,255,255,.015);
   --shadow-lift:0 1px 0 rgba(255,255,255,.05) inset, 0 1px 0 rgba(0,0,0,.4), 0 16px 32px -18px rgba(0,0,0,.6);
   --shadow-lift-hover:0 1px 0 rgba(255,255,255,.08) inset, 0 1px 0 rgba(0,0,0,.4), 0 18px 36px -14px rgba(0,0,0,.65), 0 0 0 1px rgba(74,222,128,.14);
@@ -30,7 +30,7 @@
   --red-glow:rgba(248,113,113,.08); --red-glow-strong:rgba(255,78,78,.1);
   --gold-glow:rgba(250,204,21,.12); --gold-glow-strong:rgba(250,204,21,.28);
   --bw:1px;
-  --r-pill:999px; --r-lg:16px; --r-card:14px; --r-md:10px; --r-sm:8px; --r-xs:4px; --r-badge:50%;
+  --r-pill:999px; --r-lg:20px; --r-card:18px; --r-md:12px; --r-sm:10px; --r-xs:4px; --r-badge:50%;
   --hero-glow-color:transparent;
 }
 
